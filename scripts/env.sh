@@ -28,9 +28,9 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 
 #=====================================================
 # Network related variables
-export NETWORK_TYPE="rustnet.ton.dev"
-export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
-export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
+export NETWORK_TYPE="fld.ton.dev"
+export NODE_TYPE="CPP"                  # can be 'RUST' or 'CPP'
+export ELECTOR_TYPE="fift"              # can be 'solidity' or 'fift'
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 

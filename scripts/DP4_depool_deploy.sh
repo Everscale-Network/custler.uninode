@@ -21,9 +21,9 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
-ValidatorAssuranceT=1000000
-MinStakeT=1000000
-ParticipantRewardFraction=99
+ValidatorAssuranceT=100000
+MinStakeT=10
+ParticipantRewardFraction=95
 BalanceThresholdT=20
 
 #===========================================================
