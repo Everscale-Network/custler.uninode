@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-03-15 15:00:00
+# (C) Sergey Tyurin  2021-03-09 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -431,7 +431,7 @@ function Send_Bid_Msg(){
         # ===============================================================
         # Verifying that a transaction has been sent (for 1 custodian acc) by checking change last transaction time
             Validator_Acc_Info="$(Get_Account_Info ${Validator_addr})"
-            declare -i Validator_Acc_LT_Sent=`echo "$Validator_Acc_Info" | awk '{print $3)}'`
+            declare -i Validator_Acc_LT_Sent=`echo "$Validator_Acc_Info" | awk '{print $3}'`
             if [[ $Validator_Acc_LT_Sent -gt $Validator_Acc_LT ]];then
                 echo "INFO: Sending transaction for elections was done SUCCESSFULLY!" >> "${ELECTIONS_WORK_DIR}/${elections_id}.log"
                 break
