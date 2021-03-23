@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-03-15 18:00:00
+# (C) Sergey Tyurin  2021-02-17 18:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -90,6 +90,7 @@ if [ "$elections_id" == "0" ]; then
 fi
 
 Next_ADNL_Key=`echo $Engine_ADNL_Info|awk '{print $3}'`
+[[ -z $Next_ADNL_Key ]] && Next_ADNL_Key=`echo $Engine_ADNL_Info|awk '{print $1}'`
 ADNL_KEY=${ADNL_KEY:=$Next_ADNL_Key}
 echo "INFO: Validator ADNL:    $ADNL_KEY"
 echo
