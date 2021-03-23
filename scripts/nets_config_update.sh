@@ -1,5 +1,5 @@
 #!/bin/bash
-# (C) Sergey Tyurin  2021-03-15 10:00:00
+# (C) Sergey Tyurin  2021-01-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -29,6 +29,9 @@ echo "Current network is $NETWORK_TYPE"
 
 GLB_CFG_FNAME="ton-global.config.json"
 TLC_CFG_FNAME="ton-lite-client.config.json"
+
+RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
+curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
 MAIN_GLB_URL="https://raw.githubusercontent.com/tonlabs/main.ton.dev/master/configs/ton-global.config.json"
 NET_GLB_URL="https://raw.githubusercontent.com/tonlabs/net.ton.dev/master/configs/net.ton.dev/ton-global.config.json"

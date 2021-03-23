@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2020-03-15 19:00:00
+# (C) Sergey Tyurin  2020-01-21 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -43,8 +43,9 @@ $CPP_NODE_LOG_FILE_NAME {
     dateext
     dateyesterday
     missingok
-    rotate 7
-    maxage 14
+    rotate 2
+    maxage 3
+    maxsize 50G
     sharedscripts
     notifempty
     nocompress
@@ -62,8 +63,9 @@ $RUST_NODE_LOG_FILE_NAME {
     dateext
     dateyesterday
     missingok
-    rotate 7
-    maxage 14
+    rotate 2
+    maxage 3
+    maxsize 50G
     sharedscripts
     notifempty
     nocompress

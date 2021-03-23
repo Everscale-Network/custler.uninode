@@ -38,7 +38,7 @@ export MSIG_FIX_STAKE=45000             # fixed stake for 'msig' mode (tokens). 
 export VAL_ACC_INIT_BAL=95000           # Initial balance on validator account for full balance staking (if MSIG_FIX_STAKE=0)
 export VAL_ACC_RESERVED=50              # Reserved amount staying on msig account in full staking mode
 
-export TIK_REPLANISH_AMOUNT=5           # If Tik acc balance less 2 tokens, It will be auto topup with thos amount
+export TIK_REPLANISH_AMOUNT=5           # If Tik acc balance less 2 tokens, It will be auto topup with this amount
 
 export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to BC in seconds
 NetName="${NETWORK_TYPE%%.*}"

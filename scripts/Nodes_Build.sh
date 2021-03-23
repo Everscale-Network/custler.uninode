@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-03-15 12:00:00
+# (C) Sergey Tyurin  2021-01-18 12:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -137,8 +137,8 @@ sh $HOME/rust_install.sh -y --default-toolchain ${RUST_VERSION}
 #    rustup toolchain install ${RUST_VERSION}
 # fi
 # curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain ${RUST_VERSION} -y
-cargo install cargo-binutils
 source $HOME/.cargo/env
+cargo install cargo-binutils
 #=====================================================
 # Build C++ node
 if $CPP_NODE_BUILD;then
@@ -196,6 +196,7 @@ if $RUST_NODE_BUILD;then
     cargo update
 
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
+    sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
     cargo build --release
     # --features "metrics"
@@ -234,6 +235,9 @@ rm -rf "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
 rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
 git clone https://github.com/tonlabs/ton-labs-contracts.git "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
 git clone --single-branch --branch multisig-surf-v2 https://github.com/tonlabs/ton-labs-contracts.git "${NODE_SRC_TOP_DIR}/Surf-contracts"
+
+RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
+curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
 BUILD_END_TIME=$(date +%s)
 Build_mins=$(( (BUILD_END_TIME - BUILD_STRT_TIME)/60 ))
