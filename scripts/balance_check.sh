@@ -45,7 +45,7 @@ fi
 [[ "$ACC_STATUS" == "Uninit" ]] && ACC_STATUS="${BoldText}${YellowBack}Uninit${NormText}" || ACC_STATUS="${BoldText}${GreeBack}Deployed and Active${NormText}"
 
 AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
-ACC_LAST_OP_TIME=`echo "$ACCOUNT_INFO" | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $3}'`
+ACC_LAST_OP_TIME=`echo "$ACCOUNT_INFO" | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $3)}'`
 
 echo -e "Status: $ACC_STATUS"
 echo "Has balance : $(echo "scale=3; $((AMOUNT)) / 1000000000" | $CALL_BC) tokens"
