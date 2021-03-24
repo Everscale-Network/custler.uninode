@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-03-15 18:00:00
+# (C) Sergey Tyurin  2021-02-17 18:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -17,8 +17,41 @@
 # may be republished without author(s) express written permission. 
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
-
-function Determine_Current_Network(){
+#
+#========= Functions list ===========
+# Determine_Current_Network()
+# echoerr()
+# hex2dec()
+# dec2hex()
+# TD_unix2human()
+# Check_DApp_URL()
+# Get_SC_current_state()
+# Get_TimeDiff() 
+# Get_Elector_Address()
+# Get_Current_Elections_ID()
+# Get_Account_Info()
+# Get_Account_Custodians_Info()
+# P34_ADNL_search()
+# P36_ADNL_search()
+# Get_DePool_elec_ID()
+# Get_Engine_ADNL()
+# Elector_ADNL_Search()
+# Get_NetConfig_P15()
+# Get_DP_Rounds()
+# Get_DP_Self_Balance()
+# Get_DP_Info()
+# Get_DP_Parts_List()
+# Get_DP_Part_Info()
+# Rounds_Sorting_by_ID()
+# Get_MSIG_Trans_List()
+# Send_MSIG_Trans_Confirm()
+# Send_File_To_BC()
+# CNode_Make_Elect_Keys_and_BOC()
+# =====================================================
+#
+# =====================================================
+#
+function Determine_Current_Network() {
     # get current network zerostate
     local OS_SYSTEM=`uname -s`
     if [[ "$OS_SYSTEM" == "Linux" ]];then
@@ -99,7 +132,7 @@ function hex2dec() {
     fi
 }
 # =====================================================
-dec2hex() {
+function dec2hex() {
     ival="${1^^}"
     ob=${2:-16}
     ib=${3:-10}
