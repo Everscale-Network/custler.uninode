@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-03-15 15:00:00
+# (C) Sergey Tyurin  2021-01-20 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -202,6 +202,7 @@ fi
 
 #===========================================
 # Generate validator contracts addresses and keys
+# Use: ./Prep-Msig.sh <Wallet name> <'Safe' or 'SetCode'> <Num of custodians> <workchain>
 ./Prep-Msig.sh Tik Safe 1 0
 ./Prep-Msig.sh $HOSTNAME Safe 3 0
 ./Prep-DePool.sh
