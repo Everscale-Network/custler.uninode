@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-03-15 15:00:00
+# (C) Sergey Tyurin  2021-02-18 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -28,12 +28,12 @@
 # Script assumes that: 
 #   - all keypairs are in ${KEYS_DIR} folder
 #
-#   use: SignVal_Trans.sh [AccName]
+#   use: Sign_Trans.sh [AccName]
 #      AccName - filename of separate acc with AccName{n}.keys.json keys files
 #      If AccName omitted - will use $HOSTNAME & msig{n}.keys.json
 #
 #  To force sign one of few transaction for specified acc
-#   use: SignVal_Trans.sh [AccName] [TransactionID]
+#   use: Sign_Trans.sh [AccName] [TransactionID]
 # ------------------------------------------------------------------------
 
 ####################
@@ -42,7 +42,7 @@ SEND_ATTEMPTS=10
 ###################
 function sgn_usage(){
 echo
-echo " use: SignVal_Trans.sh [AccName]"
+echo " use: Sign_Trans.sh [AccName]"
 echo " AccName - filename of separate acc with AccName{n}.keys.json keys files"
 echo " If AccName omitted - will use $HOSTNAME & msig{n}.keys.json"
 echo
