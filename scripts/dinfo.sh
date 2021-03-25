@@ -1,7 +1,7 @@
 #!/bin/bash
 DINFO_STRT_TIME=$(date +%s)
 
-# (C) Sergey Tyurin  2021-03-15 20:00:00
+# (C) Sergey Tyurin  2021-02-24 20:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -330,7 +330,7 @@ echo "| Donor:  $Lock_Stake_Donor                                               
 if [[ "${Lock_Stake_Round_0_Info}" != "null" ]];then
 echo "| Remain Amount   |          $Lock_Stake_Round_0_Amount            |            $Lock_Stake_Round_1_Amount          |       $(echo "$Lock_Stake_Out_Date" | gawk '{print strftime("%Y-%m-%d %H:%M:%S", $1)}')        |"
 else
-echo "|                                         YOU HAVE NOT LOCK STAKE                                                          |"
+echo "|                                         YOU HAVE NO LOCK STAKE                                                           |"
 fi
 echo " --------------------------------------------------------------------------------------------------------------------------"
 echo "|                                             VESTING STAKE                             |"
@@ -340,7 +340,7 @@ echo "| Remain Amount   |          $Vest_Stake_Round_0_Amount            |      
 echo "| Withdrow Date   |        $(echo "$VS_Withdr_Date_0"|gawk '{print strftime("%Y-%m-%d %H:%M:%S", $1)}')       |          $(echo "$VS_Withdr_Date_0" | gawk '{print strftime("%Y-%m-%d %H:%M:%S", $1)}')     |"
 echo "| Withdrow Amount |          $VS_Withdr_Amount_0            |            $VS_Withdr_Amount_1          |"
 else
-echo "|                                     YOU HAVE NOT VESTING STAKE                        |"
+echo "|                                     YOU HAVE NO VESTING STAKE                         |"
 fi
 echo " ---------------------------------------------------------------------------------------"
 
