@@ -4,6 +4,7 @@
 #### - Support both Rust and C++ nodes
 #### - Support both DePool and msig validations  
 #### - Support both fift and solidity electors
+#### - Run on Ubuntu 20.04, CentOS 8.2, FreeBSD 12.2/13 (for Linux - latest kernel preferable)
 
 ## 1. Setting environment
 First of all you have to set the follow environment variables for certain network at the beginning of **$HOME/custler.uninode/scripts/env.sh**:  
