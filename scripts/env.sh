@@ -28,9 +28,7 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 
 #=====================================================
 # Network related variables
-export NETWORK_TYPE="fld.ton.dev"
-export NODE_TYPE="CPP"                  # can be 'RUST' or 'CPP'
-export ELECTOR_TYPE="fift"              # can be 'solidity' or 'fift'
+export NETWORK_TYPE="fld.ton.dev"       # can be main.* / net.* / fld.* / rustnet.*
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 
@@ -45,15 +43,23 @@ NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
     main)
         export DApp_URL="https://main.ton.dev"
+        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
     net)
         export DApp_URL="https://net.ton.dev"
+        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
     fld)
+        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         export DApp_URL="https://gql.custler.net"
         ;;
     rustnet)
         export DApp_URL="https://rustnet.ton.dev"
+        export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
         ;;
     *)
         echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"

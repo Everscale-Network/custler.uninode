@@ -29,7 +29,7 @@ This script will build all binaries needed and has 3 options:
 ```bash
 ./Nodes_Build.sh        # build both C++ and Rust nodes
 ./Nodes_Build.sh rust   # build Rust node and tools
-./Nodes_Build.sh cpp    # build C++ node and toolws
+./Nodes_Build.sh cpp    # build C++ node and tools
 ```
 After success build all executable files will be placed to $HOME/bin directory
 
