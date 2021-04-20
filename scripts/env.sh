@@ -28,7 +28,7 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 
 #=====================================================
 # Network related variables
-export NETWORK_TYPE="fld.ton.dev"       # can be main.* / net.* / fld.* / rustnet.*
+export NETWORK_TYPE="rustnet.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 
@@ -66,7 +66,7 @@ case "$NetName" in
         exit 1
         ;;
 esac
-jq --arg a "${DApp_URL}" '.url = $a' tonos-cli.conf.json > tmp.tmp && mv -f tmp.tmp tonos-cli.conf.json 
+jq --arg a "${DApp_URL}" '.url = $a | .use_delimiters = false | .no_answer = true' tonos-cli.conf.json > tmp.tmp && mv -f tmp.tmp tonos-cli.conf.json 
 
 # FLD free giver to grant 100k 
 export Marvin_Addr="0:deda155da7c518f57cb664be70b9042ed54a92542769735dfb73d3eef85acdaf" 
@@ -170,7 +170,7 @@ export CALL_LC="$HOME/bin/lite-client -p ${KEYS_DIR}/liteserver.pub -a ${LITESER
 export CALL_VC="$HOME/bin/validator-engine-console -k ${KEYS_DIR}/client -p ${KEYS_DIR}/server.pub -a ${VAL_ENGINE_CONSOLE_IP}:${VAL_ENGINE_CONSOLE_PORT} -t 5"
 export CALL_VE="$HOME/bin/validator-engine"
 export CALL_TL="$HOME/bin/tvm_linker"
-export CALL_TC="$HOME/bin/tonos-cli -u $DApp_URL"
+export CALL_TC="$HOME/bin/tonos-cli -c $SCRIPT_DIR/tonos-cli.conf.json"
 export CALL_FIFT="${TON_BUILD_DIR}/crypto/fift -I ${FIFT_LIB}:${FSCs_DIR}"
 
 if [[ "$OS_SYSTEM" == "Linux" ]];then
