@@ -28,7 +28,7 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 
 #=====================================================
 # Network related variables
-export NETWORK_TYPE="rustnet.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
+export NETWORK_TYPE="fld.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 
