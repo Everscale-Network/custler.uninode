@@ -66,11 +66,7 @@ case "$NetName" in
         exit 1
         ;;
 esac
-<<<<<<< HEAD
 jq --arg a "${DApp_URL}" '.url = $a | .use_delimiters = false | .no_answer = true' tonos-cli.conf.json > tmp.tmp && mv -f tmp.tmp tonos-cli.conf.json 
-=======
-jq --arg a "${DApp_URL}" '.url = $a | .use_delimiters = false' tonos-cli.conf.json > tmp.tmp && mv -f tmp.tmp tonos-cli.conf.json 
->>>>>>> b1bbbee6ee92ab6f9b5297c4ef842355ba6eec16
 
 # FLD free giver to grant 100k 
 export Marvin_Addr="0:deda155da7c518f57cb664be70b9042ed54a92542769735dfb73d3eef85acdaf" 
