@@ -478,7 +478,7 @@ else
     # ===============================================================
     # Verifying that a transaction has been sent (for 1 custodian acc) by cheching change last transaction time
     Validator_Acc_Info="$(Get_Account_Info ${Validator_addr})"
-    declare -i Validator_Acc_LT_Sent=`echo "$Validator_Acc_Info" | awk '{print $3)}'`
+    declare -i Validator_Acc_LT_Sent=`echo "$Validator_Acc_Info" | awk '{print $3}'`
     if [[ $Validator_Acc_LT_Sent -gt $Validator_Acc_LT ]];then
         echo "INFO: Sending transaction for elections was done SUCCESSFULLY!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log" 
     else
