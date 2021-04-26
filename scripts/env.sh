@@ -28,7 +28,7 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 
 #=====================================================
 # Network related variables
-export NETWORK_TYPE="fld.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
+export NETWORK_TYPE="rustnet.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 
@@ -112,6 +112,8 @@ export TONOS_CLI_GIT_REPO="https://github.com/tonlabs/tonos-cli.git"
 export TONOS_CLI_GIT_COMMIT="master"
 export TVM_LINKER_GIT_REPO="https://github.com/tonlabs/TVM-linker.git"
 export TVM_LINKER_GIT_COMMIT="master"
+export SOLC_GIT_REPO="https://github.com/tonlabs/TON-Solidity-Compiler.git"
+export SOLC_GIT_COMMIT="master"
 
 #=====================================================
 # Source code folders
@@ -122,6 +124,7 @@ export UTILS_DIR="${TON_BUILD_DIR}/utils"
 export RNODE_SRC_DIR="${NODE_SRC_TOP_DIR}/rnode"
 export RCONS_SRC_DIR="${NODE_SRC_TOP_DIR}/rcons"
 export TVM_LINKER_SRC_DIR="${NODE_SRC_TOP_DIR}/TVM_Linker"
+export SOLC_SRC_DIR="${NODE_SRC_TOP_DIR}/SolC"
 
 #=====================================================
 # Work folders for db, keys and conf

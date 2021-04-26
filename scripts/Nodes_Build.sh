@@ -49,9 +49,9 @@ esac
 
 #=====================================================
 # Packages set for different OSes
-PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip"
-PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip"
-PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc"
+PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip boost-all"
+PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip boost-devel"
+PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libboost-all-dev"
 
 PKG_MNGR_FreeBSD="sudo pkg"
 PKG_MNGR_CentOS="sudo dnf"
@@ -166,18 +166,6 @@ if $CPP_NODE_BUILD;then
     cargo build --release
     cp "${NODE_SRC_TOP_DIR}/utils/convert_address/target/release/convert_address" "$HOME/bin/"
     echo "---INFO: build utils (convert_address)... DONE"
-    #=====================================================
-    # Build TVM-linker
-    echo "---INFO: build TVM-linker ..."
-    [[ ! -z ${TVM_LINKER_SRC_DIR} ]] && rm -rf "${TVM_LINKER_SRC_DIR}"
-    git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
-    cd "${TVM_LINKER_SRC_DIR}"
-    git checkout "${TVM_LINKER_GIT_COMMIT}"
-
-    cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
-    cargo build --release
-    cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
-    echo "---INFO: build TVM-linker ... DONE."
 fi
 #=====================================================
 # Build rust node
@@ -217,6 +205,36 @@ if $RUST_NODE_BUILD;then
     find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $HOME/bin/ \;
     echo "---INFO: build RUST NODE ... DONE."
 fi
+#=====================================================
+# Build TON Solidity Compiler (solc)
+echo "---INFO: build TON Solidity Compiler ..."
+[[ ! -z ${SOLC_SRC_DIR} ]] && rm -rf "${SOLC_SRC_DIR}"
+git clone --recurse-submodules "${SOLC_GIT_REPO}" "${SOLC_SRC_DIR}"
+cd "${SOLC_SRC_DIR}"
+git checkout "${SOLC_GIT_COMMIT}"
+mkdir ${SOLC_SRC_DIR}/build
+cd "${SOLC_SRC_DIR}/build"
+cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
+if [[ "$(uname)" == "Linux" ]];then
+    V_CPU=`nproc`
+else
+    V_CPU=`sysctl -n hw.ncpu`
+fi
+cmake --build . -- -j $V_CPU
+cp -f "${SOLC_SRC_DIR}/build/solc/solc" $HOME/bin/
+cp -f "${SOLC_SRC_DIR}/lib/stdlib_sol.tvm" $HOME/bin/
+echo "---INFO: build TON Solidity Compiler ... DONE."
+#=====================================================
+# Build TVM-linker
+echo "---INFO: build TVM-linker ..."
+[[ ! -z ${TVM_LINKER_SRC_DIR} ]] && rm -rf "${TVM_LINKER_SRC_DIR}"
+git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
+cd "${TVM_LINKER_SRC_DIR}"
+git checkout "${TVM_LINKER_GIT_COMMIT}"
+cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
+cargo build --release
+cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
+echo "---INFO: build TVM-linker ... DONE."
 #=====================================================
 # Build tonos-cli
 echo "---INFO: build tonos-cli ... "
