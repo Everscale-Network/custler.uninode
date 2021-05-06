@@ -50,7 +50,7 @@ esac
 #=====================================================
 # Packages set for different OSes
 PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip boost-all"
-PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip boost-devel"
+PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip boost-devel boost-static"
 PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libboost-all-dev"
 
 PKG_MNGR_FreeBSD="sudo pkg"
@@ -127,15 +127,10 @@ echo "---INFO: Install packages ... DONE"
 
 #=====================================================
 # Install or upgrade RUST
-# OS_SYSTEM=`uname -s`
-# if [[ "$OS_SYSTEM" == "Linux" ]];then
-#    curl https://sh.rustup.rs -sSf | sh -s -- -y
-#    source "$HOME/.cargo/env"
 cd $HOME
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o $HOME/rust_install.sh
-sh $HOME/rust_install.sh -y --default-toolchain ${RUST_VERSION}
-#    rustup toolchain install ${RUST_VERSION}
-# fi
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y
+# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o $HOME/rust_install.sh
+# sh $HOME/rust_install.sh -y --default-toolchain ${RUST_VERSION}
 # curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain ${RUST_VERSION} -y
 source $HOME/.cargo/env
 cargo install cargo-binutils
@@ -186,7 +181,7 @@ if $RUST_NODE_BUILD;then
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
     sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
-    cargo build --release
+    RUSTFLAGS="-C target-cpu=native" cargo build --release
     # --features "metrics"
     # --features "external_db,metrics"
 
@@ -200,7 +195,7 @@ if $RUST_NODE_BUILD;then
     git checkout "${RCONS_GIT_COMMIT}"
     git submodule init
     git submodule update
-    cargo build --release
+    RUSTFLAGS="-C target-cpu=native" cargo build --release
 
     find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $HOME/bin/ \;
     echo "---INFO: build RUST NODE ... DONE."
@@ -232,7 +227,7 @@ git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
 cd "${TVM_LINKER_SRC_DIR}"
 git checkout "${TVM_LINKER_GIT_COMMIT}"
 cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
-cargo build --release
+RUSTFLAGS="-C target-cpu=native" cargo build --release
 cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
 echo "---INFO: build TVM-linker ... DONE."
 #=====================================================
@@ -243,7 +238,7 @@ git clone --recurse-submodules "${TONOS_CLI_GIT_REPO}" "${TONOS_CLI_SRC_DIR}"
 cd "${TONOS_CLI_SRC_DIR}"
 git checkout "${TONOS_CLI_GIT_COMMIT}"
 cargo update
-cargo build --release
+RUSTFLAGS="-C target-cpu=native" cargo build --release
 cp "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"
 echo "---INFO: build tonos-cli ... DONE"
 
