@@ -181,7 +181,7 @@ if $RUST_NODE_BUILD;then
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
     sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
-    RUSTFLAGS="-C target-cpu=native" cargo build --release
+    cargo build --release
     # --features "metrics"
     # --features "external_db,metrics"
 
@@ -195,7 +195,7 @@ if $RUST_NODE_BUILD;then
     git checkout "${RCONS_GIT_COMMIT}"
     git submodule init
     git submodule update
-    RUSTFLAGS="-C target-cpu=native" cargo build --release
+    cargo build --release
 
     find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $HOME/bin/ \;
     echo "---INFO: build RUST NODE ... DONE."
@@ -227,7 +227,7 @@ git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
 cd "${TVM_LINKER_SRC_DIR}"
 git checkout "${TVM_LINKER_GIT_COMMIT}"
 cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
-RUSTFLAGS="-C target-cpu=native" cargo build --release
+cargo build --release
 cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
 echo "---INFO: build TVM-linker ... DONE."
 #=====================================================
@@ -238,7 +238,7 @@ git clone --recurse-submodules "${TONOS_CLI_GIT_REPO}" "${TONOS_CLI_SRC_DIR}"
 cd "${TONOS_CLI_SRC_DIR}"
 git checkout "${TONOS_CLI_GIT_COMMIT}"
 cargo update
-RUSTFLAGS="-C target-cpu=native" cargo build --release
+cargo build --release
 cp "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"
 echo "---INFO: build tonos-cli ... DONE"
 
