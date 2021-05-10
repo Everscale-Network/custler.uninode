@@ -473,6 +473,7 @@ if [[ $Required_Signs -gt 1 ]];then
         ${SCRIPT_DIR}/Sign_Trans.sh ${VALIDATOR_NAME} ${Elect_Trans_ID}| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     else
         echo "###-ERROR(line $LINENO): Transaction does not made or timeout is too low!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server ALARM!!!" "###-ERROR(line $LINENO): Transaction does not made or timeout is too low!" 
     fi
 else
     # ===============================================================
@@ -480,7 +481,7 @@ else
     Validator_Acc_Info="$(Get_Account_Info ${Validator_addr})"
     declare -i Validator_Acc_LT_Sent=`echo "$Validator_Acc_Info" | awk '{print $3}'`
     if [[ $Validator_Acc_LT_Sent -gt $Validator_Acc_LT ]];then
-        echo "INFO: Sending transaction for elections was done SUCCESSFULLY!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log" 
+        echo "INFO: Sending transaction for elections was done SUCCESSFULLY!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     else
         echo "###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" 2>&1 > /dev/null
