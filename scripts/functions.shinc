@@ -341,6 +341,7 @@ function Get_Account_Info() {
             local AMOUNT_nt=`echo "$ACCOUNT_INFO" |grep -i 'balance:' |awk '{print $2}'`
             local LASTOP=`echo "$ACCOUNT_INFO" | grep -i 'last_paid:' | gawk '{print $2}'`
             local STATUS=`echo "$ACCOUNT_INFO" | grep -i 'acc_type:'|awk '{print $2}'`
+            # AMOUNT_nt=`echo "scale=3; $AMOUNT_nt * 1000000000" | $CALL_BC | cut -d '.' -f 1`
             ;;
         CPP)
             local ACCOUNT_INFO=`$CALL_LC -rc "getaccount ${ACCOUNT}" -rc "quit" 2>/dev/null`
@@ -966,28 +967,33 @@ function Send_MSIG_Trans_Confirm() {
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot find SafeCodeWallet ABI or Keys file. Can't continue. Sorry."
         exit 1
     fi
+ 
+    # prepare user signatures
+    echo "${msig_secret}${msig_public}" > tmp.keys.txt
+    rm -f tmp.keys.bin
+    xxd -r -p tmp.keys.txt tmp.keys.bin
+    local TVM_OUTPUT=$($CALL_TL message $pure_addr -a ${SafeC_Wallet_ABI} -m confirmTransaction -p "{\"transactionId\":$Trans_ID}" -w $wc --setkey tmp.keys.bin)
+    if [[ -z $(echo "$TVM_OUTPUT" | grep "boc file created") ]];then
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): TVM linker CANNOT create boc file for signature!!! Can't continue. Exit."
+        exit 1
+    fi
+    mv -f "$(echo "$pure_addr"| cut -c 1-8)-msg-body.boc" "confirm-msg.boc"
+
     case "${NODE_TYPE}" in
         RUST)
-            if $CALL_TC call ${MSIG_ADDR} confirmTransaction "{\"transactionId\":\"${Trans_ID}\"}" --abi $SafeC_Wallet_ABI --sign $Keys_File 1>&2 ; then
-               Result="success"
-            fi
-            ;;
-        CPP)
-            # prepare user signatures
-            echo "${msig_secret}${msig_public}" > tmp.keys.txt
-            rm -f tmp.keys.bin
-            xxd -r -p tmp.keys.txt tmp.keys.bin
-            local TVM_OUTPUT=$($CALL_TL message $pure_addr -a ${SafeC_Wallet_ABI} -m confirmTransaction -p "{\"transactionId\":$Trans_ID}" -w $wc --setkey tmp.keys.bin)
-            if [[ -z $(echo "$TVM_OUTPUT" | grep "boc file created") ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): TVM linker CANNOT create boc file for signature ${i}!!! Can't continue. Exit."
+            if [[ -e $($CALL_RC -c "sendmessage confirm-msg.boc" | grep -i 'success') ]]; then
+            #if $CALL_TC call ${MSIG_ADDR} confirmTransaction "{\"transactionId\":\"${Trans_ID}\"}" --abi $SafeC_Wallet_ABI --sign $Keys_File 1>&2 ; then
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
                 exit 1
             fi
-            mv -f "$(echo "$pure_addr"| cut -c 1-8)-msg-body.boc" "confirm-msg.boc"
-            trap 'echo LC TIMEOUT EXIT' EXIT
+            rm -f tmp.keys.bin tmp.keys.txt confirm-msg.boc
+            Result="success"
+            sleep $LC_Send_MSG_Timeout
+            ;;
+        CPP)
             local LC_OUT="$($CALL_LC -rc "sendfile confirm-msg.boc" -rc 'quit' 2>&1 | grep 'external message status is 1')"
-            trap - EXIT
             if [[ -z "$LC_OUT" ]]; then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation ${i} FAILED!!!"
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
                 exit 1
             fi
             rm -f tmp.keys.bin tmp.keys.txt confirm-msg.boc
@@ -1011,7 +1017,8 @@ function Send_File_To_BC() {
     [[ ! -f $BOC_File ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): File to send not found!!!"
     case "${NODE_TYPE}" in
         RUST)
-            if $CALL_TC sendfile $BOC_File &>/dev/null ; then
+            if [[ -n $($CALL_RC -c "sendmessage $BOC_File" | grep -i 'success') ]]; then
+            #if $CALL_TC sendfile $BOC_File &>/dev/null ; then
                Result="success"
             fi
             sleep $LC_Send_MSG_Timeout
