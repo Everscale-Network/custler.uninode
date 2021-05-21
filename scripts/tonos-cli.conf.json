@@ -1,1 +1,11 @@
-{"url":"https://rustnet.ton.dev","wc":0,"addr":null,"abi_path":null,"keys_path":null,"retries":5,"timeout":60000}
+{
+  "url": "https://rustnet.ton.dev",
+  "wc": 0,
+  "addr": null,
+  "abi_path": null,
+  "keys_path": null,
+  "retries": 5,
+  "timeout": 60000,
+  "use_delimiters": false,
+  "no_answer": true
+}

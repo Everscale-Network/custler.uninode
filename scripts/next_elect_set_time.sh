@@ -24,7 +24,7 @@ USER_HOME=$HOME
 [[ -n $(echo "$USER_HOME"|grep 'root') ]] && SCRPT_USER="root"
 
 DELAY_TIME=0        # Delay time from the start of elections
-TIME_SHIFT=300      # Time between sequential scripts
+TIME_SHIFT=600      # Time between sequential scripts
 
 echo
 echo "############################## Set crontab for next elections ##################################"
@@ -178,7 +178,7 @@ if [[ "$OS_SYSTEM" == "FreeBSD" ]];then
 
 CRONT_JOBS=$(cat <<-_ENDCRN_
 SHELL=/bin/bash
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:/$USER_HOME/bin
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$USER_HOME/bin
 HOME=/$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh >> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh >> ${TON_LOG_DIR}/validator.log
