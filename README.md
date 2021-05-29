@@ -87,7 +87,7 @@ MS-Wallet_deploy.sh $VALIDATOR_NAME Safe 3 2
 #### 5.3.1 Setup DePool parametrs
 First of all we to have set DePool parametrs at the beginnig of deploy script **`DP4_depool_deploy.sh`**  
 ```bash
-ValidatorAssuranceT=100000      # Assurance in tokens
+ValidatorAssuranceT=10000      # Assurance in tokens
 MinStakeT=10                    # Min DePool assepted stake in tokens
 ParticipantRewardFraction=95    # In % participant share from reward
 BalanceThresholdT=20 
@@ -127,8 +127,82 @@ To deploy Tik smartcontract use the same script as for msig
 ./MS-Wallet_deploy.sh Tik Safe 1 1
 ```
 
-## 6. Start validation 
+## 6. Send stake to DePool
+Simple way to send stake to the depool is **ordinary stake**  to each round. Do follow before first elections for first round:
+```bash
+. ./env.sh
+$CALL_TC depool --addr $(cat ${KEYS_DIR}/depool.addr) stake ordinary --wallet $(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr) --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json --value 30000
+./Sign_Trans.sh
+```
+And do the same just after sent stake to the elector.  
 
+More complex is to set **lock stake**. It will be automatically divide halfly for two rounds.
+Before elections start do the follow:  
+```bash
+. ./env.sh
+$CALL_TC depool --addr $(cat ${KEYS_DIR}/depool.addr) stake ordinary --wallet $(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr) --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json --value 30000
+./Sign_Trans.sh
+Donor_Addr=$(cat ${KEYS_DIR}/Donor.addr)  # should not be your validator address
+$CALL_TC depool --addr $(cat ${KEYS_DIR}/depool.addr) donor vesting --wallet $(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr) --donor "$Donor_Addr" --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json
+./Sign_Trans.sh 
+$CALL_TC depool --addr $(cat ${KEYS_DIR}/depool.addr) stake lock --wallet $(cat ${KEYS_DIR}/Donor.addr) --total 365 --withdrawal 365 --beneficiary $(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr) --sign ${KEYS_DIR}/Donor.keys.json  --value 60000
+./Sign_Trans.sh Donor
+./prepare_elections.sh
+# For remove your ordinary stake do
+$CALL_TC depool --addr $(cat ${KEYS_DIR}/depool.addr) withdraw on --wallet $(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr) --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json
+./Sign_Trans.sh
+```
+
+## 7. Validations
+### 7.1 "Tik" DePool
+After a few minutes from elections start, we have to prepare the DePool by **`prepare_elections.sh`** script  
+```bash
+./prepare_elections.sh
+```
+In case of depool validation mode, this script checks balance of Tik account and topup it if it less 2 tokens. Then it send tik-tok transaction from Tik to DePool.
+
+### 7.2 Send stake to elector
+```bash
+./take_part_in_elections.sh
+```
+This script prepare all nesessary steps to prepare bid transaction for election and call **`Sign_Trans.sh`** to sign and send message to DePool with keys for validating
+
+### 7.3 Check your participation in election
+To check your participation status in currrent election use **`part_check.sh`**
+During elections it will show your ADNL and stake amount. And between elections it will show your ADNL and % yours stake of total stake in the elector
+
+### 7.4 Set schedule in crontab
+To set all above scripts to run in time for further elections use script **`next_elect_set_time.sh`**`  
+It has 2 main parametrs inside:  
+```bash
+DELAY_TIME=0        # Delay time from the start of elections
+TIME_SHIFT=600      # Time between sequential scripts 
+```
+* **`DELAY_TIME`** - Time in seconds from a elections start and between scripts run
+* **`DELAY_TIME`** - additional timeshift in seconds from the elections start  
+**NB!**  crontab has not seconds precision, only minutes, so for proper use these numbers MUST be divisible by **60**
+
+After run this script it set itself to crontab and will be run after all scripts in each elections
+
+## 8. Alert and Info
+You can setup your Telegram chat to receive alerts and info in file **`TlgChat.json`** like this:
+```json
+{
+  "telegram_bot_token": "5xxxxxxx:Axxxxxxxxxxxxxxxxxxxxxx",
+  "telegram_chat_id": "-100xxxxxxxxxx"
+}
+```
+For monitoring timediff of your node you can run script **`tg_check_node_sync_status.s`** in tmux, for example:
+```bash
+cd $HOME/custler.uninode/scripts
+tmux new -ds tg
+tmux send -t tg.0 './tg_check_node_sync_status.sh &' ENTER
+```
+After that, if timediff will be more 100 secs or the node goes down you will receive message to you telegram channel.
+
+**`part_check.sh`** script called from crontab will notify you about elections result to the same channel.
+
+**`prepare_elections.sh`** and **`take_part_in_elections.sh`** will notify you if they will have some problems
 
 
 
