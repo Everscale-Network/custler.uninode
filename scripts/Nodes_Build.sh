@@ -202,23 +202,23 @@ if $RUST_NODE_BUILD;then
 fi
 #=====================================================
 # Build TON Solidity Compiler (solc)
-echo "---INFO: build TON Solidity Compiler ..."
-[[ ! -z ${SOLC_SRC_DIR} ]] && rm -rf "${SOLC_SRC_DIR}"
-git clone --recurse-submodules "${SOLC_GIT_REPO}" "${SOLC_SRC_DIR}"
-cd "${SOLC_SRC_DIR}"
-git checkout "${SOLC_GIT_COMMIT}"
-mkdir ${SOLC_SRC_DIR}/build
-cd "${SOLC_SRC_DIR}/build"
-cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
-if [[ "$(uname)" == "Linux" ]];then
-    V_CPU=`nproc`
-else
-    V_CPU=`sysctl -n hw.ncpu`
-fi
-cmake --build . -- -j $V_CPU
-cp -f "${SOLC_SRC_DIR}/build/solc/solc" $HOME/bin/
-cp -f "${SOLC_SRC_DIR}/lib/stdlib_sol.tvm" $HOME/bin/
-echo "---INFO: build TON Solidity Compiler ... DONE."
+# echo "---INFO: build TON Solidity Compiler ..."
+# [[ ! -z ${SOLC_SRC_DIR} ]] && rm -rf "${SOLC_SRC_DIR}"
+# git clone --recurse-submodules "${SOLC_GIT_REPO}" "${SOLC_SRC_DIR}"
+# cd "${SOLC_SRC_DIR}"
+# git checkout "${SOLC_GIT_COMMIT}"
+# mkdir ${SOLC_SRC_DIR}/build
+# cd "${SOLC_SRC_DIR}/build"
+# cmake ../compiler/ -DCMAKE_BUILD_TYPE=Release
+# if [[ "$(uname)" == "Linux" ]];then
+#     V_CPU=`nproc`
+# else
+#     V_CPU=`sysctl -n hw.ncpu`
+# fi
+# cmake --build . -- -j $V_CPU
+# cp -f "${SOLC_SRC_DIR}/build/solc/solc" $HOME/bin/
+# cp -f "${SOLC_SRC_DIR}/lib/stdlib_sol.tvm" $HOME/bin/
+# echo "---INFO: build TON Solidity Compiler ... DONE."
 #=====================================================
 # Build TVM-linker
 echo "---INFO: build TVM-linker ..."

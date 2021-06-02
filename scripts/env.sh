@@ -99,7 +99,7 @@ export ENGINE_ADDITIONAL_PARAMS=""
 
 #=====================================================
 # GIT addresses & commits
-export RUST_VERSION="1.50.0"
+export RUST_VERSION="1.52.1"
 export INSTALL_DEPENDENCIES="yes"
 export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
 export CNODE_GIT_COMMIT="cdfd7ce654bf6afe4e8de962c7f68abe1011b8a0"
