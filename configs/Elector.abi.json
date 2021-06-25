@@ -42,24 +42,6 @@
 			]
 		},
 		{
-			"name": "config_slash_confirmed_ok",
-			"id": "0xEE764F4C",
-			"inputs": [
-				{"name":"query_id","type":"uint64"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "config_slash_confirmed_err",
-			"id": "0xEE764F70",
-			"inputs": [
-				{"name":"query_id","type":"uint64"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "grant",
 			"id": "0x4772616E",
 			"inputs": [

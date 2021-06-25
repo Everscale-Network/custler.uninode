@@ -179,7 +179,7 @@ if [[ "$OS_SYSTEM" == "FreeBSD" ]];then
 CRONT_JOBS=$(cat <<-_ENDCRN_
 SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$USER_HOME/bin
-HOME=/$USER_HOME
+HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh >> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh >> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh >> ${TON_LOG_DIR}/validator.log && ./part_check.sh >> ${TON_LOG_DIR}/validator.log
