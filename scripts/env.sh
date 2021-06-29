@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-# (C) Sergey Tyurin  2021-01-20 10:00:00
+# (C) Sergey Tyurin  2021-06-29 22:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -39,6 +39,9 @@ export VAL_ACC_RESERVED=50              # Reserved amount staying on msig accoun
 export TIK_REPLANISH_AMOUNT=5           # If Tik acc balance less 2 tokens, It will be auto topup with this amount
 
 export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to BC in seconds
+
+export CONTRACTS_GIT_COMMIT="master"
+
 NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
     main)
@@ -60,6 +63,7 @@ case "$NetName" in
         export DApp_URL="https://rustnet.ton.dev"
         export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
+        export CONTRACTS_GIT_COMMIT="f05482f0a23ad904bab8ec4209fdf19acb23dd7f"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
         ;;
     *)
         echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"
@@ -99,7 +103,7 @@ export ENGINE_ADDITIONAL_PARAMS=""
 
 #=====================================================
 # GIT addresses & commits
-export RUST_VERSION="1.52.1"
+export RUST_VERSION="1.53.0"
 export INSTALL_DEPENDENCIES="yes"
 export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
 export CNODE_GIT_COMMIT="cdfd7ce654bf6afe4e8de962c7f68abe1011b8a0"
@@ -114,6 +118,7 @@ export TVM_LINKER_GIT_REPO="https://github.com/tonlabs/TVM-linker.git"
 export TVM_LINKER_GIT_COMMIT="master"
 export SOLC_GIT_REPO="https://github.com/tonlabs/TON-Solidity-Compiler.git"
 export SOLC_GIT_COMMIT="master"
+export CONTRACTS_GIT_REPO="https://github.com/tonlabs/ton-labs-contracts.git"
 
 #=====================================================
 # Source code folders

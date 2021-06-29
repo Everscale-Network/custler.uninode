@@ -1,5 +1,5 @@
 #!/bin/bash
-# (C) Sergey Tyurin  2021-03-15 19:00:00
+# (C) Sergey Tyurin  2021-06-29 22:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -21,9 +21,9 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
-ValidatorAssuranceT=100000
-MinStakeT=10
-ParticipantRewardFraction=95
+ValidatorAssuranceT=1000000
+MinStakeT=1000000
+ParticipantRewardFraction=99
 BalanceThresholdT=20
 
 #===========================================================
@@ -39,8 +39,18 @@ DP_Proxy_2020_12_11_MD5="3b8e08ffc4cff249e1d33ece9587fcc3"
 DP_2021_02_01_MD5="d2bcd6b68525d3068c7cfecfe1510458"
 DP_Proxy_2021_02_01_MD5="0ef3a063ea9573fc7f068cb89a075868"
 #-----------------------------------------------------------
+DP_RUSTCUP_2021_06_29_MD5="d466351fcf1e051c563b2054625db8f5"
+DP_PROXY_RUSTCUP_2021_06_29_MD5="e614e99a3193173543670eded2094850"
+#-----------------------------------------------------------
+
 CurrDP_MD5=$DP_2021_02_01_MD5
 CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
+
+NetName="${NETWORK_TYPE%%.*}"
+if [[ "$NetName" == "rustnet" ]];then
+    CurrDP_MD5=$DP_RUSTCUP_2021_06_29_MD5
+    CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_06_29_MD5
+fi
 
 echo
 echo "#################################### DePool deploy script ########################################"
@@ -173,20 +183,32 @@ fi
 echo "Depool balance: $((Depool_AMOUNT/1000000000)) ; status: $Depool_Status"
 echo
 #===========================================================
-read -p "### CHECK INFO TWICE!!! Is this a right Parameters? Think once more!  (yes/n)? " </dev/tty answer
-case ${answer:0:3} in
-    yes|YES )
-         echo
-         echo "Processing....."
-     ;;
-     * )
-         echo
-         echo "If you absolutely sure, type 'yes' "
-         echo "Cancelled."
-         exit 1
-     ;;
- esac
+# read -p "### CHECK INFO TWICE!!! Is this a right Parameters? Think once more!  (yes/n)? " </dev/tty answer
+# case ${answer:0:3} in
+#     yes|YES )
+#         echo
+#         echo "Processing....."
+#     ;;
+#     * )
+#         echo
+#         echo "If you absolutely sure, type 'yes' "
+#         echo "Cancelled."
+#         exit 1
+#     ;;
+# esac
 #===========================================================
+# exit 0
+# from https://docs.ton.dev/86757ecb2/v/0/p/37a848-run-depool/t/019261 :
+# tonos-cli deploy DePool.tvc 
+#   '{
+#     "minStake":*number*
+#     "validatorAssurance":*number*,
+#     "proxyCode":"<ProxyContractCodeInBase64>",
+#     "validatorWallet":"<validatorWalletAddress>",
+#     "participantRewardFraction":*number*,
+#   }' 
+#   --abi DePool.abi.json 
+#   --sign depool.json --wc 0
 
 echo "{\"minStake\":$MinStake,\"validatorAssurance\":$ValidatorAssurance,\"proxyCode\":\"$ProxyCode\",\"validatorWallet\":\"$Validator_addr\",\"participantRewardFraction\":$ParticipantRewardFraction}"
 

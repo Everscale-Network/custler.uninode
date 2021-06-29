@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-01-18 12:00:00
+# (C) Sergey Tyurin  2021-09-29 22:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -132,6 +132,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-t
 # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o $HOME/rust_install.sh
 # sh $HOME/rust_install.sh -y --default-toolchain ${RUST_VERSION}
 # curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain ${RUST_VERSION} -y
+
 source $HOME/.cargo/env
 cargo install cargo-binutils
 #=====================================================
@@ -181,7 +182,7 @@ if $RUST_NODE_BUILD;then
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
     sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
-    cargo build --release
+    RUSTFLAGS="-C target-cpu=native" cargo build --release
     # --features "metrics"
     # --features "external_db,metrics"
 
@@ -195,7 +196,7 @@ if $RUST_NODE_BUILD;then
     git checkout "${RCONS_GIT_COMMIT}"
     git submodule init
     git submodule update
-    cargo build --release
+    RUSTFLAGS="-C target-cpu=native" cargo build --release
 
     find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $HOME/bin/ \;
     echo "---INFO: build RUST NODE ... DONE."
@@ -227,7 +228,7 @@ git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
 cd "${TVM_LINKER_SRC_DIR}"
 git checkout "${TVM_LINKER_GIT_COMMIT}"
 cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
-cargo build --release
+RUSTFLAGS="-C target-cpu=native" cargo build --release
 cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
 echo "---INFO: build TVM-linker ... DONE."
 #=====================================================
@@ -238,7 +239,7 @@ git clone --recurse-submodules "${TONOS_CLI_GIT_REPO}" "${TONOS_CLI_SRC_DIR}"
 cd "${TONOS_CLI_SRC_DIR}"
 git checkout "${TONOS_CLI_GIT_COMMIT}"
 cargo update
-cargo build --release
+RUSTFLAGS="-C target-cpu=native" cargo build --release
 cp "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"
 echo "---INFO: build tonos-cli ... DONE"
 
@@ -246,7 +247,10 @@ echo "---INFO: build tonos-cli ... DONE"
 # download contracts
 rm -rf "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
 rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
-git clone https://github.com/tonlabs/ton-labs-contracts.git "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+git clone ${CONTRACTS_GIT_REPO} "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+cd "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+git checkout $CONTRACTS_GIT_COMMIT 
+cd ${NODE_SRC_TOP_DIR}
 git clone --single-branch --branch multisig-surf-v2 https://github.com/tonlabs/ton-labs-contracts.git "${NODE_SRC_TOP_DIR}/Surf-contracts"
 
 RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"

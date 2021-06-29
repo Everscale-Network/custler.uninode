@@ -42,6 +42,24 @@
 			]
 		},
 		{
+			"name": "config_slash_confirmed_ok",
+			"id": "0xEE764F4C",
+			"inputs": [
+				{"name":"query_id","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "config_slash_confirmed_err",
+			"id": "0xEE764F70",
+			"inputs": [
+				{"name":"query_id","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "grant",
 			"id": "0x4772616E",
 			"inputs": [
@@ -61,6 +79,16 @@
 			"id": "0x47657424",
 			"inputs": [
 				{"name":"query_id","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "recover_stake_gracefully",
+			"id": "0x47657425",
+			"inputs": [
+				{"name":"query_id","type":"uint64"},
+				{"name":"elect_id","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -126,6 +154,15 @@
 		},
 		{
 			"name": "get_buckets",
+			"inputs": [
+				{"name":"victim_pubkey","type":"uint256"}
+			],
+			"outputs": [
+				{"components":[{"name":"weight","type":"uint64"},{"name":"reports","type":"map(uint256,uint64)"}],"name":"value0","type":"map(uint8,tuple)"}
+			]
+		},
+		{
+			"name": "get_buckets_workchain",
 			"inputs": [
 				{"name":"victim_pubkey","type":"uint256"}
 			],
