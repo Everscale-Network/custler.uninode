@@ -56,8 +56,8 @@ echo
 echo "#################################### DePool deploy script ########################################"
 echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
 echo 
-echo "DP_2021_02_01_MD5       = $DP_2021_02_01_MD5"
-echo "DP_Proxy_2021_02_01_MD5 = $DP_Proxy_2021_02_01_MD5"
+echo "DP_MD5       = $DP_2021_02_01_MD5"
+echo "DP_Proxy_MD5 = $DP_Proxy_2021_02_01_MD5"
 echo
 
 #===========================================================
