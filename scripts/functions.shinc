@@ -981,8 +981,8 @@ function Send_MSIG_Trans_Confirm() {
 
     case "${NODE_TYPE}" in
         RUST)
-            if [[ -e $($CALL_RC -c "sendmessage confirm-msg.boc" | grep -i 'success') ]]; then
-            #if $CALL_TC call ${MSIG_ADDR} confirmTransaction "{\"transactionId\":\"${Trans_ID}\"}" --abi $SafeC_Wallet_ABI --sign $Keys_File 1>&2 ; then
+            #if [[ -e $($CALL_RC -c "sendmessage confirm-msg.boc" | grep -i 'success') ]]; then
+            if [[ -e $($CALL_TC call ${MSIG_ADDR} confirmTransaction "{\"transactionId\":\"${Trans_ID}\"}" --abi $SafeC_Wallet_ABI --sign $Keys_File 1>&2 | grep -i 'Succeeded.') ]]; then
                 echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
                 exit 1
             fi
