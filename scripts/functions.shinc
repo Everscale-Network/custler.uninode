@@ -981,8 +981,8 @@ function Send_MSIG_Trans_Confirm() {
 
     case "${NODE_TYPE}" in
         RUST)
-            #if [[ -e $($CALL_RC -c "sendmessage confirm-msg.boc" | grep -i 'success') ]]; then
-            if [[ -e $($CALL_TC call ${MSIG_ADDR} confirmTransaction "{\"transactionId\":\"${Trans_ID}\"}" --abi $SafeC_Wallet_ABI --sign $Keys_File 1>&2 | grep -i 'Succeeded.') ]]; then
+            if [[ -e $($CALL_RC -c "sendmessage confirm-msg.boc" | grep -i 'success') ]]; then
+            #if [[ -e $($CALL_TC call ${MSIG_ADDR} confirmTransaction "{\"transactionId\":\"${Trans_ID}\"}" --abi $SafeC_Wallet_ABI --sign $Keys_File 1>&2 | grep -i 'Succeeded.') ]]; then
                 echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
                 exit 1
             fi
@@ -1017,8 +1017,8 @@ function Send_File_To_BC() {
     [[ ! -f $BOC_File ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): File to send not found!!!"
     case "${NODE_TYPE}" in
         RUST)
-            # if [[ -n $($CALL_RC -c "sendmessage $BOC_File" | grep -i 'success') ]]; then
-            if [[ -n $($CALL_TC sendfile $BOC_File &>/dev/null) ]] ; then
+            if [[ -n $($CALL_RC -c "sendmessage $BOC_File" | grep -i 'success') ]]; then
+            #if [[ -n $($CALL_TC sendfile $BOC_File &>/dev/null) ]] ; then
                Result="success"
             fi
             sleep $LC_Send_MSG_Timeout
