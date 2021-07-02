@@ -49,9 +49,9 @@ esac
 
 #=====================================================
 # Packages set for different OSes
-PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip boost-all"
-PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip boost-devel boost-static"
-PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libboost-all-dev"
+PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip boost-all zstd"
+PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip boost-devel boost-static libzstd-devel"
+PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libboost-all-dev libzstd-dev"
 
 PKG_MNGR_FreeBSD="sudo pkg"
 PKG_MNGR_CentOS="sudo dnf"
@@ -75,6 +75,7 @@ fi
 # Set packages set & manager according to OS
 case "$OS_SYSTEM" in
     FreeBSD)
+        export ZSTD_LIB_DIR=/usr/local/lib
         PKGs_SET=$PKGS_FreeBSD
         PKG_MNGR=$PKG_MNGR_FreeBSD
 #        $PKG_MNGR remove -y rust
@@ -95,6 +96,7 @@ case "$OS_SYSTEM" in
         ;;
 
     CentOS)
+        export ZSTD_LIB_DIR=/usr/lib64
         PKGs_SET=$PKGS_CentOS
         PKG_MNGR=$PKG_MNGR_CentOS
         $PKG_MNGR -y update --allowerasing
@@ -105,6 +107,7 @@ case "$OS_SYSTEM" in
         ;;
 
     Ubuntu)
+        export ZSTD_LIB_DIR=/usr/lib/x86_64-linux-gnu
         PKGs_SET=$PKGS_Ubuntu
         PKG_MNGR=$PKG_MNGR_Ubuntu
         $PKG_MNGR update && $PKG_MNGR upgrade -y 
@@ -182,7 +185,7 @@ if $RUST_NODE_BUILD;then
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
     sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
-    RUSTFLAGS="-C target-cpu=native" cargo build --release
+    RUSTFLAGS="-C target-cpu=native" cargo build --release --features "compression"
     # --features "metrics"
     # --features "external_db,metrics"
 
