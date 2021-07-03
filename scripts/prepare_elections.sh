@@ -358,19 +358,19 @@ xxd -r -p ${KEYS_DIR}/tik.keys.txt ${KEYS_DIR}/tik.keys.bin
 
 #=================================================
 # make boc file 
-echo -n "INFO: Make boc for lite-client ..."
-TVM_OUTPUT=$($CALL_TL message $tik_acc_addr -a $SafeC_Wallet_ABI -m submitTransaction \
-    -p "{\"dest\":\"$Depool_addr\",\"value\":$NANOSTAKE,\"bounce\":true,\"allBalance\":false,\"payload\":\"$Tik_Payload\"}" \
-    -w $Work_Chain --setkey ${KEYS_DIR}/tik.keys.bin \
-    | tee ${ELECTIONS_WORK_DIR}/TVM_linker-tikquery.log)
+function Make_BOC_file(){
+    TVM_OUTPUT=$($CALL_TL message $tik_acc_addr -a $SafeC_Wallet_ABI -m submitTransaction \
+        -p "{\"dest\":\"$Depool_addr\",\"value\":$NANOSTAKE,\"bounce\":true,\"allBalance\":false,\"payload\":\"$Tik_Payload\"}" \
+        -w $Work_Chain --setkey ${KEYS_DIR}/tik.keys.bin \
+        | tee ${ELECTIONS_WORK_DIR}/TVM_linker-tikquery.log)
 
-if [[ -z $(echo $TVM_OUTPUT | grep "boc file created") ]];then
-    echo "###-ERROR(line $LINENO): TVM linker CANNOT create boc file!!! Can't continue."
-    exit 2
-fi
+    if [[ -z $(echo $TVM_OUTPUT | grep "boc file created") ]];then
+        echoerr "###-ERROR(line $LINENO): TVM linker CANNOT create boc file!!! Can't continue."
+        exit 2
+    fi
 
-mv "$(echo "$tik_acc_addr"| cut -c 1-8)-msg-body.boc" "${ELECTIONS_WORK_DIR}/tik-msg.boc"
-echo " DONE"
+    mv -f "$(echo "$tik_acc_addr"| cut -c 1-8)-msg-body.boc" "${ELECTIONS_WORK_DIR}/tik-msg.boc"
+}
 
 ##############################################################################
 ################  Send TIK query to DePool ###################################
@@ -398,6 +398,9 @@ function Send_Tik(){
 
 for (( TryToSetEl=0; TryToSetEl <= 5; TryToSetEl++ ))
 do
+    echo -n "INFO: Make boc for lite-client ..."
+    Make_BOC_file
+    echo " DONE"
     echo -n "INFO: Send Tik query to DePool ..."
     #################
     Attempts_to_send=$(( $(Send_Tik | tail -n 1) ))
