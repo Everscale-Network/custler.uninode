@@ -376,26 +376,25 @@ if [[ "$STAKE_MODE" == "msig" ]];then
     echo "INFO: You stake: $(printf "%'9.2f" "$(echo $((NANOSTAKE)) / 1000000000 | jq -nf /dev/stdin)") Tk / $NANOSTAKE nTk"
 fi
 
-# ===============================================================
-# make boc for sending
-echo -n "INFO: Make transaction boc ..."
-TVM_OUTPUT=$($CALL_TL message $Val_Adrr_HEX \
-    -a ${SafeC_Wallet_ABI} \
-    -m submitTransaction \
-    -p "{\"dest\":\"$Stake_DST_Addr\",\"value\":$NANOSTAKE,\"bounce\":true,\"allBalance\":false,\"payload\":\"$validator_query_payload\"}" \
-    -w $Work_Chain --setkey ${KEYS_DIR}/msig.keys.bin)
-
-if [[ -z $(echo $TVM_OUTPUT | grep "boc file created") ]];then
-    echo "###-ERROR(line $LINENO): TVM linker CANNOT create boc file!!! Can't continue."
-    exit 3
-fi
-
-mv "$(echo "$Val_Adrr_HEX"| cut -c 1-8)-msg-body.boc" "${ELECTIONS_WORK_DIR}/${elections_id}_vaidator-query-msg.boc"
-echo " DONE"
-
 #####################################################################################################
 ###############  Send request to participate in elections ###########################################
 #####################################################################################################
+
+# ===============================================================
+# make boc for sending
+function Make_transaction_BOC() {
+    TVM_OUTPUT=$($CALL_TL message $Val_Adrr_HEX \
+        -a ${SafeC_Wallet_ABI} \
+        -m submitTransaction \
+        -p "{\"dest\":\"$Stake_DST_Addr\",\"value\":$NANOSTAKE,\"bounce\":true,\"allBalance\":false,\"payload\":\"$validator_query_payload\"}" \
+        -w $Work_Chain --setkey ${KEYS_DIR}/msig.keys.bin)
+
+    if [[ -z $(echo $TVM_OUTPUT | grep "boc file created") ]];then
+        echo "###-ERROR(line $LINENO): TVM linker CANNOT create boc file!!! Can't continue."
+        exit 3
+    fi
+    mv -f "$(echo "$Val_Adrr_HEX"| cut -c 1-8)-msg-body.boc" "${ELECTIONS_WORK_DIR}/${elections_id}_vaidator-query-msg.boc"
+}
 
 Required_Signs=`Get_Account_Custodians_Info $Validator_addr | awk '{print $2}'`
 Trans_DST_Addr=$Depool_addr
@@ -448,6 +447,12 @@ function Send_Bid_Msg(){
 ## 5x3 attempts to make trasaction
 for (( TryToSetEl=0; TryToSetEl <= 5; TryToSetEl++ ))
 do
+    echo -n "INFO: Make transaction boc ..."
+    #################
+    Make_transaction_BOC
+    #################
+    echo " DONE"
+
     echo -n "INFO: Send query to Elector... "
     #################
     Attempts_to_send=$(( $(Send_Bid_Msg | tail -n 1) ))
