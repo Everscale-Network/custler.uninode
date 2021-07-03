@@ -63,7 +63,7 @@ case "$NetName" in
         export DApp_URL="https://rustnet.ton.dev"
         export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
-        export CONTRACTS_GIT_COMMIT="f05482f0a23ad904bab8ec4209fdf19acb23dd7f"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
+        export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
         ;;
     *)
         echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"

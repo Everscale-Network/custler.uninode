@@ -201,7 +201,7 @@ if [[ "$STAKE_MODE" == "depool" ]];then
         echo "###-ALARM(line $LINENO): Current elections ID from elector $elections_id ($(TD_unix2human "$elections_id")) is not equal elections ID from DP: $Curr_DP_Elec_ID ($(TD_unix2human "$Curr_DP_Elec_ID"))" \
             | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         echo "###- I run TIK SCRIPT for last chance..." | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-        "${SCRIPT_DIR}/depool_tik.sh"
+        "${SCRIPT_DIR}/prepare_elections.sh"
     fi
 
     Depool_Rounds_Info="$(Get_DP_Rounds $Depool_addr)"
