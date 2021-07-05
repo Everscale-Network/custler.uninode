@@ -98,6 +98,7 @@ echo "Now is $(date +'%F %T %Z')"
 ADNL_FOUND="$(Elector_ADNL_Search $ADNL_KEY)"
 if [[ "$ADNL_FOUND" == "absent" ]];then
     echo "###-ERROR: Can't find you in participant list in Elector. account: ${Depool_addr}"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_SOS_sign ###-ALARM: Can't find you in participant list in Elector. account: ${Depool_addr}"
     exit 1
 fi
 
