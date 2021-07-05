@@ -72,7 +72,7 @@ if [ "$elections_id" == "0" ]; then
     FOUND_PUB_KEY=`echo "$Part_VAL" |awk '{print $1}'`
     if [[ "$FOUND_PUB_KEY" == "absent" ]];then
         echo "###-ERROR: Your ADNL Key NOT FOUND in current or next validators list!!!"
-        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "###-ERROR: Your ADNL Key NOT FOUND in current or next validators list!!!" 2>&1 > /dev/null
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_SOS_sign ###-ERROR: Your ADNL Key NOT FOUND in current or next validators list!!!" 2>&1 > /dev/null
 
         echo "-----------------------------------------------------------------------------------------------------"
         echo
@@ -110,6 +110,6 @@ echo "You will start validate from $(TD_unix2human ${elections_id})"
 
 TON_LIVE_URL=""
 # "https://ton.live/validators?section=details&public_key=${You_PubKey}&key_block_num=undefined"
-"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "We are successfully participate in elections $election_id with stake $Your_Stake and ADNL:  $(echo "$ADNL_KEY" | tr "[:upper:]" "[:lower:]") ${TON_LIVE_URL}" 2>&1 > /dev/null
+"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_CheckMark We are successfully participate in elections $election_id with stake $Your_Stake and ADNL:  $(echo "$ADNL_KEY" | tr "[:upper:]" "[:lower:]") ${TON_LIVE_URL}" 2>&1 > /dev/null
 echo "-----------------------------------------------------------------------------------------------------"
 exit 0

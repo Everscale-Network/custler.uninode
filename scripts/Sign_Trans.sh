@@ -68,7 +68,7 @@ if [[ "$NODE_TYPE" == "RUST" ]];then
     if [[ "$DApp_State" != "fine" ]];then
     echo "###-ERROR(line $LINENO): DApp server has state: $DApp_State. Check network type in env.sh and URL in tonos-cli.conf.json: $URL_for_TL"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
-        "ALARM!!! DApp server has state: $DApp_State. Check DApp, network type in env.sh and URL in tonos-cli.conf.json: $URL_for_TL" 2>&1 > /dev/null
+        "$Tg_SOS_sign ALARM!!! DApp server has state: $DApp_State. Check DApp, network type in env.sh and URL in tonos-cli.conf.json: $URL_for_TL" 2>&1 > /dev/null
     exit 1
     fi
 fi
@@ -218,7 +218,7 @@ done
 
 if [[ ! $Confirmed_Flag ]] ;then
     echo "###-ERROR: CANNOT sign transaction $Trans_ID by key # ${i} with pubkey: $msig_public from file: ${KEYS_DIR}/${KeyFileName}_${i}.keys.json"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "ALARM!!! Signing transaction $Trans_ID for election FAILED!!!" 2>&1 > /dev/null
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ALARM!!! Signing transaction $Trans_ID for election FAILED!!!" 2>&1 > /dev/null
     exit 1
 fi
 

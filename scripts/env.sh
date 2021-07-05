@@ -195,3 +195,5 @@ export BlueBack="\e[44m"
 export RedBack="\e[41m"
 export YellowBack="\e[43m"
 export BoldText="\e[1m"
+export Tg_CheckMark=$(echo -e "\U0002705")
+export Tg_SOS_sign=$(echo -e "\U0001F198")
