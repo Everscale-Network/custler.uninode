@@ -176,7 +176,7 @@ function Check_DApp_URL() {
         echo "${result}"
         return
     fi
-    local Net_Zero_Block_Check=$(curl -sS -X POST -g -H "Content-Type: application/json" https://main.ton.dev/graphql \
+    local Net_Zero_Block_Check=$(curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql \
     -d '{"query": "query {blocks(filter: {seq_no:{eq: 1},workchain_id:{eq:-1}}) {boc}}"}' 2>/dev/null \
     |jq -r '.data.blocks[]|length' 2>/dev/null)
     if [[ $Net_Zero_Block_Check -ne 1 ]];then
@@ -674,7 +674,7 @@ function Elector_ADNL_Search() {
                     Result="$stake $time $max_factor $addr"
                     ;;
                 solidity)
-                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Non implemented for CPP node with Solidity Elector!"
+                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Not implemented for CPP node with Solidity Elector!"
                     exit 1
                     ;;
                 *)

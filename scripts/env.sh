@@ -42,15 +42,39 @@ export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to
 
 export CONTRACTS_GIT_COMMIT="master"
 
+MainNet_DApp_List="https://main.ton.dev https://main2.ton.dev https://main3.ton.dev https://main4.ton.dev"
+DevNet_DApp_List="https://net.ton.dev https://net1.ton.dev https://net5.ton.dev"
+
+#=====================================================
+# Function to check the DApp url by querying blocks in the last 30 seconds
+function TestDURL() {
+	local lDApp_URL=$1
+	CurrTime=$(date +%s)
+	BackTime=$((CurrTime - 30))
+	DApp_Test_Query="query\": \"query {blocks(limit:10, filter: {gen_utime: {ge: $BackTime}}){id}}"
+	local NumOfBlks=$(curl -sS -X POST -g -H "Content-Type: application/json" ${lDApp_URL}/graphql -d "{\"$DApp_Test_Query\"}" 2>/dev/null |jq -r '[.data.blocks[]]|length' 2>/dev/null)
+	echo $((NumOfBlks))
+}
+function GetWork_DURL() {
+    local NetDApp_List=$1
+    for DURL in $NetDApp_List; do
+        if [[ $(TestDURL $DURL) -ge 1 ]];then
+            echo $DURL
+            break
+        fi
+    done
+}
+#=====================================================
+
 NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
     main)
-        export DApp_URL="https://main.ton.dev"
+        export DApp_URL="$(GetWork_DURL "$MainNet_DApp_List")"
         export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
     net)
-        export DApp_URL="https://net.ton.dev"
+        export DApp_URL="$(GetWork_DURL "$DevNet_DApp_List")"
         export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
@@ -72,6 +96,12 @@ case "$NetName" in
 esac
 jq --arg a "${DApp_URL}" '.url = $a | .use_delimiters = false | .no_answer = true' tonos-cli.conf.json > tmp.tmp && mv -f tmp.tmp tonos-cli.conf.json 
 
+
+
+
+
+
+#=====================================================
 # FLD free giver to grant 100k 
 export Marvin_Addr="0:deda155da7c518f57cb664be70b9042ed54a92542769735dfb73d3eef85acdaf" 
 #=====================================================
