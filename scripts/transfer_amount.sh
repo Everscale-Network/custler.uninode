@@ -1,5 +1,5 @@
 #!/bin/bash
-# (C) Sergey Tyurin  2021-03-15 10:00:00
+# (C) Sergey Tyurin  2021-01-22 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -20,14 +20,14 @@
 echo "################################### Send tokens script ########################################"
 
 function tr_usage(){
-echo
-echo " use: transfer_amount.sh <SRC> <DST> <AMOUNT> [new]"
-echo " new - for transfer to not activated account (for creation)"
-echo
-exit 0
+    echo
+    echo " use: transfer_amount.sh <SRC> <DST> <AMOUNT> [new]"
+    echo " new - for transfer to not activated account (for creation)"
+    echo
+    exit 0
 }
 
-[[ $# -le 2 ]] && $(tr_usage)
+[[ $# -le 2 ]] && tr_usage
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
@@ -64,7 +64,7 @@ SRC_NAME=$1
 DST_NAME=$2
 TRANSF_AMOUNT="$3"
 NEW_ACC=$4
-[[ -z $TRANSF_AMOUNT ]] && $(tr_usage)
+[[ -z $TRANSF_AMOUNT ]] && tr_usage
 
 NANO_AMOUNT=`$CALL_TC convert tokens $TRANSF_AMOUNT|grep -v 'Config'| grep "[0-9]"`
 if [[ $NANO_AMOUNT -lt 100000000 ]];then
