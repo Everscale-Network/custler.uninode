@@ -44,6 +44,7 @@ export CONTRACTS_GIT_COMMIT="master"
 
 MainNet_DApp_List="https://main.ton.dev https://main2.ton.dev https://main3.ton.dev https://main4.ton.dev"
 DevNet_DApp_List="https://net.ton.dev https://net1.ton.dev https://net5.ton.dev"
+RustNet_DApp_List="https://rustnet.ton.dev https://rustnet1.ton.dev https://rustnet2.ton.dev"
 
 #=====================================================
 # Function to check the DApp url by querying blocks in the last 30 seconds
@@ -84,7 +85,7 @@ case "$NetName" in
         export DApp_URL="https://gql.custler.net"
         ;;
     rustnet)
-        export DApp_URL="https://rustnet.ton.dev"
+        export DApp_URL="$(GetWork_DURL "$RustNet_DApp_List")"
         export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
         export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
@@ -95,11 +96,6 @@ case "$NetName" in
         ;;
 esac
 jq --arg a "${DApp_URL}" '.url = $a | .use_delimiters = false | .no_answer = true' tonos-cli.conf.json > tmp.tmp && mv -f tmp.tmp tonos-cli.conf.json 
-
-
-
-
-
 
 #=====================================================
 # FLD free giver to grant 100k 
