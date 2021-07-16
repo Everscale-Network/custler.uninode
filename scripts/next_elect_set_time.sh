@@ -20,7 +20,7 @@
 
 SCRPT_USER=$USER
 USER_HOME=$HOME
-
+[[ -z "$SCRPT_USER" ]] && SCRPT_USER=$LOGNAME
 [[ -n $(echo "$USER_HOME"|grep 'root') ]] && SCRPT_USER="root"
 
 DELAY_TIME=0        # Delay time from the start of elections
