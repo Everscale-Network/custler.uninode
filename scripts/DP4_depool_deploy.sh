@@ -156,14 +156,6 @@ echo "First 64 syms from DePoolCode:  ${VrfDepoolCode}"
 echo "First 64 syms from ProxyCode:   ${ProxyCode:0:64}"
 
 #===========================================================
-# Check DApp server
-DApp_State="$(Check_DApp_URL)"
-if [[ "$DApp_State" != "fine" ]];then
-    echo "###-ERROR(line $LINENO): DApp server has state: $DApp_State. Check network type in env.sh and URL in tonos-cli.conf.json"
-    exit 1
-fi
-
-#===========================================================
 # check depool balance
 
 Depool_INFO=`$CALL_TC account ${Depool_addr}`
