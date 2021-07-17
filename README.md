@@ -6,6 +6,37 @@
 #### - Support both fift and solidity electors
 #### - Run on Ubuntu 20.04, CentOS 8.2, FreeBSD 12.2/13 (for Linux - latest kernel preferable)
 
+## 0. System settings
+Login as root and do
+```bash
+mkdir -p ~/.ssh
+echo "your ssh-rsa key" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+Install **git**, **sudo** and **bash** if it not installed (FreeBSD)
+
+For FreeBSD make a link 
+```bash  
+ln -s /usr/local/bin/bash /bin/bash
+```
+Then add ordinary user with name as you wish (for example **"svt"**) and do
+```bash
+# FOR LINUX :
+echo "svt  ALL=(ALL:ALL)  NOPASSWD:ALL" >> /etc/sudoers 
+cp -r /root/.ssh /home/svt/
+chown -R svt:svt /home/svt/.ssh
+# =============================================
+# For FreeBSD :
+echo "svt  ALL=(ALL:ALL)  NOPASSWD:ALL" >> /usr/local/etc/sudoers
+cp -r /root/.ssh /home/svt/
+chown -R svt:svt /home/svt/.ssh
+```
+Setup your host name, timezone and firewall, update your system core and packs. 
+
+If you have separate disk for database, prepare it and mount to */var/ton-work** (default). You can change it in `env.sh`
+
+**NB!! Double check if time sync is enabled.**
+
 ## 1. Setting environment
 First of all you have to set the follow environment variables for certain network at the beginning of **$HOME/custler.uninode/scripts/env.sh**: 
 
