@@ -33,7 +33,7 @@ chown -R svt:svt /home/svt/.ssh
 ```
 Setup your host name, timezone and firewall, update your system core and packs. 
 
-If you have separate disk for database, prepare it and mount to */var/ton-work** (default). You can change it in `env.sh`
+If you have separate disk for database, prepare it and mount to **/var/ton-work** (default). You can change it in `env.sh`
 
 **NB!! Double check if time sync is enabled.**
 
