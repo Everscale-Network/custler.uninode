@@ -42,9 +42,9 @@ export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to
 
 export CONTRACTS_GIT_COMMIT="master"
 
-MainNet_DApp_List="https://main.ton.dev https://main2.ton.dev https://main3.ton.dev https://main4.ton.dev"
-DevNet_DApp_List="https://net.ton.dev https://net1.ton.dev https://net5.ton.dev"
-RustNet_DApp_List="https://rustnet.ton.dev https://rustnet1.ton.dev https://rustnet2.ton.dev"
+MainNet_DApp_List="https://main2.ton.dev,https://main3.ton.dev,https://main4.ton.dev"
+DevNet_DApp_List="https://net1.ton.dev,https://net5.ton.dev"
+RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev"
 
 #=====================================================
 # Function to check the DApp url by querying blocks in the last 30 seconds
@@ -70,12 +70,16 @@ function GetWork_DURL() {
 NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
     main)
-        export DApp_URL="$(GetWork_DURL "$MainNet_DApp_List")"
+        export DApp_URL="https://main.ton.dev"
+        $HOME/bin/tonos-cli config endpoint add $DApp_URL $MainNet_DApp_List &>/dev/null
+        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
     net)
-        export DApp_URL="$(GetWork_DURL "$DevNet_DApp_List")"
+        export DApp_URL="https://net.ton.dev"
+        $HOME/bin/tonos-cli config endpoint add $DApp_URL $DevNet_DApp_List &>/dev/null
+        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
@@ -85,8 +89,9 @@ case "$NetName" in
         export DApp_URL="https://gql.custler.net"
         ;;
     rustnet)
-        # export DApp_URL="$(GetWork_DURL "$RustNet_DApp_List")"
-        export DApp_URL="https://rustnet.ton.dev"
+        export DApp_URL="rustnet.ton.dev"
+        $HOME/bin/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
+        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
         export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
@@ -96,7 +101,6 @@ case "$NetName" in
         exit 1
         ;;
 esac
-jq --arg a "${DApp_URL}" '.url = $a | .use_delimiters = false | .no_answer = true' tonos-cli.conf.json > tmp.tmp && mv -f tmp.tmp tonos-cli.conf.json 
 
 #=====================================================
 # FLD free giver to grant 100k 
