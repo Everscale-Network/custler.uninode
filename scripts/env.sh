@@ -85,7 +85,8 @@ case "$NetName" in
         export DApp_URL="https://gql.custler.net"
         ;;
     rustnet)
-        export DApp_URL="$(GetWork_DURL "$RustNet_DApp_List")"
+        # export DApp_URL="$(GetWork_DURL "$RustNet_DApp_List")"
+        export DApp_URL="https://rustnet.ton.dev"
         export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
         export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!

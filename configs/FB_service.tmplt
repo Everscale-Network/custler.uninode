@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # PROVIDE: tonnode
-# REQUIRE: networking
+# REQUIRE: NETWORKING
 # KEYWORD: nojail shutdown
 #
 
