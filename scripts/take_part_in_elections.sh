@@ -64,18 +64,6 @@ case "$NODE_TYPE" in
         ;;
 esac
 
-#===========================================================
-# Check DApp server
-if [[ "$NODE_TYPE" == "RUST" ]];then
-    URL_for_TL="$(cat ${SCRIPT_DIR}/tonos-cli.conf.json | jq -r '.url')"
-    DApp_State="$(Check_DApp_URL)"
-    if [[ "$DApp_State" != "fine" ]];then
-    echo "###-ERROR(line $LINENO): DApp server has state: $DApp_State. Check network type in env.sh and URL in tonos-cli.conf.json: $URL_for_TL"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
-        "$Tg_SOS_sign ALARM!!! DApp server has state: $DApp_State. Check DApp, network type in env.sh and URL in tonos-cli.conf.json: $URL_for_TL" 2>&1 > /dev/null
-    exit 1
-    fi
-fi
 
 #=================================================
 # Load addresses and set variables
