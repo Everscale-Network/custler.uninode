@@ -12,14 +12,6 @@ echo
 echo -e "$(Determine_Current_Network)"
 echo
 
-#===========================================================
-# Check DApp server
-DApp_State="$(Check_DApp_URL)"
-if [[ "$DApp_State" != "fine" ]];then
-    echo "###-ERROR(line $LINENO): DApp server has state: $DApp_State. Check network type in env.sh and URL in tonos-cli.conf.json"
-#    exit 1
-fi
-
 ACCOUNT=$1
 if [[ -z $ACCOUNT ]];then
     MY_ACCOUNT=`cat "${KEYS_DIR}/${VALIDATOR_NAME}.addr"`

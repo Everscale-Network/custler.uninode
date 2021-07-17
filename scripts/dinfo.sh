@@ -89,17 +89,6 @@ chmod +x ${ELECTIONS_WORK_DIR}
 TIME_DIFF=$(Get_TimeDiff)
 echo "INFO: Current TimeDiff: $TIME_DIFF"
 
-#===========================================================
-# Check DApp server
-if [[ "$NODE_TYPE" == "RUST" ]];then
-    URL_for_TL="$(cat ${SCRIPT_DIR}/tonos-cli.conf.json | jq -r '.url')"
-    DApp_State="$(Check_DApp_URL)"
-    if [[ "$DApp_State" != "fine" ]];then
-    echo "+++-ERROR(line $LINENO): DApp server has state: $DApp_State. Check network type in env.sh and URL in tonos-cli.conf.json: $URL_for_TL"
-    exit 1
-    fi
-fi
-
 ##############################################################################
 # get elector address
 elector_addr=$(Get_Elector_Address)
