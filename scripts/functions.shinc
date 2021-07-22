@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-02-17 18:00:00
+# (C) Sergey Tyurin  2021-07-22 22:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -49,8 +49,48 @@
 # CNode_Make_Elect_Keys_and_BOC()
 # =====================================================
 #
-# =====================================================
-#
+MainNet_DApp_List="https://main2.ton.dev,https://main3.ton.dev,https://main4.ton.dev"
+DevNet_DApp_List="https://net1.ton.dev,https://net5.ton.dev"
+RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev"
+
+NetName="${NETWORK_TYPE%%.*}"
+case "$NetName" in
+    main)
+        export DApp_URL="https://main.ton.dev"
+        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
+        $HOME/bin/tonos-cli config endpoint add $DApp_URL $MainNet_DApp_List &>/dev/null
+        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
+        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
+        ;;
+    net)
+        export DApp_URL="https://net.ton.dev"
+        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
+        $HOME/bin/tonos-cli config endpoint add $DApp_URL $DevNet_DApp_List &>/dev/null
+        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
+        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
+        ;;
+    fld)
+        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
+        export DApp_URL="https://gql.custler.net"
+        ;;
+    rustnet)
+        export DApp_URL="rustnet.ton.dev"
+        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
+        $HOME/bin/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
+        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
+        export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
+        export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
+        ;;
+    *)
+        echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"
+        exit 1
+        ;;
+esac
+
 function Determine_Current_Network() {
     # get current network zerostate
     local OS_SYSTEM=`uname -s`

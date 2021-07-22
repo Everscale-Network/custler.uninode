@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-09-29 22:00:00
+# (C) Sergey Tyurin  2021-07-22 22:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -24,7 +24,6 @@ BUILD_STRT_TIME=$(date +%s)
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
-source "${SCRIPT_DIR}/functions.shinc"
 
 echo
 echo "################################### FreeTON nodes build script #####################################"

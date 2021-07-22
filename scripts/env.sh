@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-# (C) Sergey Tyurin  2021-06-29 22:00:00
+# (C) Sergey Tyurin  2021-07-22 22:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -42,66 +42,6 @@ export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to
 
 export CONTRACTS_GIT_COMMIT="master"
 
-MainNet_DApp_List="https://main2.ton.dev,https://main3.ton.dev,https://main4.ton.dev"
-DevNet_DApp_List="https://net1.ton.dev,https://net5.ton.dev"
-RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev"
-
-#=====================================================
-# Function to check the DApp url by querying blocks in the last 30 seconds
-function TestDURL() {
-	local lDApp_URL=$1
-	CurrTime=$(date +%s)
-	BackTime=$((CurrTime - 30))
-	DApp_Test_Query="query\": \"query {blocks(limit:10, filter: {gen_utime: {ge: $BackTime}}){id}}"
-	local NumOfBlks=$(curl -sS -X POST -g -H "Content-Type: application/json" ${lDApp_URL}/graphql -d "{\"$DApp_Test_Query\"}" 2>/dev/null |jq -r '[.data.blocks[]]|length' 2>/dev/null)
-	echo $((NumOfBlks))
-}
-function GetWork_DURL() {
-    local NetDApp_List=$1
-    for DURL in $NetDApp_List; do
-        if [[ $(TestDURL $DURL) -ge 1 ]];then
-            echo $DURL
-            break
-        fi
-    done
-}
-#=====================================================
-
-NetName="${NETWORK_TYPE%%.*}"
-case "$NetName" in
-    main)
-        export DApp_URL="https://main.ton.dev"
-        $HOME/bin/tonos-cli config endpoint add $DApp_URL $MainNet_DApp_List &>/dev/null
-        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
-        ;;
-    net)
-        export DApp_URL="https://net.ton.dev"
-        $HOME/bin/tonos-cli config endpoint add $DApp_URL $DevNet_DApp_List &>/dev/null
-        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
-        ;;
-    fld)
-        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
-        export DApp_URL="https://gql.custler.net"
-        ;;
-    rustnet)
-        export DApp_URL="rustnet.ton.dev"
-        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
-        $HOME/bin/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
-        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
-        export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
-        ;;
-    *)
-        echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"
-        exit 1
-        ;;
-esac
 
 #=====================================================
 # FLD free giver to grant 100k 
