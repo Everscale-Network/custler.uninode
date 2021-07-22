@@ -90,6 +90,7 @@ case "$NetName" in
         ;;
     rustnet)
         export DApp_URL="rustnet.ton.dev"
+        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
         $HOME/bin/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
         $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
@@ -137,7 +138,7 @@ export ENGINE_ADDITIONAL_PARAMS=""
 export RUST_VERSION="1.53.0"
 export INSTALL_DEPENDENCIES="yes"
 export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
-export CNODE_GIT_COMMIT="cdfd7ce654bf6afe4e8de962c7f68abe1011b8a0"
+export CNODE_GIT_COMMIT="eae01917c1ed1bfc019d34a6c631160a86cb41eb"
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
