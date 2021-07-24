@@ -253,7 +253,7 @@ if [[ "$STAKE_MODE" == "msig" ]];then
             Validator_Acc_Info="$(Get_Account_Info ${Validator_addr})"
             declare -i Validator_Acc_LT_Sent=`echo "$Validator_Acc_Info" | awk '{print $3}'`
             if [[ $Validator_Acc_LT_Sent -gt $Validator_Acc_LT ]];then
-                echo "INFO: Sending transaction for elections was done SUCCESSFULLY!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log" 
+                echo "INFO: Sending transaction for recover stake was done SUCCESSFULLY!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log" 
             else
                 echo "###-ERROR(line $LINENO): Sending transaction for stake recover FAILED!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
                 "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" 2>&1 > /dev/null
@@ -261,11 +261,11 @@ if [[ "$STAKE_MODE" == "msig" ]];then
         fi
     else
         echo "INFO: Nothing to recover"
-        echo
-        echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
-        echo "================================================================================================"
-        exit 0
     fi
+    echo
+    echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+    echo "================================================================================================"
+    exit 0
 fi
 ################################################################################################
 ########## Continue to Tik depool ########
