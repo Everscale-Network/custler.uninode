@@ -43,6 +43,15 @@ echo
 echo -e "$(Determine_Current_Network)"
 echo
 
+##############################################################################
+# Check node sync
+TIME_DIFF=$(Get_TimeDiff)
+if [[ $TIME_DIFF -gt $TIMEDIFF_MAX ]];then
+    echo "###-ERROR(line $LINENO): Your node is not synced. Wait until full sync (<$TIMEDIFF_MAX) Current timediff: $TIME_DIFF"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Your node is not synced. Wait until full sync (<$TIMEDIFF_MAX) Current timediff: $TIME_DIFF" 2>&1 > /dev/null
+    exit 1
+fi
+echo "INFO: Current TimeDiff: $TIME_DIFF"
 
 #=================================================
 # get elector address
