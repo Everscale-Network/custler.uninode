@@ -144,16 +144,16 @@ echo "Last operation time: $DST_TIME"
 echo
 echo "Transferring $TRANSF_AMOUNT ($NANO_AMOUNT) from ${SRC_NAME} to ${DST_NAME} ..." 
 
-# read -p "### CHECK INFO TWICE!!! Is this a right tranfer?  (y/n)? " </dev/tty answer
-# case ${answer:0:1} in
-#     y|Y )
-#         echo "Processing....."
-#     ;;
-#     * )
-#         echo "Cancelled."
-#         exit 1
-#     ;;
-# esac
+read -p "### CHECK INFO TWICE!!! Is this a right tranfer?  (y/n)? " </dev/tty answer
+case ${answer:0:1} in
+ y|Y )
+     echo "Processing....."
+ ;;
+ * )
+     echo "Cancelled."
+     exit 1
+ ;;
+esac
 
 # ==========================================================================
 TC_OUTPUT="$($CALL_TC run ${SRC_ACCOUNT} getTransactions {} --abi $SafeC_Wallet_ABI)"

@@ -49,9 +49,9 @@ export Marvin_Addr="0:deda155da7c518f57cb664be70b9042ed54a92542769735dfb73d3eef8
 #=====================================================
 # Nets zeroblock IDs - first 16 syms of zeroblock hash
 export MAIN_NET_ID="58FFCA1A178DAFF7"
-export DEV_NET_ID="A8069625AC5BF68F"
-export FLD_NET_ID="EA2CCBDD761FD4B5"
-export RST_NET_ID="B0390568221532B2"
+export  DEV_NET_ID="B2E99A7505EDA599"
+export  FLD_NET_ID="EA2CCBDD761FD4B5"
+export  RST_NET_ID="228F05E8BCB11DEF"
 
 #=====================================================
 # Node addresses & ports
