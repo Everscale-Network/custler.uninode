@@ -266,7 +266,8 @@ function Get_TimeDiff() {
             fi
 
             if [[ ! -z $(echo "${RC_OUTPUT}" | grep 'timediff') ]];then
-                TIME_DIFF=$(echo "${RC_OUTPUT}" | tail -n 7 | jq .timediff)
+        #        TIME_DIFF=$(echo "${RC_OUTPUT}" | sed -e '1,/GIT_BRANCH/d' | jq .timediff)
+                TIME_DIFF=$(echo "${RC_OUTPUT}" | grep 'timediff' | awk '{print $2}' | tr -d ',')
                 echo "$TIME_DIFF"
             else
                 echo "No TimeDiff Info"
