@@ -51,7 +51,8 @@
 #
 MainNet_DApp_List="https://main2.ton.dev,https://main3.ton.dev,https://main4.ton.dev"
 DevNet_DApp_List="https://net1.ton.dev,https://net5.ton.dev"
-RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev"
+FLD_DApp_List="https://gql.custler.net"
+RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev,https://rnet.custler.net,https://intonnation.freetondapps.com,https://dapp-rustcup.itgold.io"
 
 NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
@@ -72,9 +73,12 @@ case "$NetName" in
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
     fld)
+        export DApp_URL="https://gql.custler.net"
+        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
+        $HOME/bin/tonos-cli config endpoint add $DApp_URL $FLD_DApp_List &>/dev/null
+        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
-        export DApp_URL="https://gql.custler.net"
         ;;
     rustnet)
         export DApp_URL="rustnet.ton.dev"

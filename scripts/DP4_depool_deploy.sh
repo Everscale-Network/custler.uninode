@@ -68,7 +68,7 @@ echo
 
 #===========================================================
 # check tonos-cli version
-TC_VER="$($CALL_TC deploy --help | grep 'Can be passed via a filename')"
+TC_VER="$($CALL_TC deploy --help | grep 'tonos-cli-deploy')"
 [[ -z $TC_VER ]] && echo "###-ERROR(line $LINENO): You have to Update tonos-cli" && exit 1
 echo
 $CALL_TC deploy --help | grep 'tonos-cli-deploy'

@@ -42,7 +42,6 @@ export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to
 
 export CONTRACTS_GIT_COMMIT="master"
 
-
 #=====================================================
 # FLD free giver to grant 100k 
 export Marvin_Addr="0:deda155da7c518f57cb664be70b9042ed54a92542769735dfb73d3eef85acdaf" 
@@ -82,7 +81,6 @@ export CNODE_GIT_COMMIT="eae01917c1ed1bfc019d34a6c631160a86cb41eb"
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
-# export RCONS_GIT_REPO="https://github.com/Custler/ton-labs-node-tools.git"
 export RCONS_GIT_COMMIT="master"
 export TONOS_CLI_GIT_REPO="https://github.com/tonlabs/tonos-cli.git"
 export TONOS_CLI_GIT_COMMIT="master"
