@@ -339,8 +339,15 @@ if [[ $Tik_Bal -lt 2000000000 ]];then
     echo "+++-WARNING(line $LINENO): Tik account has balance less 2 tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
         "WARNING!!! Tik account has balance less 2 tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
-    ${SCRIPT_DIR}/transfer_amount.sh ${VALIDATOR_NAME} Tik 10 | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-    ${SCRIPT_DIR}/Sign_Trans.sh | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+    
+    TopUp_Result="$(${SCRIPT_DIR}/transfer_amount.sh ${VALIDATOR_NAME} Tik 10 | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log")"
+    Validator_addr="$(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr)"
+    Custodians="$(Get_Account_Custodians_Info "$Validator_addr")"
+    Val_Confirm_QTY=$(echo $Custodians|awk '{print $2}')
+    if [[ $Val_Confirm_QTY -gt 1 ]];then
+        Trans_ID=$(echo "$TopUp_Result"| grep 'successfully created transaction'|awk '{print $6}')
+        ${SCRIPT_DIR}/Sign_Trans.sh ${VALIDATOR_NAME} $Trans_ID | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+    fi
 fi
 
 Work_Chain=`echo "${Tik_addr}" | cut -d ':' -f 1`

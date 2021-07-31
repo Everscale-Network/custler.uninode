@@ -39,6 +39,7 @@ echo
 echo -e "$(Determine_Current_Network)"
 echo
 
+SEND_ATTEMPTS="10"
 
 #===========================================================
 # Check wallet code & ABI
@@ -102,16 +103,46 @@ if [[ -z $msig_public ]] || [[ -z $msig_secret ]];then
     exit 1
 fi
 
+#================================================================
 echo "Check SRC $SRC_NAME account.."
-SRC_BALANCE_INFO=`$CALL_TC account $SRC_ACCOUNT || echo "ERROR get balance" && exit 0`
-SRC_AMOUNT=`echo "$SRC_BALANCE_INFO" | grep balance | awk '{ print $2 }'`
-SRC_TIME=`echo "$SRC_BALANCE_INFO" | grep last_paid | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $2)}'`
+ACCOUNT_INFO="$(Get_Account_Info $SRC_ACCOUNT)"
+SRC_STATUS=`echo $ACCOUNT_INFO |awk '{print $1}'`
+SRC_AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
+SRC_TIME=`echo "$ACCOUNT_INFO" | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $3)}'`
+SRC_Time_Unix=`echo $ACCOUNT_INFO |awk '{print $3}'`
 
+if [[ "$SRC_STATUS" == "None" ]];then
+    echo -e "###-ERROR(line $LINENO): ${BoldText}${RedBack}SRC account does not exist! (no tokens, no code, nothing)${NormText}"
+    echo "=================================================================================================="
+    echo 
+    exit 0
+fi
+if [[ "$SRC_STATUS" == "Uninit" ]];then
+    echo -e "###-ERROR(line $LINENO): ${BoldText}${RedBack}SRC account uninitialized!${NormText} Deploy contract code first!"
+    echo "=================================================================================================="
+    echo 
+    exit 0
+fi
+
+# Check SRC acc Keys
+Calc_Addr=$($CALL_TC genaddr $Wallet_Code $Wallet_ABI --setkey $SRC_KEY_FILE --wc "$SRC_WC" | grep "Raw address:" | awk '{print $3}')
+if [[ ! "$SRC_ACCOUNT" == "$Calc_Addr" ]];then
+    echo "###-ERROR(line $LINENO): Given SRC account address and calculated address is different. Wrong keys. Can't continue. "
+    echo "Given addr: $SRC_ACCOUNT"
+    echo "Calc  addr: $Calc_Addr"
+    echo 
+    exit 1
+fi
+
+Custodians="$(Get_Account_Custodians_Info $SRC_ACCOUNT)"
+SRC_Conf_QTY=$(echo $Custodians|awk '{print $2}')
+
+#================================================================
 echo "Check DST $DST_NAME account.."
-DST_BALANCE_INFO=`$CALL_TC account $DST_ACCOUNT || echo "ERROR get balance" && exit 0`
-DST_AMOUNT=`echo "$DST_BALANCE_INFO" | grep balance | awk '{ print $2 }'`
-DST_TIME=`echo "$DST_BALANCE_INFO" | grep last_paid | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $2)}'`
-DST_STATUS=`echo "$DST_BALANCE_INFO" | grep 'acc_type:'|awk '{print $2}'`
+ACCOUNT_INFO="$(Get_Account_Info $DST_ACCOUNT)"
+DST_AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
+DST_TIME=`echo "$ACCOUNT_INFO" | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $3)}'`
+DST_STATUS=`echo $ACCOUNT_INFO |awk '{print $1}'`
 if [[ ! "$DST_STATUS" == "Active" ]] && [[ -z $NEW_ACC ]];then
     echo
     echo "###-ERROR(line $LINENO): DST account is not deployed. To transfer to undeployed account use 'new' parameter"
@@ -120,93 +151,114 @@ if [[ ! "$DST_STATUS" == "Active" ]] && [[ -z $NEW_ACC ]];then
 fi
 
 #================================================================
-# Check Keys
-Calc_Addr=$($CALL_TC genaddr $Wallet_Code $Wallet_ABI --setkey $SRC_KEY_FILE --wc "$SRC_WC" | grep "Raw address:" | awk '{print $3}')
-if [[ ! "$SRC_ACCOUNT" == "$Calc_Addr" ]];then
-    echo "###-ERROR(line $LINENO): Given account address and calculated address is different. Wrong keys. Can't continue. "
-    echo "Given addr: $SRC_ACCOUNT"
-    echo "Calc  addr: $Calc_Addr"
-    echo 
+# Make BOC file to send
+TA_BOC_File="${KEYS_DIR}/Transfer_Amount.boc"
+rm -f "${TA_BOC_File}" &>/dev/null
+TC_OUTPUT="$($CALL_TC message --raw --output ${TA_BOC_File} \
+--sign "${SRC_KEY_FILE}" \
+--abi "${Wallet_ABI}" \
+${SRC_ACCOUNT} submitTransaction \
+"{\"dest\":\"${DST_ACCOUNT}\",\"value\":${NANO_AMOUNT},\"bounce\":$BOUNCE,\"allBalance\":false,\"payload\":\"\"}" \
+--lifetime 600 | grep -i 'Message saved to file')"
+
+if [[ -z $TC_OUTPUT ]];then
+    echo "###-ERROR(line $LINENO): Failed to make BOC file ${TA_BOC_File}. Can't continue."
     exit 1
 fi
+echo "INFO: Message BOC file created: ${TA_BOC_File}"
 
 #================================================================
+Trans_List="$(Get_MSIG_Trans_List ${SRC_ACCOUNT})"
+Before_Trans_QTY=`echo "$Trans_List" | jq -r ".transactions|length"`
+Before_Trans_QTY=$((Before_Trans_QTY))
 
+[[ $Before_Trans_QTY -ne 0 ]] && echo "+++WARNING(line $LINENO): You have $Before_Trans_QTY unsigned transactions already."
+echo
 echo "TRANFER FROM ${SRC_NAME} :"
 echo "SRC Account: $SRC_ACCOUNT"
-echo "Has balance : $((SRC_AMOUNT/1000000000)) tokens"
+echo "Has balance : $(echo "scale=3; $((SRC_AMOUNT)) / 1000000000" | $CALL_BC) tokens"
 echo "Last operation time: $SRC_TIME"
 echo
 echo "TRANFER TO ${DST_NAME} :"
 echo "DST Account: $DST_ACCOUNT"
-echo "Has balance : $((DST_AMOUNT/1000000000)) tokens"
+echo "Has balance : $(echo "scale=3; $((DST_AMOUNT)) / 1000000000" | $CALL_BC) tokens"
 echo "Last operation time: $DST_TIME"
 echo
 echo "Transferring $TRANSF_AMOUNT ($NANO_AMOUNT) from ${SRC_NAME} to ${DST_NAME} ..." 
 
-read -p "### CHECK INFO TWICE!!! Is this a right tranfer?  (y/n)? " </dev/tty answer
-case ${answer:0:1} in
- y|Y )
-     echo "Processing....."
- ;;
- * )
-     echo "Cancelled."
-     exit 1
- ;;
-esac
+# read -p "### CHECK INFO TWICE!!! Is this a right tranfer?  (y/n)? " </dev/tty answer
+# case ${answer:0:1} in
+#     y|Y )
+#         echo "Processing....."
+#     ;;
+#     * )
+#         echo "Cancelled."
+#         exit 1
+#     ;;
+# esac
 
 # ==========================================================================
-TC_OUTPUT="$($CALL_TC run ${SRC_ACCOUNT} getTransactions {} --abi $SafeC_Wallet_ABI)"
-Trans_List=`echo "$TC_OUTPUT" | sed -e "1,/Succeeded/d" | sed 's/Result: //' `
-Before_Trans_QTY=`echo "$Trans_List" | jq -r ".transactions|length"`
-Before_Trans_QTY=$((Before_Trans_QTY))
 
-TONOS_CLI_SEND_ATTEMPTS="10"
-
-for i in $(seq ${TONOS_CLI_SEND_ATTEMPTS}); do
-    echo "INFO: tonos-cli submitTransaction attempt #${i}..."
-    if ! $CALL_TC call ${SRC_ACCOUNT} submitTransaction \
-        "{\"dest\":\"${DST_ACCOUNT}\",\"value\":\"${NANO_AMOUNT}\",\"bounce\":$BOUNCE,\"allBalance\":false,\"payload\":\"\"}" \
-        --abi "${Wallet_ABI}" \
-        --sign "${SRC_KEY_FILE}"; then
-        echo "INFO: tonos-cli submitTransaction attempt #${i}... FAIL"
+for (( i=1; i<=${SEND_ATTEMPTS}; i++ )); do
+    echo -n "INFO: submitTransaction attempt #${i}..."
+    result=`Send_File_To_BC "${TA_BOC_File}"`
+    if [[ "$result" == "failed" ]]; then
+        echo " FAIL"
+        echo "Now sleep $LC_Send_MSG_Timeout secs and will try again.."
+        echo "--------------"
+        sleep $LC_Send_MSG_Timeout
+        continue
     else
-        echo "INFO: tonos-cli submitTransaction attempt #${i}... PASS"
-        break
+        echo " PASS"
     fi
-    TC_OUTPUT="$($CALL_TC run ${SRC_ACCOUNT} getTransactions {} --abi $SafeC_Wallet_ABI)"
-    Trans_List=`echo "$TC_OUTPUT" | sed -e "1,/Succeeded/d" | sed 's/Result: //' `
+    
+    echo "Now sleep $LC_Send_MSG_Timeout secs and check transactions..."
+    sleep $LC_Send_MSG_Timeout
+
+   if [[ $SRC_Conf_QTY -le 1 ]];then
+        ACCOUNT_INFO="$(Get_Account_Info $SRC_ACCOUNT)"
+        Time_Unix=`echo $ACCOUNT_INFO |awk '{print $3}'`
+        if [[ $Time_Unix -gt $SRC_Time_Unix ]];then
+            echo -e "INFO: successfully sent $TRANSF_AMOUNT tokens."
+            break
+        fi
+   fi
+
+    Trans_List="$(Get_MSIG_Trans_List ${SRC_ACCOUNT})"
     Trans_QTY=`echo "$Trans_List" | jq -r ".transactions|length"`
     Trans_QTY=$((Trans_QTY))
-    if [[ $Trans_QTY -gt $Before_Trans_QTY ]];then
-        Last_Trans_ID=`echo "$Trans_List" | grep '"id":'| tail -n 1 | awk '{print $2}'|tr -d '"'|tr -d ','`
-        echo -e "INFO: tonos-cli successfully created transaction # $Last_Trans_ID"
+    if [[ $Trans_QTY -gt $Before_Trans_QTY ]] && [[ $SRC_Conf_QTY -gt 1 ]];then
+        Last_Trans_ID=`echo "$Trans_List" | jq -r .transactions[$((Trans_QTY - 1))].id`
+        echo -e "INFO: successfully created transaction # $Last_Trans_ID"
         break
    fi
-    sleep 5s
 done
+
+[[ $Trans_QTY -gt 0 ]] && echo && echo "+++WARNING(line $LINENO): You have $Trans_QTY unsigned transactions now." && echo
+
 # ==========================================================================
 
 echo "Check SRC $SRC_NAME account.."
-SRC_BALANCE_INFO=`$CALL_TC account $SRC_ACCOUNT || echo "ERROR get balance" && exit 0`
-SRC_AMOUNT=`echo "$SRC_BALANCE_INFO" | grep balance | awk '{ print $2 }'`
-SRC_TIME=`echo "$SRC_BALANCE_INFO" | grep last_paid | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $2)}'`
+ACCOUNT_INFO="$(Get_Account_Info $SRC_ACCOUNT)"
+SRC_AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
+SRC_TIME=`echo "$ACCOUNT_INFO" | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $3)}'`
 
 echo "Check DST $DST_NAME account.."
-DST_BALANCE_INFO=`$CALL_TC account $DST_ACCOUNT || echo "ERROR get balance" && exit 0`
-DST_AMOUNT=`echo "$DST_BALANCE_INFO" | grep balance | awk '{ print $2 }'`
-DST_TIME=`echo "$DST_BALANCE_INFO" | grep last_paid | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $2)}'`
+ACCOUNT_INFO="$(Get_Account_Info $DST_ACCOUNT)"
+DST_AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
+DST_TIME=`echo "$ACCOUNT_INFO" | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $3)}'`
 
 echo
 echo "${SRC_NAME} Account: $SRC_ACCOUNT"
-echo "Has balance : $((SRC_AMOUNT/1000000000)) tokens"
+echo "Has balance : $(echo "scale=3; $((SRC_AMOUNT)) / 1000000000" | $CALL_BC) tokens"
 echo "Last operation time: $SRC_TIME"
-echo
 
 echo
 echo "${DST_NAME} Account: $DST_ACCOUNT"
-echo "Has balance : $((DST_AMOUNT/1000000000)) tokens"
+echo "Has balance : $(echo "scale=3; $((DST_AMOUNT)) / 1000000000" | $CALL_BC) tokens"
 echo "Last operation time: $DST_TIME"
 echo
 
+echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date)"
+echo "=================================================================================================="
 exit 0
