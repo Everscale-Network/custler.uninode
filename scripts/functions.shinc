@@ -49,6 +49,21 @@
 # CNode_Make_Elect_Keys_and_BOC()
 # =====================================================
 #
+
+# =====================================================
+# check tonos-cli version
+# it should be not less MIN_TC_VERSION settled in env.sh
+Curr_TC_ver="$(tonos-cli -j version |grep -i 'tonos-cli'|awk '{print $2}')"
+Curr_TC_Ver_NUM=$(echo "$Curr_TC_ver" | awk -F'.' '{printf("%d%03d%03d%03d\n", $1,$2,$3,$4)}')
+MIN_TC_Ver_NUM=$(echo "$MIN_TC_VERSION" | awk -F'.' '{printf("%d%03d%03d%03d\n", $1,$2,$3,$4)}')
+if [[ $Curr_TC_Ver_NUM -ge $MIN_TC_Ver_NUM ]];then
+    echo "TC Version OK"
+else
+    echo -e "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): ${BoldText}${RedBack}TONOS-CLI version $Curr_TC_ver is too old! It has to be updated!!!${NormText}"
+fi
+
+# =====================================================
+# Set appropriate endpoints according network settled in env.sh
 MainNet_DApp_List="https://main2.ton.dev,https://main3.ton.dev,https://main4.ton.dev"
 DevNet_DApp_List="https://net1.ton.dev,https://net5.ton.dev"
 FLD_DApp_List="https://gql.custler.net"
@@ -95,6 +110,7 @@ case "$NetName" in
         ;;
 esac
 
+# =====================================================
 function Determine_Current_Network() {
     # get current network zerostate
     local OS_SYSTEM=`uname -s`
