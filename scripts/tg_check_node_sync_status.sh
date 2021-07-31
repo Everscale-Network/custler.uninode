@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-03-15 15:00:00
+# (C) Sergey Tyurin  2021-01-25 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -24,70 +24,19 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
-[[ ! -d $HOME/logs ]] && mkdir -p $HOME/logs
+echo
+echo -e "$(Determine_Current_Network)"
+echo
 
 SLEEP_TIMEOUT=$1
 SLEEP_TIMEOUT=${SLEEP_TIMEOUT:="60"}
 ALARM_TIME_DIFF=$2
 ALARM_TIME_DIFF=${ALARM_TIME_DIFF:=100}
-
-# ===================================================
-function Convert_Date() {
-    OS_SYSTEM=`uname`
-    ival="${1}"
-    if [[ "$OS_SYSTEM" == "Linux" ]];then
-        echo "$(date  +'%F %T %Z' -d @$ival)"
-    else
-        echo "$(date -r $ival +'%F %T %Z')"
-    fi
-}
-# ===================================================
-function rnode_TD_check(){
-    RC_OUTPUT=$($CALL_RC -c "getstats" 2>&1 | cat)
-
-    NODE_DOWN=$(echo "${RC_OUTPUT}" | grep 'Connection refused' | cat)
-    if [[ ! -z $NODE_DOWN ]];then
-        echo "Node Down"
-        return
-    fi
-
-    if [[ ! -z $(echo "${RC_OUTPUT}" | grep 'timediff') ]];then
-        TIME_DIFF=$(echo "${RC_OUTPUT}" | tail -n 7 | jq .timediff)
-        echo "$TIME_DIFF"
-    else
-        echo "No TimeDiff Info"
-    fi
-}
-# ===================================================
-function cnode_TD_check() {
-
-    VEC_OUTPUT=$($CALL_VC -c "getstats" -c "quit" 2>&1 | cat)
-
-    NODE_DOWN=$(echo "${VEC_OUTPUT}" | grep 'Connection refused' | cat)
-    if [[ ! -z $NODE_DOWN ]];then
-        echo "Node Down"
-        return
-    fi
-
-    CURR_TD_NOW=`echo "${VEC_OUTPUT}" | grep 'unixtime' | awk '{print $2}'`
-    CHAIN_TD=`echo "${VEC_OUTPUT}" | grep 'masterchainblocktime' | awk '{print $2}'`
-    TIME_DIFF=$((CURR_TD_NOW - CHAIN_TD))
-
-    if [[ -z $CHAIN_TD ]];then
-        echo "No TimeDiff Info"
-    else
-        echo "$TIME_DIFF"
-    fi
-}
-# ===================================================
-Current_Net=$(echo "${NETWORK_TYPE}" | cut -d '.' -f 1)
-
-TD_check="rnode_TD_check"
-[[ "${NODE_TYPE}" == "CPP" ]] && TD_check="cnode_TD_check"
+Current_Net="$(echo "${NODE_TYPE}" | cut -c 1) $(echo "${NETWORK_TYPE}" | cut -d '.' -f 1)"
 
 while(true)
 do
-    TIME_DIFF=$(${TD_check})
+    TIME_DIFF=$(Get_TimeDiff)
 
     if [[ "$TIME_DIFF" == "Node Down" ]];then
         echo "${Current_Net} Time: $(date +'%F %T %Z') ###-ALARM! NODE IS DOWN." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
