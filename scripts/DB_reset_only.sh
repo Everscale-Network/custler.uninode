@@ -27,6 +27,11 @@ echo "############################## Rust node Reset Database script ###########
 echo "+++INFO: $(basename "$0") BEGIN $Curr_UnixTime / $(date  +'%F %T %Z')"
 echo
 
+if [[ "$NETWORK_TYPE" != "rustnet.ton.dev"]];then
+    echo "###-ERROR: This script for RustNet only!!!"
+    exit 1
+fi
+
 #===========================================
 # Stop rnode service
 echo -n "---INFO: Stopping tonnode service ..."
