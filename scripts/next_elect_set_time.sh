@@ -24,7 +24,7 @@ USER_HOME=$HOME
 [[ -n $(echo "$USER_HOME"|grep 'root') ]] && SCRPT_USER="root"
 
 DELAY_TIME=0        # Delay time from the start of elections
-TIME_SHIFT=600      # Time between sequential scripts
+TIME_SHIFT=300      # Time between sequential scripts
 
 echo
 echo "############################## Set crontab for next elections ##################################"
@@ -149,9 +149,11 @@ GET_F_T(){
     fi
 }
 
+Curr_Elect_Time=$((CURR_VAL_UNTIL - STRT_BEFORE))
+Next_Elect_Time=$((CURR_VAL_UNTIL + VAL_DUR - STRT_BEFORE))
 echo
-echo "Current elections time start: $PREV_ELECTION_TIME / $(GET_F_T "$PREV_ELECTION_TIME")"
-echo "Next elections time start: $NEXT_ELECTION_TIME / $(GET_F_T "$NEXT_ELECTION_TIME")"
+echo "Current elections time start: $Curr_Elect_Time / $(GET_F_T "$Curr_Elect_Time")"
+echo "Next elections time start: $Next_Elect_Time / $(GET_F_T "$Next_Elect_Time")"
 echo "-------------------------------------------------------------------"
 
 # if [[ ! -z $NEXT_VAL__EXIST ]] && [[ "$election_id" == "0" ]];then
