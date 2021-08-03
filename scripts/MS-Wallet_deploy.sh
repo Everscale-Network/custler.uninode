@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-03-15 15:00:00
+# (C) Sergey Tyurin  2021-01-24 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -42,22 +42,10 @@ echo " Example: MS-Wallet_deploy.sh MyWal Safe 5 3"
 echo
 exit 0
 }
+[[ $# -lt 3 ]] && show_usage
 
 #============================================
-# set network for tonos-cli
-# tonos-cli config --url="https://${NETWORK_TYPE}"
-# to be able to use old versions tonos-cli we need two config files
-# special DApp server for FLD network :)
-if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
-    jq -c ".url = \"https://gql.custler.net\"" tonlabs-cli.conf.json > tonlabs-cli.conf.tmp && mv -f tonlabs-cli.conf.tmp tonlabs-cli.conf.json
-    jq -c ".url = \"https://gql.custler.net\"" tonos-cli.conf.json > tonos-cli.conf.tmp && mv -f tonos-cli.conf.tmp tonos-cli.conf.json
-else
-    jq -c ".url = \"https://${NETWORK_TYPE}\"" tonlabs-cli.conf.json > tonlabs-cli.conf.tmp && mv -f tonlabs-cli.conf.tmp tonlabs-cli.conf.json
-    jq -c ".url = \"https://${NETWORK_TYPE}\"" tonos-cli.conf.json > tonos-cli.conf.tmp && mv -f tonos-cli.conf.tmp tonos-cli.conf.json
-fi
 echo "Deploy wallet to '${NETWORK_TYPE}' network"
-
-[[ $# -lt 3 ]] && show_usage
 
 #==================================================
 # Check input parametrs
@@ -174,16 +162,17 @@ if [[ ! "$WALL_ADDR" == "$ADDR_from_Keys" ]];then
 fi
 
 #=================================================
-read -p "### CHECK INFO TWICE!!! Is this a right deploy info?  (y/n)? " answer
-case ${answer:0:1} in
-     y|Y )
-         echo "Processing....."
-     ;;
-     * )
-         echo "Cancelled."
-         exit 1
-     ;;
- esac
+# read -p "### CHECK INFO TWICE!!! Is this a right deploy info?  (y/n)? " answer
+# case ${answer:0:1} in
+#     y|Y )
+#         echo "Processing....."
+#     ;;
+#     * )
+#         echo "Cancelled."
+#         exit 1
+#     ;;
+# esac
+
 #=================================================
 # Deploy wallet
 
