@@ -53,7 +53,7 @@
 # =====================================================
 # check tonos-cli version
 # it should be not less MIN_TC_VERSION settled in env.sh
-Curr_TC_ver="$(tonos-cli -j version |grep -i 'tonos-cli'|awk '{print $2}')"
+Curr_TC_ver="$($HOME/bin/tonos-cli -j version |grep -i 'tonos-cli'|awk '{print $2}')"
 declare -i Curr_TC_Ver_NUM="1$(echo "$Curr_TC_ver" | awk -F'.' '{printf("%d%03d%03d%03d\n", $1,$2,$3,$4)}')"
 declare -i MIN_TC_Ver_NUM="1$(echo "$MIN_TC_VERSION" | awk -F'.' '{printf("%d%03d%03d%03d\n", $1,$2,$3,$4)}')"
 if [[ ${Curr_TC_Ver_NUM} -ge ${MIN_TC_Ver_NUM#0} ]];then
