@@ -43,8 +43,8 @@ DP_RUSTCUP_2021_06_29_MD5="d466351fcf1e051c563b2054625db8f5"
 DP_PROXY_RUSTCUP_2021_06_29_MD5="e614e99a3193173543670eded2094850"
 #-----------------------------------------------------------
 
-CurrDP_MD5=$DP_2021_02_01_MD5
-CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
+CurrDP_MD5=$DP_RUSTCUP_2021_06_29_MD5
+CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_06_29_MD5
 
 NetName="${NETWORK_TYPE%%.*}"
 if [[ "$NetName" == "rustnet" ]];then

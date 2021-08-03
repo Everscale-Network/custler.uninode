@@ -90,6 +90,9 @@ export TVM_LINKER_GIT_COMMIT="master"
 export SOLC_GIT_REPO="https://github.com/tonlabs/TON-Solidity-Compiler.git"
 export SOLC_GIT_COMMIT="master"
 export CONTRACTS_GIT_REPO="https://github.com/tonlabs/ton-labs-contracts.git"
+export CONTRACTS_GIT_COMMIT="master"
+[[ "$NETWORK_TYPE" == "rustnet.ton.dev" ]] &&  export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
+
 
 #=====================================================
 # Source code folders

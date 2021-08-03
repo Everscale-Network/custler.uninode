@@ -69,7 +69,6 @@ DevNet_DApp_List="https://net1.ton.dev,https://net5.ton.dev"
 FLD_DApp_List="https://gql.custler.net"
 RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev"
 
-
 NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
     main)
@@ -103,7 +102,6 @@ case "$NetName" in
         $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
-        export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
         ;;
     *)
         echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"
