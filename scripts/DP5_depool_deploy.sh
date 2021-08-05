@@ -42,14 +42,18 @@ DP_Proxy_2021_02_01_MD5="0ef3a063ea9573fc7f068cb89a075868"
 DP_RUSTCUP_2021_06_29_MD5="d466351fcf1e051c563b2054625db8f5"
 DP_PROXY_RUSTCUP_2021_06_29_MD5="e614e99a3193173543670eded2094850"
 #-----------------------------------------------------------
+DP_RUSTCUP_2021_08_05_MD5="5f0134a55f033da266db5b16fec607fd"
+DP_PROXY_RUSTCUP_2021_08_05_MD5="73279e4e669a7ba80c3c9c6956d7f57e"
+#-----------------------------------------------------------
+
 
 CurrDP_MD5=$DP_RUSTCUP_2021_06_29_MD5
 CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_06_29_MD5
 
 NetName="${NETWORK_TYPE%%.*}"
 if [[ "$NetName" == "rustnet" ]];then
-    CurrDP_MD5=$DP_RUSTCUP_2021_06_29_MD5
-    CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_06_29_MD5
+    CurrDP_MD5=$DP_RUSTCUP_2021_08_05_MD5
+    CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_08_05_MD5
 fi
 
 echo
