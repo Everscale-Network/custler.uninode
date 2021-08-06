@@ -52,7 +52,7 @@ mv -f "${R_DB_DIR}" "$TON_WORK_DIR/rnode_DB_backup_${Curr_UnixTime}"
 echo " ..DONE"
 
 #===========================================
-# Generate rnode config.json
+# Generate generate new DB
 echo -n "---INFO: Genegate New DB..."
 $CALL_RN --ckey "$(cat "${R_CFG_DIR}/console_client_public.json")" &>/dev/null &
 sleep 10

@@ -24,7 +24,6 @@ BUILD_STRT_TIME=$(date +%s)
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
-source "${SCRIPT_DIR}/functions.shinc"
 
 echo
 echo "################################### FreeTON nodes build script #####################################"
@@ -49,9 +48,9 @@ esac
 
 #=====================================================
 # Packages set for different OSes
-PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip boost-all zstd pkgconf"
-PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip boost-devel boost-static libzstd-devel"
-PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libboost-all-dev libzstd-dev"
+PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip zstd pkgconf python"
+PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip libzstd-devel"
+PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libzstd-dev"
 
 PKG_MNGR_FreeBSD="sudo pkg"
 PKG_MNGR_CentOS="sudo dnf"
@@ -78,7 +77,7 @@ case "$OS_SYSTEM" in
         export ZSTD_LIB_DIR=/usr/local/lib
         PKGs_SET=$PKGS_FreeBSD
         PKG_MNGR=$PKG_MNGR_FreeBSD
-#        $PKG_MNGR remove -y rust
+        $PKG_MNGR delete -y rust boost-all|cat
         $PKG_MNGR update -f
         $PKG_MNGR upgrade -y
         FEXEC_FLG="-perm +111"
@@ -103,6 +102,9 @@ case "$OS_SYSTEM" in
         $PKG_MNGR group install -y "Development Tools"
         $PKG_MNGR config-manager --set-enabled powertools
         $PKG_MNGR --enablerepo=extras install -y epel-release
+        $PKG_MNGR remove -y boost
+        $PKG_MNGR install -y gcc-toolset-10-toolchain
+        source /opt/rh/gcc-toolset-10/enable
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.4.0/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
         ;;
 
@@ -110,7 +112,12 @@ case "$OS_SYSTEM" in
         export ZSTD_LIB_DIR=/usr/lib/x86_64-linux-gnu
         PKGs_SET=$PKGS_Ubuntu
         PKG_MNGR=$PKG_MNGR_Ubuntu
+        $PKG_MNGR install -y software-properties-common
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa
+        $PKG_MNGR remove -y libboost-all-dev|cat
         $PKG_MNGR update && $PKG_MNGR upgrade -y 
+        $PKG_MNGR install -y g++-10
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 90 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.4.0/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
         ;;
 
@@ -127,6 +134,18 @@ esac
 echo "---INFO: Install packages ... "
 $PKG_MNGR install -y $PKGs_SET
 echo "---INFO: Install packages ... DONE"
+
+#=====================================================
+# Install BOOST
+mkdir -p $HOME/src
+cd $HOME/src
+sudo rm -rf boost*
+Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
+wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
+tar xf boost_${Boost_File_Version}.tar.gz
+cd $HOME/src/boost_${Boost_File_Version}/
+./bootstrap.sh
+sudo ./b2 install --prefix=/usr/local
 
 #=====================================================
 # Install or upgrade RUST

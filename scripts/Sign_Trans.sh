@@ -107,7 +107,7 @@ if [[ $Trans_QTY -eq 0 ]];then
     echo
     echo "###-ERROR(line $LINENO): Trans_QTY=$Trans_QTY. NO transactions to sign. Exit."
     echo
-    exit 1
+    exit 0
 fi
 if [[ $Trans_QTY -gt 1 ]] && [[ -z ${TrID_force} ]];then
     echo "$Trans_List"
