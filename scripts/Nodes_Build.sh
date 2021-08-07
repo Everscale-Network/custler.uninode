@@ -287,7 +287,7 @@ echo "---INFO: build tonos-cli ... DONE"
 # download contracts
 echo
 echo '################################################'
-echo "---INFO: build tonos-cli ... "
+echo "---INFO: download contracts ... "
 rm -rf "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
 rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
 git clone ${CONTRACTS_GIT_REPO} "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
@@ -299,6 +299,7 @@ git clone --single-branch --branch multisig-surf-v2 https://github.com/tonlabs/t
 RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
 curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
+echo '################################################'
 BUILD_END_TIME=$(date +%s)
 Build_mins=$(( (BUILD_END_TIME - BUILD_STRT_TIME)/60 ))
 Build_secs=$(( (BUILD_END_TIME - BUILD_STRT_TIME)%60 ))
