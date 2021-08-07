@@ -131,15 +131,21 @@ esac
 
 #=====================================================
 # Install packages
+echo
+echo '################################################'
 echo "---INFO: Install packages ... "
 $PKG_MNGR install -y $PKGs_SET
-echo "---INFO: Install packages ... DONE"
 
 #=====================================================
 # Install BOOST
+echo
+echo '################################################'
+echo '---INFO: Install BOOST from source'
 mkdir -p $HOME/src
 cd $HOME/src
-sudo rm -rf boost*
+sudo rm -rf $HOME/src/boost* |cat
+sudo rm -rf /usr/local/include/boost |cat
+sudo rm -f /usr/local/lib/libboost*  |cat
 Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
 wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
 tar xf boost_${Boost_File_Version}.tar.gz
@@ -149,6 +155,9 @@ sudo ./b2 install --prefix=/usr/local
 
 #=====================================================
 # Install or upgrade RUST
+echo
+echo '################################################'
+echo "---INFO: Install RUST ${RUST_VERSION}"
 cd $HOME
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y
 # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o $HOME/rust_install.sh
@@ -160,6 +169,9 @@ cargo install cargo-binutils
 #=====================================================
 # Build C++ node
 if $CPP_NODE_BUILD;then
+    echo
+    echo '################################################'
+    echo "---INFO: Build C++ node ..."
     cd $SCRIPT_DIR
     [[ -d ${TON_SRC_DIR} ]] && rm -rf "${TON_SRC_DIR}"
 
@@ -188,6 +200,8 @@ fi
 #=====================================================
 # Build rust node
 if $RUST_NODE_BUILD;then
+    echo
+    echo '################################################'
     echo "---INFO: build RUST NODE ..."
     #---------------- crutch for user run
     sudo mkdir -p /node_db
@@ -244,6 +258,8 @@ fi
 # echo "---INFO: build TON Solidity Compiler ... DONE."
 #=====================================================
 # Build TVM-linker
+echo
+echo '################################################'
 echo "---INFO: build TVM-linker ..."
 [[ ! -z ${TVM_LINKER_SRC_DIR} ]] && rm -rf "${TVM_LINKER_SRC_DIR}"
 git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
@@ -255,6 +271,8 @@ cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
 echo "---INFO: build TVM-linker ... DONE."
 #=====================================================
 # Build tonos-cli
+echo
+echo '################################################'
 echo "---INFO: build tonos-cli ... "
 [[ -d ${TONOS_CLI_SRC_DIR} ]] && rm -rf "${TONOS_CLI_SRC_DIR}"
 git clone --recurse-submodules "${TONOS_CLI_GIT_REPO}" "${TONOS_CLI_SRC_DIR}"
@@ -267,6 +285,9 @@ echo "---INFO: build tonos-cli ... DONE"
 
 #=====================================================
 # download contracts
+echo
+echo '################################################'
+echo "---INFO: build tonos-cli ... "
 rm -rf "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
 rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
 git clone ${CONTRACTS_GIT_REPO} "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
