@@ -1,5 +1,5 @@
 #!/bin/bash
-# (C) Sergey Tyurin  2021-06-29 22:00:00
+# (C) Sergey Tyurin  2021-08-01 22:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -47,8 +47,8 @@ DP_PROXY_RUSTCUP_2021_08_05_MD5="73279e4e669a7ba80c3c9c6956d7f57e"
 #-----------------------------------------------------------
 
 
-CurrDP_MD5=$DP_RUSTCUP_2021_06_29_MD5
-CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_06_29_MD5
+CurrDP_MD5=$DP_2021_02_01_MD5
+CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
 
 NetName="${NETWORK_TYPE%%.*}"
 if [[ "$NetName" == "rustnet" ]];then
@@ -60,8 +60,8 @@ echo
 echo "#################################### DePool deploy script ########################################"
 echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
 echo 
-echo "DP_MD5       = $DP_2021_02_01_MD5"
-echo "DP_Proxy_MD5 = $DP_Proxy_2021_02_01_MD5"
+echo "DP_MD5       = $CurrDP_MD5"
+echo "DP_Proxy_MD5 = $CurrProxy_MD5"
 echo
 
 #===========================================================
