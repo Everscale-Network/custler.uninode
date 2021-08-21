@@ -53,12 +53,12 @@ echo " ..DONE"
 
 #===========================================
 # Generate generate new DB
-echo -n "---INFO: Genegate New DB..."
-$CALL_RN --ckey "$(cat "${R_CFG_DIR}/console_client_public.json")" &>/dev/null &
-sleep 10
-pkill rnode &>/dev/null
-sleep 5
-echo " ..DONE"
+# echo -n "---INFO: Genegate New DB..."
+# $CALL_RN --ckey "$(cat "${R_CFG_DIR}/console_client_public.json")" &>/dev/null &
+# sleep 10
+# pkill rnode &>/dev/null
+# sleep 5
+# echo " ..DONE"
 
 #===========================================
 # Start rnode service
