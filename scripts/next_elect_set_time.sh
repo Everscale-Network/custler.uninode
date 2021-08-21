@@ -66,20 +66,21 @@ echo "INFO: Current Election ID: $election_id"
 
 case "$NODE_TYPE" in
     RUST)
-        ELECT_TIME_PAR=$($CALL_TC getconfig 15 2>&1 |sed -e '1,4d'|sed "s/Config p15: //")
-        LIST_PREV_VALS=$($CALL_TC getconfig 32 2>&1 |sed -e '1,4d'|sed "s/Config p32: //")
-        LIST_CURR_VALS=$($CALL_TC getconfig 34 2>&1 |sed -e '1,4d'|sed "s/Config p34: //")
-        LIST_NEXT_VALS=$($CALL_TC getconfig 36 2>&1 |sed -e '1,4d'|sed "s/Config p36: //")
-        declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq '.utime_until'| head -n 1`	            # utime_until
+        ELECT_TIME_PAR=$($CALL_RC -c "getconfig 15"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+        LIST_PREV_VALS=$($CALL_RC -c "getconfig 32"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+        LIST_CURR_VALS=$($CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+        LIST_NEXT_VALS=$($CALL_RC -c "getconfig 36"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+
+        declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq '.p34.utime_until'| head -n 1`	        # utime_until
         if [[ "$election_id" == "0" ]];then 
-            CURR_VAL_UNTIL=`echo "${LIST_PREV_VALS}" | jq '.utime_until'| head -n 1`	                # utime_until
-            if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != "null" ]];then
-                CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq '.utime_since'| head -n 1`	            # utime_since
+            CURR_VAL_UNTIL=`echo "${LIST_PREV_VALS}" | jq '.p32.utime_until'| head -n 1`	                # utime_until
+            if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != '{}' ]];then
+                CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq '.p36.utime_since'| head -n 1`	            # utime_since
             fi
         fi
-        declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq '.validators_elected_for'| head -n 1`	# validators_elected_for
-        declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.elections_start_before'| head -n 1`	# elections_start_before
-        declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.elections_end_before'| head -n 1`	# elections_end_before
+        declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq '.p15.validators_elected_for'| head -n 1`	# validators_elected_for
+        declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.p15.elections_start_before'| head -n 1`	# elections_start_before
+        declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.p15.elections_end_before'| head -n 1`	# elections_end_before
         ;;
     CPP)
         ELECT_TIME_PAR=`$CALL_LC -rc "getconfig 15" -t "3" -rc "quit" 2>/dev/null`
