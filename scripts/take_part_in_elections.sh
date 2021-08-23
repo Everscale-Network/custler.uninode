@@ -455,7 +455,12 @@ done
 ########################################################################
 # Final checking
 # ===============================================================
-# Verifying that a transaction has been created 
+# Verifying that a transaction has been created
+
+# for icinga
+if [[ -f ${partInElections} ]]; then echo > "${partInElections}"; fi
+
+# main script
 if [[ $Required_Signs -gt 1 ]];then
     Trans_List="$(Get_MSIG_Trans_List ${Validator_addr})"
     New_Trans_Qty=$(( $(echo "$Trans_List" | jq -r "[.transactions[]|select(.dest == \"$Trans_DST_Addr\")]|length") ))
@@ -464,9 +469,13 @@ if [[ $Required_Signs -gt 1 ]];then
         echo "INFO: Making transaction for elections was done SUCCESSFULLY! Trnasaction ID: $Elect_Trans_ID You have to sign this transaction!!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         echo "Made transaction ID: $Elect_Trans_ID" >> "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         ${SCRIPT_DIR}/Sign_Trans.sh ${VALIDATOR_NAME} ${Elect_Trans_ID}| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+        # for icinga
+        echo "INFO PARTICIPATION IN ELECTION ${elections_id} OK TRANSACTION" >> "${partInElections}"
     else
         echo "###-ERROR(line $LINENO): Transaction does not made or timeout is too low!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server ALARM!!!" "$Tg_SOS_sign ###-ERROR(line $LINENO): Transaction does not made or timeout is too low!" 
+        # for icinga
+        echo "ERROR PARTICIPATION IN ELECTION ${elections_id} FAILED TRANSACTION" >> "${partInElections}"
     fi
 else
     # ===============================================================
@@ -475,9 +484,13 @@ else
     declare -i Validator_Acc_LT_Sent=`echo "$Validator_Acc_Info" | awk '{print $3}'`
     if [[ $Validator_Acc_LT_Sent -gt $Validator_Acc_LT ]];then
         echo "INFO: Sending transaction for elections was done SUCCESSFULLY!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+        # for icinga
+        echo "INFO PARTICIPATION IN ELECTION ${elections_id} OK" >> "${partInElections}"
     else
         echo "###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" 2>&1 > /dev/null
+        # for icinga
+        echo "ERROR PARTICIPATION IN ELECTION ${elections_id} FAILED" >> "${partInElections}"
     fi
 fi
 

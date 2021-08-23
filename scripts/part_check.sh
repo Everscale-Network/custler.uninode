@@ -27,6 +27,10 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
+# for icinga
+if [[ -f "${partInElections}" ]]; then echo > "${partInElections}"; fi
+if [[ -f "${nodeStats}" ]]; then echo > "${nodeStats}"; fi
+
 #=================================================
 echo
 echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
@@ -76,6 +80,8 @@ if [ "$elections_id" == "0" ]; then
 
         echo "-----------------------------------------------------------------------------------------------------"
         echo
+        # for icinga
+        echo "ERROR ADNL NOT FOUND IN P34 OR P36 CONFIG" > "${nodeStats}"
         exit 1
     fi
 
@@ -99,6 +105,8 @@ ADNL_FOUND="$(Elector_ADNL_Search $ADNL_KEY)"
 if [[ "$ADNL_FOUND" == "absent" ]];then
     echo "###-ERROR: Can't find you in participant list in Elector. account: ${Depool_addr}"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_SOS_sign ###-ALARM: Can't find you in participant list in Elector. account: ${Depool_addr}"
+    # for icinga
+    echo "ERROR NOT IN PARTICIPANT LIST" > "${nodeStats}"
     exit 1
 fi
 
@@ -114,6 +122,9 @@ TON_LIVE_URL=""
 # "https://ton.live/validators?section=details&public_key=${You_PubKey}&key_block_num=undefined"
 "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_CheckMark We are successfully participate in elections $election_id with stake $Your_Stake and ADNL:  $(echo "$ADNL_KEY" | tr "[:upper:]" "[:lower:]") ${TON_LIVE_URL}" 2>&1 > /dev/null
 echo "-----------------------------------------------------------------------------------------------------"
+
+# for icinga
+echo "INFO ELECTION ID ${elections_id} ; DEPOOL ADDRESS $Depool_addr ; VALIDATOR ADDRESS $Validator_addr ; STAKE $Your_Stake ; ADNL ${ADNL_KEY} ; KEY IN ELECTOR $You_PubKey" > "${nodeStats}"
 
 # ==========================================
 # Delete files older 7 days in elections log dirs
