@@ -141,18 +141,23 @@ $PKG_MNGR install -y $PKGs_SET
 echo
 echo '################################################'
 echo '---INFO: Install BOOST from source'
-mkdir -p $HOME/src
-cd $HOME/src
-sudo rm -rf $HOME/src/boost* |cat
-sudo rm -rf /usr/local/include/boost |cat
-sudo rm -f /usr/local/lib/libboost*  |cat
-Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
-wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
-tar xf boost_${Boost_File_Version}.tar.gz
-cd $HOME/src/boost_${Boost_File_Version}/
-./bootstrap.sh
-sudo ./b2 install --prefix=/usr/local
-
+Installed_BOOST_Ver="$(cat /usr/local/include/boost/version.hpp 2>/dev/null | grep "define BOOST_LIB_VERSION"|awk '{print $3}'|tr -d '"'| awk -F'_' '{printf("%d%s%2d\n", $1,".",$2)}')"
+Required_BOOST_Ver="$(echo $BOOST_VERSION | awk -F'.' '{printf("%d%s%2d\n", $1,".",$2)}')"
+if [[ "$Installed_BOOST_Ver" != "$Required_BOOST_Ver" ]];then
+    mkdir -p $HOME/src
+    cd $HOME/src
+    sudo rm -rf $HOME/src/boost* |cat
+    sudo rm -rf /usr/local/include/boost |cat
+    sudo rm -f /usr/local/lib/libboost*  |cat
+    Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
+    wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
+    tar xf boost_${Boost_File_Version}.tar.gz
+    cd $HOME/src/boost_${Boost_File_Version}/
+    ./bootstrap.sh
+    sudo ./b2 install --prefix=/usr/local
+else
+    echo "---INFO: BOOST Version ${BOOST_VERSION} already installed"
+fi
 #=====================================================
 # Install or upgrade RUST
 echo
@@ -216,7 +221,8 @@ if $RUST_NODE_BUILD;then
     cargo update
 
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
-    sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
+    #====== Uncomment to disabe node's logs competely
+    # sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
     RUSTFLAGS="-C target-cpu=native" cargo build --release --features "compression"
     # --features "metrics"
@@ -256,6 +262,7 @@ fi
 # cp -f "${SOLC_SRC_DIR}/build/solc/solc" $HOME/bin/
 # cp -f "${SOLC_SRC_DIR}/lib/stdlib_sol.tvm" $HOME/bin/
 # echo "---INFO: build TON Solidity Compiler ... DONE."
+
 #=====================================================
 # Build TVM-linker
 echo

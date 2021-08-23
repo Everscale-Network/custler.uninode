@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-# (C) Sergey Tyurin  2021-07-22 22:00:00
+# (C) Sergey Tyurin  2021-08-14 22:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -29,6 +29,7 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="rustnet.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
+export FORCE_USE_TONOSCLI=false         # NOT IMPLEMENTED YET !!! For offnode works
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 
@@ -76,28 +77,35 @@ export ENGINE_ADDITIONAL_PARAMS=""
 # GIT addresses & commits
 export RUST_VERSION="1.53.0"
 export BOOST_VERSION="1.76.0"
-export MIN_TC_VERSION="0.16.1"
+export MIN_TC_VERSION="0.17.16"
 export INSTALL_DEPENDENCIES="yes"
+
 export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
 export CNODE_GIT_COMMIT="eae01917c1ed1bfc019d34a6c631160a86cb41eb"
+
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="rustnet"
+
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
-export RCONS_GIT_COMMIT="master"
+export RCONS_GIT_COMMIT="use-console-for-elections"
+
 export TONOS_CLI_GIT_REPO="https://github.com/tonlabs/tonos-cli.git"
 export TONOS_CLI_GIT_COMMIT="master"
+
 export TVM_LINKER_GIT_REPO="https://github.com/tonlabs/TVM-linker.git"
 export TVM_LINKER_GIT_COMMIT="master"
+
 export SOLC_GIT_REPO="https://github.com/tonlabs/TON-Solidity-Compiler.git"
 export SOLC_GIT_COMMIT="master"
+
 export CONTRACTS_GIT_REPO="https://github.com/tonlabs/ton-labs-contracts.git"
 export CONTRACTS_GIT_COMMIT="master"
-[[ "$NETWORK_TYPE" == "rustnet.ton.dev" ]] &&  export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
 
+[[ "$NETWORK_TYPE" == "rustnet.ton.dev" ]] &&  export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
 
 #=====================================================
 # Source code folders
-export TON_SRC_DIR="${NODE_SRC_TOP_DIR}/ton"
+export TON_SRC_DIR="${NODE_SRC_TOP_DIR}/cnode"
 export TON_BUILD_DIR="${TON_SRC_DIR}/build"
 export TONOS_CLI_SRC_DIR="${NODE_SRC_TOP_DIR}/tonos-cli"
 export UTILS_DIR="${TON_BUILD_DIR}/utils"
