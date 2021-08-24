@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-08-19 16:00:00
+# (C) Sergey Tyurin  2021-03-09 16:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -351,35 +351,6 @@ if [[ $Tik_Bal -lt 2000000000 ]];then
 fi
 
 Work_Chain=`echo "${Tik_addr}" | cut -d ':' -f 1`
-
-#=================================================
-# Check DePool has enough balance to operate, and replenish if no
-# ------------------------------------------------
-# check depool contract status
-# Depool_Info="$(Get_Account_Info $Depool_addr)"
-# Depool_Acc_State=`echo "$Depool_Info" |awk '{print $1}'`
-# if [[ "$Depool_Acc_State" == "None" ]];then
-#     echo -e "${BoldText}${RedBack}###-ERROR(line $LINENO): Depool Account does not exist! (no tokens, no code, nothing)${NormText}"
-#     echo
-#     exit 1
-# elif [[ "$Depool_Acc_State" == "Uninit" ]];then
-#     echo -e "${BoldText}${RedBack}###-ERROR(line $LINENO): Depool Account does not deployed.${NormText}"
-#     echo "Has balance : $(echo "$Depool_Info" |awk '{print $2}')"
-#     echo
-#     exit 1
-# fi
-
-# # get info from DePool contract state
-# Depool_Bal=$(( $(echo "$Depool_Info" |awk '{print $2}') ))
-# Current_Depool_Info="$(Get_DP_Info $Depool_addr)"
-# DP_balanceThreshold=$(( $(echo "$Current_Depool_Info"|jq -r '.balanceThreshold') / 1000000000))
-
-# if [[ $Depool_Bal -lt $DP_balanceThreshold ]];then
-#     echo "+++-WARNING(line $LINENO): DePool has balance less $DP_balanceThreshold tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-#     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
-#         "WARNING(line $LINENO): DePool has balance less $DP_balanceThreshold tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
-
-# fi
 
 #=================================================
 # prepare user signature
