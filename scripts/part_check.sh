@@ -28,8 +28,8 @@ source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
 # for icinga
-if [[ -f "${partInElections}" ]]; then echo > "${partInElections}"; fi
-if [[ -f "${nodeStats}" ]]; then echo > "${nodeStats}"; fi
+if [[ -f "${partInElections}" ]]; then echo "" > "${partInElections}"; fi
+if [[ -f "${nodeStats}" ]]; then echo "" > "${nodeStats}"; fi
 
 #=================================================
 echo

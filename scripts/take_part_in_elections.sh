@@ -458,7 +458,7 @@ done
 # Verifying that a transaction has been created
 
 # for icinga
-if [[ -f ${partInElections} ]]; then echo > "${partInElections}"; fi
+if [[ -f ${partInElections} ]]; then echo "" > "${partInElections}"; fi
 
 # main script
 if [[ $Required_Signs -gt 1 ]];then
