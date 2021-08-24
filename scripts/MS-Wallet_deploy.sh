@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-01-24 15:00:00
+# (C) Sergey Tyurin 2021-08-15 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -18,8 +18,10 @@
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
 #
-# You have to have 'tonos-cli' installed in $HOME/bin:
-#   
+
+echo
+echo "################################## Deploy wallet script ########################################"
+echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
 
 #==================================================
 # Set environment
@@ -28,6 +30,7 @@ source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
 KEY_FILES_DIR=${KEYS_DIR}
+SEND_ATTEMPTS=3
 
 function show_usage(){
 echo
@@ -173,15 +176,72 @@ fi
 #     ;;
 # esac
 
-#=================================================
+###################################################################################################################################
 # Deploy wallet
 
-$CALL_TC deploy $Wallet_Code --abi $Wallet_ABI \
-"{\"owners\":[$Custodians_PubKeys],\"reqConfirms\":$ReqConfirms}" \
---sign ${KEY_FILES_DIR}/${WAL_NAME}_1.keys.json \
---wc $Work_Chain \
-| tee ${KEY_FILES_DIR}/${WAL_NAME}_deploy_wallet.log
+#=================================================
+# make boc file 
+function Make_BOC_File(){
+    rm -f deploy.boc
+    TC_OUTPUT=$($CALL_TC deploy_message \
+        $Wallet_Code \
+        "{\"owners\":[$Custodians_PubKeys],\"reqConfirms\":${ReqConfirms}}" \
+        --abi $Wallet_ABI \
+        --sign ${KEY_FILES_DIR}/${WAL_NAME}_1.keys.json \
+        --wc $Work_Chain \
+        --raw \
+        --output deploy.boc \
+        | tee ${KEY_FILES_DIR}/${WAL_NAME}_deploy_wallet_msg.log)
+    echo "${TC_OUTPUT}"
+}
+
+echo -n "---INFO(line $LINENO): Make deploy message BOC file..."
+
+MBF_Output="$(Make_BOC_File)"
+
+if [[ ! -f "deploy.boc" ]];then 
+    echo "###-ERROR(line $LINENO): Failed to make deploying message file!!!"
+    echo "$MBF_Output"
+    exit 1
+fi
+
+MBF_addr="$(echo "$MBF_Output"|grep "Contract's address:"|awk '{print $3}')"
+
+if [[ "${MBF_addr}" != "${WALL_ADDR}" ]];then
+    echo "###-ERROR(line $LINENO): Address from BOC ($MBF_addr) is not equal calc address ($WALL_ADDR) !"
+    exit 1
+else
+    echo "DONE"
+fi
+
+#=================================================
+# Send deploy message to BlockChain
+echo -n "---INFO(line $LINENO): Send deploy message to blockchain..."
+Attempts_to_send=$SEND_ATTEMPTS
+while [[ $Attempts_to_send -gt 0 ]]; do
+    result=`Send_File_To_BC "deploy.boc"`
+    if [[ "$result" == "failed" ]]; then
+        echo "###-ERROR(line $LINENO): Send deploy message FAILED!!!"
+    else
+        echo "DONE"
+        break
+    fi
+    
+    # Account_Status=$(Get_Account_Info ${WALL_ADDR} | awk '{print $1}')
+    # if [[ "$Account_Status" != "Active" ]];then
+    #     echoerr "+++-WARNING(line $LINENO): The message was not delivered. Sending again..""
+    #     Attempts_to_send=$((Attempts_to_send - 1))
+    # else
+    #     echo "DONE"
+    #     break
+    # fi
+done
+
 echo
-echo "Deploy log saved to ${KEY_FILES_DIR}/${WAL_NAME}_deploy_wallet.log"
+echo "Deploy message log saved to ${KEY_FILES_DIR}/${WAL_NAME}_deploy_wallet_msg.log"
 echo
+echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+echo "================================================================================================"
+echo
+
 exit 0
