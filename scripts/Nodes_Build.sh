@@ -232,6 +232,8 @@ if $RUST_NODE_BUILD;then
 
     #=====================================================
     # Build rust node console
+    echo '################################################'
+    echo "---INFO: Build rust node console ..."
     [[ -d ${RCONS_SRC_DIR} ]] && rm -rf "${RCONS_SRC_DIR}"
     git clone --recurse-submodules "${RCONS_GIT_REPO}" $RCONS_SRC_DIR
     cd $RCONS_SRC_DIR

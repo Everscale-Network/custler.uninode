@@ -7,6 +7,7 @@ echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
+source $HOME/.cargo/env
 
 cd $HOME
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o $HOME/rust_install.sh
