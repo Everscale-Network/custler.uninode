@@ -258,6 +258,9 @@ function Get_SC_current_state() {
     
     case "${NODE_TYPE}" in
         RUST)
+            Curr_node_wc="$(cat ${R_CFG_DIR}/config.json|jq -r '.workchain')"
+            # curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {accounts(filter: {id: {eq: \"'"$w_acc"'\"}}) {boc}}"}'|jq -r '.data.accounts[].boc' > ${s_acc}.boc
+
             for (( Try=0; Try <= 5; Try++ ))
             do
                 rm -f ${s_acc}.tvc
@@ -512,7 +515,7 @@ function P34_ADNL_search() {
         RUST)
             # local P34_List="$($CALL_TC getconfig 34)"
             local P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
-            if [[ -n $(echo "$P34_List" | grep "Config p34:" | grep "null") ]];then
+            if [[ -n $(echo "$P34_List" | grep '{}') ]];then
                 echo "null"
                 return
             fi
@@ -566,13 +569,13 @@ function P36_ADNL_search() {
         RUST)
             # local P36_List="$($CALL_TC getconfig 36)"
             local P36_List=`$CALL_RC -c "getconfig 36"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
-            if [[ -n $(echo "$P36_List" | grep "Config p36:" | grep "null") ]];then
+            if [[ -n $(echo "$P36_List" | grep '{}') ]];then
                 echo "null"
                 return
             fi
             # P36_list="$($CALL_TC getconfig 36 | sed -e '1,4d' |sed 's/Config p36: //')"
             # P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
-            local found=`echo "${P36_List}" | jq ".list[]|select(.adnl_addr == \"$ADNL\")"`
+            local found=`echo "${P36_List}" | jq ".p36.list[]|select(.adnl_addr == \"$ADNL\")"`
             if [[ -n $found ]]; then
                 local adnl="$(echo ${found} | jq -r .adnl_addr )"
                 local pkey="$(echo ${found} | jq -r .public_key )"
