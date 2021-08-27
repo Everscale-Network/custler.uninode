@@ -10,9 +10,6 @@ source "${SCRIPT_DIR}/env.sh"
 source $HOME/.cargo/env
 
 cd $HOME
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o $HOME/rust_install.sh
-sh $HOME/rust_install.sh -y --default-toolchain ${RUST_VERSION}
-source $HOME/.cargo/env
 #=====================================================
 # Build tonos-cli
 [[ ! -z ${TONOS_CLI_SRC_DIR} ]] && rm -rf "${TONOS_CLI_SRC_DIR}"

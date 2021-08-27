@@ -255,19 +255,26 @@ function Get_SC_current_state() {
     [[ -z $w_acc ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): func Get_SC_current_state: empty address" && exit 1
     local s_acc=${w_acc##*:}
     local acc_wc=${w_acc%%:*}
-    
     case "${NODE_TYPE}" in
         RUST)
-            Curr_node_wc="$(cat ${R_CFG_DIR}/config.json|jq -r '.workchain')"
-            # curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {accounts(filter: {id: {eq: \"'"$w_acc"'\"}}) {boc}}"}'|jq -r '.data.accounts[].boc' > ${s_acc}.boc
-
-            for (( Try=0; Try <= 5; Try++ ))
-            do
-                rm -f ${s_acc}.tvc
-                local LC_OUTPUT="$($CALL_RC -c "getaccountstate ${w_acc} ${s_acc}.tvc")"
-                [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
-                sleep 3
-            done
+            NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+            if [[ "${NODE_WC}" == "${acc_wc}" ]] || [[ "${acc_wc}" == "-1" ]];then
+                for (( Try=0; Try <= 5; Try++ ))
+                do
+                    rm -f ${s_acc}.tvc
+                    local LC_OUTPUT="$($CALL_RC -c "getaccountstate ${w_acc} ${s_acc}.tvc")"
+                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
+                    sleep 3
+                done
+            else
+                for (( Try=0; Try <= 5; Try++ ))
+                do
+                    rm -f ${s_acc}.tvc
+                    local LC_OUTPUT="$($CALL_TC account $w_acc --dumpboc ${s_acc}.tvc)"
+                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
+                    sleep 3
+                done
+            fi
             ;;
         CPP)
             for (( Try=0; Try <= 5; Try++ ))
@@ -368,16 +375,7 @@ function Get_Current_Elections_ID() {
                     elections_id=`$CALL_TC runget ${elector_addr} active_election_id 2>&1 | grep -i 'Result:' | awk -F'"' '{print $2}'`
                     ;;
                 "solidity")
-                    # --------- TMP -----------------
-                    # --- Save elector state ----
-                    for (( Try=0; Try <= 5; Try++ ))
-                    do
-                        rm -f ${elector_addr##*:}.tvc
-                        local LC_OUTPUT="$($CALL_RC -c "getaccountstate ${elector_addr} ${elector_addr##*:}.tvc")"
-                        [[ -f  ${elector_addr##*:}.tvc ]] && local result="written StateInit of account" && break
-                        sleep 3
-                    done
-                    # --------- /TMP -----------------
+                    Get_SC_current_state "${elector_addr}"
                     local elections_id=$($CALL_TC -j run --boc ${elector_addr##*:}.tvc active_election_id '{}' --abi ${Elector_ABI} | jq -r '.value0')
                     ;;
                 *)
@@ -428,15 +426,19 @@ function Get_Account_Info() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            # local ACCOUNT_INFO=`$CALL_TC account ${ACCOUNT}` 2>&1
-            # if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
-            #     echo "None 0 0"
-            #     return
-            # fi
-            local ACCOUNT_INFO=`$CALL_RC -j -c "getaccount $ACCOUNT"`
-            if [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Account not found')" ]];then
-                echo "None 0 0"
-                return
+            NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+            if [[ "${NODE_WC}" == "${acc_wc}" ]] || [[ "${acc_wc}" == "-1" ]];then
+                local ACCOUNT_INFO=`$CALL_RC -j -c "getaccount $ACCOUNT"`
+                if [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Account not found')" ]];then
+                    echo "None 0 0"
+                    return
+                fi
+            else
+                local ACCOUNT_INFO=`$CALL_TC account ${ACCOUNT}` 2>&1
+                if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
+                    echo "None 0 0"
+                    return
+                fi
             fi
             local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r '.balance'`
             local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r '.last_paid'`
@@ -887,7 +889,8 @@ function Get_DP_Self_Balance() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            DP_balance_nT="$($CALL_TC run "${Depool_addr}" getDePoolBalance {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.value0')"
+            Get_SC_current_state "${Depool_addr}"
+            DP_balance_nT="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getDePoolBalance {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.value0')"
             ;;
         CPP)
             local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
@@ -921,7 +924,6 @@ function Get_DP_Info() {
     case "${NODE_TYPE}" in
         RUST)
             local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            # Result="$($CALL_TC run "${Depool_addr}" getDePoolInfo {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
             Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getDePoolInfo '{}' --abi $DePool_ABI)"
             ;;
         CPP)
@@ -1078,6 +1080,7 @@ function Send_MSIG_Trans_Confirm() {
     local wc=`echo "${MSIG_ADDR}" | cut -d ':' -f 1`
     local msig_public=`cat "$Keys_File" | jq -r '.public'`
     local msig_secret=`cat "$Keys_File" | jq -r '.secret'`
+    
     if [[ -z $msig_public ]] || [[ -z $msig_secret ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Can't find public and/or secret key in $Keys_File!"
         exit 1

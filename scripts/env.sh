@@ -77,7 +77,7 @@ export ENGINE_ADDITIONAL_PARAMS=""
 # GIT addresses & commits
 export RUST_VERSION="1.53.0"
 export BOOST_VERSION="1.76.0"
-export MIN_TC_VERSION="0.17.16"
+export MIN_TC_VERSION="0.17.27"
 export INSTALL_DEPENDENCIES="yes"
 
 export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
