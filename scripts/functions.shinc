@@ -418,6 +418,10 @@ function Get_Current_Elections_ID() {
 function Get_Account_Info() {
     
     local ACCOUNT=`echo "$1"| tr '[:upper:]' '[:lower:]'`
+    local w_acc="$ACCOUNT" 
+    local s_acc=${w_acc##*:}
+    local acc_wc=${w_acc%%:*}
+    
     local acc_hex=`echo ${ACCOUNT}|cut -d ':' -f 2`
     if [[ ${#acc_hex} -ne 64 ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Wrong account address!"
