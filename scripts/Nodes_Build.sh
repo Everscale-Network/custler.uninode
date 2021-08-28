@@ -222,11 +222,12 @@ if $RUST_NODE_BUILD;then
 
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
     #====== Uncomment to disabe node's logs competely
-    # sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
+    sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
     # Add `sha2-native` feature (adds explicit `ed25519-dalek` dependency because it uses newer sha2 version)
-    sed -i.bak '/^\[dependencies\]/a ed25519-dalek = "1.0"' Cargo.toml
-    sed -i.bak '$asha2-native = ["sha2/asm", "ed25519-dalek/asm"]' Cargo.toml
+    # BSD/macOS sed requires an actual newline character to follow a\. I use copy+replace for compatibility
+    sed -i.bak -e '/^\[dependencies\]/p; s/\[dependencies\]/ed25519-dalek = "1.0"/' Cargo.toml
+    sed -i.bak -e '/^\[features\]/p; s/\[features\]/sha2-native = ["sha2\/asm", "ed25519-dalek\/asm"]/' Cargo.toml
 
     RUSTFLAGS="-C target-cpu=native" cargo build --release --features "compression,sha2-native"
     # --features "metrics"
