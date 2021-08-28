@@ -263,7 +263,7 @@ function Get_SC_current_state() {
                 do
                     rm -f ${s_acc}.tvc
                     local LC_OUTPUT="$($CALL_RC -c "getaccountstate ${w_acc} ${s_acc}.tvc")"
-                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
+                    [[ -f  ${s_acc}.tvc ]] && local LC_OUTPUT="written StateInit of account" && break
                     sleep 3
                 done
             else
@@ -271,7 +271,7 @@ function Get_SC_current_state() {
                 do
                     rm -f ${s_acc}.tvc
                     local LC_OUTPUT="$($CALL_TC account $w_acc --dumpboc ${s_acc}.tvc)"
-                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
+                    [[ -f  ${s_acc}.tvc ]] && local LC_OUTPUT="written StateInit of account" && break
                     sleep 3
                 done
             fi
