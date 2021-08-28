@@ -263,7 +263,7 @@ function Get_SC_current_state() {
                 do
                     rm -f ${s_acc}.tvc
                     local LC_OUTPUT="$($CALL_RC -c "getaccountstate ${w_acc} ${s_acc}.tvc")"
-                    [[ -f  ${s_acc}.tvc ]] && local LC_OUTPUT="written StateInit of account" && break
+                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
                     sleep 3
                 done
             else
@@ -271,7 +271,7 @@ function Get_SC_current_state() {
                 do
                     rm -f ${s_acc}.tvc
                     local LC_OUTPUT="$($CALL_TC account $w_acc --dumpboc ${s_acc}.tvc)"
-                    [[ -f  ${s_acc}.tvc ]] && local LC_OUTPUT="written StateInit of account" && break
+                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
                     sleep 3
                 done
             fi
@@ -297,7 +297,7 @@ function Get_SC_current_state() {
         echoerr "${LC_OUTPUT}"
         exit 1
     fi
-    echo "${LC_OUTPUT}"
+    echo "${result}"
 }
 #=================================================
 # Get current Time Diff
@@ -375,7 +375,7 @@ function Get_Current_Elections_ID() {
                     elections_id=`$CALL_TC runget ${elector_addr} active_election_id 2>&1 | grep -i 'Result:' | awk -F'"' '{print $2}'`
                     ;;
                 "solidity")
-                    Get_SC_current_state "${elector_addr}"
+                    local LC_OUTPUT="$(Get_SC_current_state "${elector_addr}")"
                     local elections_id=$($CALL_TC -j run --boc ${elector_addr##*:}.tvc active_election_id '{}' --abi ${Elector_ABI} | jq -r '.value0')
                     ;;
                 *)
@@ -733,7 +733,7 @@ function Elector_ADNL_Search() {
                     Result="$stake $time $max_factor $addr"
                     ;;
                 solidity)
-                    Get_SC_current_state "$elector_addr" &>/dev/null
+                    local LC_OUTPUT="$(Get_SC_current_state "$elector_addr")"
                     local Elector_Parts_List=`$CALL_TC -j run --boc ${elector_addr##*:}.tvc get '{}' --abi ${Elector_ABI}`
                     local Elections_Open=`echo $Elector_Parts_List | jq .election_open`
                     if [[ $Elections_Open == false ]]; then
@@ -889,7 +889,7 @@ function Get_DP_Self_Balance() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            Get_SC_current_state "${Depool_addr}"
+            local LC_OUTPUT="$(Get_SC_current_state "${Depool_addr}")"
             DP_balance_nT="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getDePoolBalance {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.value0')"
             ;;
         CPP)
