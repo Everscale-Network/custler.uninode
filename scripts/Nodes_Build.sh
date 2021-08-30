@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-07-22 22:00:00
+# (C) Sergey Tyurin  2021-08-29 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -181,15 +181,20 @@ if $CPP_NODE_BUILD;then
     [[ -d ${TON_SRC_DIR} ]] && rm -rf "${TON_SRC_DIR}"
 
     echo "---INFO: clone ${CNODE_GIT_REPO} (${CNODE_GIT_COMMIT})..."
-    git clone --recursive "${CNODE_GIT_REPO}" "${TON_SRC_DIR}"
-    cd "${TON_SRC_DIR}" && git checkout "${CNODE_GIT_COMMIT}"
+    git clone "${CNODE_GIT_REPO}" "${TON_SRC_DIR}"
+    cd "${TON_SRC_DIR}" 
+    git checkout "${CNODE_GIT_COMMIT}"
+    git submodule init && git submodule update --recursive
+    git submodule foreach 'git submodule init'
+    git submodule foreach 'git submodule update  --recursive'
     echo "---INFO: clone ${CNODE_GIT_REPO} (${CNODE_GIT_COMMIT})... DONE"
+    echo
     echo "---INFO: build a node..."
-    mkdir -p "${TON_BUILD_DIR}"
-    cd "${TON_BUILD_DIR}"
+    mkdir -p "${TON_BUILD_DIR}" && cd "${TON_BUILD_DIR}"
     cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DPORTABLE=ON
     ninja
     echo "---INFO: build a node... DONE"
+    echo
     cp -f $TON_BUILD_DIR/lite-client/lite-client $HOME/bin
     cp -f $TON_BUILD_DIR/validator-engine/validator-engine $HOME/bin
     cp -f $TON_BUILD_DIR/validator-engine-console/validator-engine-console $HOME/bin
@@ -212,12 +217,17 @@ if $RUST_NODE_BUILD;then
     sudo mkdir -p /node_db
     sudo chmod -R ugo+rw /node_db
     #----------------
+
     [[ -d ${RNODE_SRC_DIR} ]] && rm -rf "${RNODE_SRC_DIR}"
-    git clone --recurse-submodules "${RNODE_GIT_REPO}" $RNODE_SRC_DIR
-    cd $RNODE_SRC_DIR
+    # git clone --recurse-submodules "${RNODE_GIT_REPO}" $RNODE_SRC_DIR
+    git clone "${RNODE_GIT_REPO}" "${RNODE_SRC_DIR}"
+    cd "${RNODE_SRC_DIR}" 
     git checkout "${RNODE_GIT_COMMIT}"
-    git submodule init
-    git submodule update
+    git submodule init && git submodule update --recursive
+    git submodule foreach 'git submodule init'
+    git submodule foreach 'git submodule update  --recursive'
+
+    cd $RNODE_SRC_DIR
     cargo update
 
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
@@ -313,6 +323,7 @@ git clone --single-branch --branch multisig-surf-v2 https://github.com/tonlabs/t
 RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
 curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
+echo 
 echo '################################################'
 BUILD_END_TIME=$(date +%s)
 Build_mins=$(( (BUILD_END_TIME - BUILD_STRT_TIME)/60 ))

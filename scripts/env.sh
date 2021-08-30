@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-# (C) Sergey Tyurin  2021-08-14 22:00:00
+# (C) Sergey Tyurin  2021-08-29 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -29,6 +29,7 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="rustnet.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
+# NODE_TYPE="CPP"                       # Uncomment to force use specified node. Can be CPP / RUST
 export FORCE_USE_TONOSCLI=false         # NOT IMPLEMENTED YET !!! For offnode works
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
@@ -37,7 +38,7 @@ export MSIG_FIX_STAKE=45000             # fixed stake for 'msig' mode (tokens). 
 export VAL_ACC_INIT_BAL=95000           # Initial balance on validator account for full balance staking (if MSIG_FIX_STAKE=0)
 export VAL_ACC_RESERVED=50              # Reserved amount staying on msig account in full staking mode
 
-export TIK_REPLANISH_AMOUNT=5           # If Tik acc balance less 2 tokens, It will be auto topup with this amount
+export TIK_REPLANISH_AMOUNT=10          # If Tik acc balance less 2 tokens, It will be auto topup with this amount
 
 export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to BC in seconds
 

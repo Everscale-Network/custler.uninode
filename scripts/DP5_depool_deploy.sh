@@ -237,7 +237,7 @@ function Make_BOC_File(){
         --wc 0 \
         --raw \
         --output deploy.boc \
-        | tee ${KEY_FILES_DIR}/${Depool_Name}_deploy_depool_msg.log)
+        | tee ${KEYS_DIR}/${Depool_Name}_deploy_depool_msg.log)
     echo "${TC_OUTPUT}"
 }
 

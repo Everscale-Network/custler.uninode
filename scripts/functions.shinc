@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-08-19 22:00:00
+# (C) Sergey Tyurin  2021-08-29 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -403,12 +403,6 @@ function Get_Current_Elections_ID() {
             exit 1
             ;;            
     esac
-
-    if [[ -z $elections_id ]]; then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Can not get Elections ID!!!"
-        exit 1
-    fi
-
     echo "${elections_id}"
 }
 #=================================================
