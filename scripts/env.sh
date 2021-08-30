@@ -88,7 +88,7 @@ export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="rustnet"
 
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
-export RCONS_GIT_COMMIT="use-console-for-elections"
+export RCONS_GIT_COMMIT="master"
 
 export TONOS_CLI_GIT_REPO="https://github.com/tonlabs/tonos-cli.git"
 export TONOS_CLI_GIT_COMMIT="master"
