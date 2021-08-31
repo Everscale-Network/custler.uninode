@@ -116,7 +116,7 @@ MS-Wallet_deploy.sh $VALIDATOR_NAME Safe 3 2
 ### 5.3 Setup and deploy DePool smartcontract
 
 #### 5.3.1 Setup DePool parametrs
-First of all we to have set DePool parametrs at the beginnig of deploy script **`DP4_depool_deploy.sh`**  
+First of all we to have set DePool parametrs at the beginnig of deploy script **`DP5_depool_deploy.sh`**  
 ```bash
 ValidatorAssuranceT=10000      # Assurance in tokens
 MinStakeT=10                    # Min DePool assepted stake in tokens
