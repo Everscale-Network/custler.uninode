@@ -258,7 +258,7 @@ function Get_SC_current_state() {
     case "${NODE_TYPE}" in
         RUST)
             NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
-            if [[ "${NODE_WC}" == "${acc_wc}" ]] || [[ "${acc_wc}" == "-1" ]];then
+            if [[ "${NODE_WC}" == "${acc_wc}" ]] && ! $FORCE_USE_TONOSCLI  || [[ "${acc_wc}" == "-1" ]];then
                 for (( Try=0; Try <= 5; Try++ ))
                 do
                     rm -f ${s_acc}.tvc
@@ -425,7 +425,7 @@ function Get_Account_Info() {
     case "${NODE_TYPE}" in
         RUST)
             NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
-            if [[ "${NODE_WC}" == "${acc_wc}" ]] || [[ "${acc_wc}" == "-1" ]];then
+            if [[ "${NODE_WC}" == "${acc_wc}" ]] && ! $FORCE_USE_TONOSCLI || [[ "${acc_wc}" == "-1" ]];then
                 local ACCOUNT_INFO=`$CALL_RC -j -c "getaccount $ACCOUNT"`
                 if [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Account not found')" ]];then
                     echo "None 0 0"

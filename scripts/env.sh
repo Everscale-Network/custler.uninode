@@ -30,7 +30,7 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 # Network related variables
 export NETWORK_TYPE="rustnet.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
 # NODE_TYPE="CPP"                       # Uncomment to force use specified node. Can be CPP / RUST
-export FORCE_USE_TONOSCLI=false         # NOT IMPLEMENTED YET !!! For offnode works
+export FORCE_USE_TONOSCLI=true          # NOT IMPLEMENTED for c++ node !!! For offnode works
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 
