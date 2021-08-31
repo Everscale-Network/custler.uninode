@@ -178,12 +178,12 @@ Depool_AMOUNT=`echo "$Depool_INFO" | awk '{print $2}'`
 if [[ $Depool_AMOUNT -lt $((BalanceThreshold * 2  + 5000000000)) ]];then
     echo "###-ERROR(line $LINENO): You have not anought balance on depool address!"
     echo "It should have at least $((BalanceThresholdT * 2  + 5)), but now it has $((Depool_AMOUNT))"
-    exit 1
+#    exit 1
 fi
 
 if [[ "$Depool_Status" != "Uninit" ]];then
     echo "###-ERROR(line $LINENO): Depool_Status not 'Uninit'. Already deployed?"
-    exit 1
+#    exit 1
 fi
 echo "Depool balance: $((Depool_AMOUNT/1000000000)) ; status: $Depool_Status"
 echo
