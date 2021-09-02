@@ -375,7 +375,7 @@ Current_Depool_Info="$(Get_DP_Info $Depool_addr)"
 DP_balanceThreshold=$(( $(echo "$Current_Depool_Info"|jq -r '.balanceThreshold') ))       # nanotokens
 DP_Above_Thresh=$(( 10 * 1000000000))
 
-if [[ $Depool_Bal -lt $DP_balanceThreshold)) ]];then
+if [[ $Depool_Bal -lt $DP_balanceThreshold ]];then
     Replanish_Amount=$(( DP_balanceThreshold - Depool_Bal + DP_Above_Thresh ))
     echo "+++-WARNING(line $LINENO): DePool has balance less $((DP_balanceThreshold / 1000000000)) tokens!! I will topup it with $((DP_Above_Thresh / 1000000000)) tokens from ${VALIDATOR_NAME} account" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
