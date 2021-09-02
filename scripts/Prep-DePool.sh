@@ -124,8 +124,8 @@ echo "If you want to replace exist depool, you need to delete all files in ${KEY
 echo
 echo -e "${BoldText}${RedBack} Save DePool seed phrase!! ${NormText} from 'depool_seed.txt' file in ${KEY_FILES_DIR}/"
 echo
-echo "To deploy Depool, send 50 tokens to this address and use 'DP4_depool_deploy.sh' script"
-echo -e "${BoldText}${GreeBack}### NB! ### Do not forget to change Depool parameters at the beginning of 'DP4_depool_deploy.sh' script${NormText}"
+echo "To deploy Depool, send 50 tokens to this address and use 'DP5_depool_deploy.sh' script"
+echo -e "${BoldText}${GreeBack}### NB! ### Do not forget to change Depool parameters at the beginning of 'DP5_depool_deploy.sh' script${NormText}"
 echo
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date)"
 echo "================================================================================================"

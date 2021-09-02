@@ -1,5 +1,5 @@
 #!/bin/bash
-# (C) Sergey Tyurin  2021-08-18 22:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -178,49 +178,35 @@ Depool_AMOUNT=`echo "$Depool_INFO" | awk '{print $2}'`
 if [[ $Depool_AMOUNT -lt $((BalanceThreshold * 2  + 5000000000)) ]];then
     echo "###-ERROR(line $LINENO): You have not anought balance on depool address!"
     echo "It should have at least $((BalanceThresholdT * 2  + 5)), but now it has $((Depool_AMOUNT))"
-#    exit 1
+    exit 1
 fi
 
 if [[ "$Depool_Status" != "Uninit" ]];then
     echo "###-ERROR(line $LINENO): Depool_Status not 'Uninit'. Already deployed?"
-#    exit 1
+    exit 1
 fi
 echo "Depool balance: $((Depool_AMOUNT/1000000000)) ; status: $Depool_Status"
 echo
+
 #===========================================================
-# read -p "### CHECK INFO TWICE!!! Is this a right Parameters? Think once more!  (yes/n)? " </dev/tty answer
-# case ${answer:0:3} in
-#     yes|YES )
-#         echo
-#         echo "Processing....."
-#     ;;
-#     * )
-#         echo
-#         echo "If you absolutely sure, type 'yes' "
-#         echo "Cancelled."
-#         exit 1
-#     ;;
-# esac
+read -p "### CHECK INFO TWICE!!! Is this a right Parameters? Think once more!  (yes/n)? " </dev/tty answer
+case ${answer:0:3} in
+    yes|YES )
+        echo
+        echo "Processing....."
+    ;;
+    * )
+        echo
+        echo "If you absolutely sure, type 'yes' "
+        echo "Cancelled."
+        exit 1
+    ;;
+esac
 #===========================================================
-# exit 0
-# from https://docs.ton.dev/86757ecb2/v/0/p/37a848-run-depool/t/019261 :
-# tonos-cli deploy DePool.tvc 
-#   '{
-#     "minStake":*number*
-#     "validatorAssurance":*number*,
-#     "proxyCode":"<ProxyContractCodeInBase64>",
-#     "validatorWallet":"<validatorWalletAddress>",
-#     "participantRewardFraction":*number*,
-#   }' 
-#   --abi DePool.abi.json 
-#   --sign depool.json --wc 0
+
 
 echo "{\"minStake\":$MinStake,\"validatorAssurance\":$ValidatorAssurance,\"proxyCode\":\"$ProxyCode\",\"validatorWallet\":\"$Validator_addr\",\"participantRewardFraction\":$ParticipantRewardFraction}"
 
-# $CALL_TC deploy ${DSCs_DIR}/DePool.tvc \
-#     "{\"minStake\":$MinStake,\"validatorAssurance\":$ValidatorAssurance,\"proxyCode\":\"$ProxyCode\",\"validatorWallet\":\"$Validator_addr\",\"participantRewardFraction\":$ParticipantRewardFraction}" \
-#     --abi ${DSCs_DIR}/DePool.abi.json \
-#     --sign ${KEYS_DIR}/${Depool_Name}.keys.json --wc 0 | tee ${KEYS_DIR}/${Depool_Name}_depool-deploy.log
 
 ###################################################################################################################################
 # Deploy wallet
@@ -272,15 +258,15 @@ while [[ $Attempts_to_send -gt 0 ]]; do
         echo "DONE"
         break
     fi
-    
-    # Account_Status=$(Get_Account_Info ${WALL_ADDR} | awk '{print $1}')
-    # if [[ "$Account_Status" != "Active" ]];then
-    #     echoerr "+++-WARNING(line $LINENO): The message was not delivered. Sending again..""
-    #     Attempts_to_send=$((Attempts_to_send - 1))
-    # else
-    #     echo "DONE"
-    #     break
-    # fi
+    sleep 5
+    Account_Status=$(Get_Account_Info ${WALL_ADDR} | awk '{print $1}')
+    if [[ "$Account_Status" != "Active" ]];then
+        echoerr "+++-WARNING(line $LINENO): The message was not delivered. Sending again..""
+        Attempts_to_send=$((Attempts_to_send - 1))
+    else
+        echo "DONE"
+        break
+    fi
 done
 
 echo

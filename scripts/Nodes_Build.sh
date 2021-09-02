@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-08-29 15:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -28,6 +28,8 @@ source "${SCRIPT_DIR}/env.sh"
 echo
 echo "################################### FreeTON nodes build script #####################################"
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
+
+BackUP_Time="$(date  +'%F_%T'|tr ':' '-')"
 
 case "${@}" in
     cpp)
@@ -195,6 +197,11 @@ if $CPP_NODE_BUILD;then
     ninja
     echo "---INFO: build a node... DONE"
     echo
+
+    cp $HOME/bin/lite-client $HOME/bin/lite-client_${BackUP_Time}
+    cp $HOME/bin/validator-engine $HOME/bin/validator-engine_${BackUP_Time}
+    cp $HOME/bin/validator-engine-console $HOME/bin/validator-engine-console_${BackUP_Time}
+    
     cp -f $TON_BUILD_DIR/lite-client/lite-client $HOME/bin
     cp -f $TON_BUILD_DIR/validator-engine/validator-engine $HOME/bin
     cp -f $TON_BUILD_DIR/validator-engine-console/validator-engine-console $HOME/bin
@@ -232,7 +239,7 @@ if $RUST_NODE_BUILD;then
 
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
     #====== Uncomment to disabe node's logs competely
-    sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
+    # sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
     # Add `sha2-native` feature (adds explicit `ed25519-dalek` dependency because it uses newer sha2 version)
     # BSD/macOS sed requires an actual newline character to follow a\. I use copy+replace for compatibility
@@ -243,6 +250,7 @@ if $RUST_NODE_BUILD;then
     # --features "metrics"
     # --features "external_db,metrics"
 
+    cp $HOME/bin/rnode $HOME/bin/rnode_${BackUP_Time}
     cp -f ${RNODE_SRC_DIR}/target/release/ton_node $HOME/bin/rnode
 
     #=====================================================
@@ -304,6 +312,7 @@ cd "${TONOS_CLI_SRC_DIR}"
 git checkout "${TONOS_CLI_GIT_COMMIT}"
 cargo update
 RUSTFLAGS="-C target-cpu=native" cargo build --release
+cp $HOME/bin/tonos-cli $HOME/bin/tonos-cli_${BackUP_Time}
 cp "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"
 echo "---INFO: build tonos-cli ... DONE"
 

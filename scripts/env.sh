@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-# (C) Sergey Tyurin  2021-08-29 15:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -28,9 +28,9 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 
 #=====================================================
 # Network related variables
-export NETWORK_TYPE="rustnet.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
+export NETWORK_TYPE="fld.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
 # NODE_TYPE="CPP"                       # Uncomment to force use specified node. Can be CPP / RUST
-export FORCE_USE_TONOSCLI=true          # NOT IMPLEMENTED for c++ node !!! For offnode works
+export FORCE_USE_TONOSCLI=false          # NOT IMPLEMENTED for c++ node !!! For offnode works
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 
@@ -82,7 +82,8 @@ export MIN_TC_VERSION="0.17.27"
 export INSTALL_DEPENDENCIES="yes"
 
 export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
-export CNODE_GIT_COMMIT="eae01917c1ed1bfc019d34a6c631160a86cb41eb"
+export CNODE_GIT_COMMIT="master"
+[[ "$NETWORK_TYPE" == "fld.ton.dev" ]] && export CNODE_GIT_COMMIT="GROTH16"
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="rustnet"

@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-08-19 16:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -356,30 +356,44 @@ Work_Chain=`echo "${Tik_addr}" | cut -d ':' -f 1`
 # Check DePool has enough balance to operate, and replenish if no
 # ------------------------------------------------
 # check depool contract status
-# Depool_Info="$(Get_Account_Info $Depool_addr)"
-# Depool_Acc_State=`echo "$Depool_Info" |awk '{print $1}'`
-# if [[ "$Depool_Acc_State" == "None" ]];then
-#     echo -e "${BoldText}${RedBack}###-ERROR(line $LINENO): Depool Account does not exist! (no tokens, no code, nothing)${NormText}"
-#     echo
-#     exit 1
-# elif [[ "$Depool_Acc_State" == "Uninit" ]];then
-#     echo -e "${BoldText}${RedBack}###-ERROR(line $LINENO): Depool Account does not deployed.${NormText}"
-#     echo "Has balance : $(echo "$Depool_Info" |awk '{print $2}')"
-#     echo
-#     exit 1
-# fi
+Depool_Info="$(Get_Account_Info $Depool_addr)"
+Depool_Acc_State=`echo "$Depool_Info" |awk '{print $1}'`
+if [[ "$Depool_Acc_State" == "None" ]];then
+    echo -e "${BoldText}${RedBack}###-ERROR(line $LINENO): Depool Account does not exist! (no tokens, no code, nothing)${NormText}"
+    echo
+    exit 1
+elif [[ "$Depool_Acc_State" == "Uninit" ]];then
+    echo -e "${BoldText}${RedBack}###-ERROR(line $LINENO): Depool Account does not deployed.${NormText}"
+    echo "Has balance : $(echo "$Depool_Info" |awk '{print $2}')"
+    echo
+    exit 1
+fi
 
-# # get info from DePool contract state
-# Depool_Bal=$(( $(echo "$Depool_Info" |awk '{print $2}') ))
-# Current_Depool_Info="$(Get_DP_Info $Depool_addr)"
-# DP_balanceThreshold=$(( $(echo "$Current_Depool_Info"|jq -r '.balanceThreshold') / 1000000000))
+# get info from DePool contract state
+Depool_Bal=$(( $(echo "$Depool_Info" |awk '{print $2}') ))      # nanotokens
+Current_Depool_Info="$(Get_DP_Info $Depool_addr)"
+DP_balanceThreshold=$(( $(echo "$Current_Depool_Info"|jq -r '.balanceThreshold') ))       # nanotokens
+DP_Above_Thresh=$(( 10 * 1000000000))
 
-# if [[ $Depool_Bal -lt $DP_balanceThreshold ]];then
-#     echo "+++-WARNING(line $LINENO): DePool has balance less $DP_balanceThreshold tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-#     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
-#         "WARNING(line $LINENO): DePool has balance less $DP_balanceThreshold tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
+if [[ $Depool_Bal -lt $DP_balanceThreshold)) ]];then
+    Replanish_Amount=$(( DP_balanceThreshold - Depool_Bal + DP_Above_Thresh ))
+    echo "+++-WARNING(line $LINENO): DePool has balance less $((DP_balanceThreshold / 1000000000)) tokens!! I will topup it with $((DP_Above_Thresh / 1000000000)) tokens from ${VALIDATOR_NAME} account" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
+        "WARNING(line $LINENO): DePool has balance less $((DP_balanceThreshold / 1000000000)) tokens!! I will topup it with $((Replanish_Amount / 1000000000)) tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
+    Replenish_Payload='te6ccgEBAQEABgAACGhEx+s='
 
-# fi
+    rm -f replanish.boc
+    TC_OUTPUT="$($CALL_TC message --raw --output replanish.boc \
+    --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json \
+    --abi $SafeC_Wallet_ABI \
+    "$(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr)" submitTransaction \
+    "{\"dest\":\"$(cat ${KEYS_DIR}/depool.addr)\",\"value\":$Replanish_Amount,\"bounce\":true,\"allBalance\":false,\"payload\":\"$Replenish_Payload\"}" \
+    | grep -i 'Message saved to file')"
+    Send_File_To_BC replanish.boc 
+    # TODO: Add signing for a few cutodians
+    # Required_Signs=`Get_Account_Custodians_Info $Validator_addr | awk '{print $2}'`
+    ./Sign_Trans.sh &>/dev/null
+fi
 
 #=================================================
 # prepare user signature

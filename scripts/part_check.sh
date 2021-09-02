@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-08-19 18:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -76,7 +76,7 @@ if [ "$elections_id" == "0" ]; then
 
         echo "-----------------------------------------------------------------------------------------------------"
         echo
-        exit 1
+        exit 0
     fi
 
     VAL_WEIGHT=`echo "$Part_VAL" | awk '{print $2}'`
@@ -97,8 +97,8 @@ echo
 echo "Now is $(date +'%F %T %Z')"
 ADNL_FOUND="$(Elector_ADNL_Search $ADNL_KEY)"
 if [[ "$ADNL_FOUND" == "absent" ]];then
-    echo "###-ERROR: Can't find you in participant list in Elector. account: ${Depool_addr}"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_SOS_sign ###-ALARM: Can't find you in participant list in Elector. account: ${Depool_addr}"
+    echo -e "${Tg_SOS_sign}###-ERROR: Can't find you in participant list in Elector. account: ${Depool_addr}"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_SOS_sign ###-ALARM: Can't find you in participant list in Elector for elections $elections_id. account: ${Depool_addr}" 2>&1 > /dev/null
     exit 1
 fi
 
@@ -121,6 +121,7 @@ echo $elections_id > ${ELECTIONS_WORK_DIR}/curent_elections_id.txt
 find "$ELECTIONS_WORK_DIR" -maxdepth 1 -type f -mtime +7 -name '*' -ls -exec rm {} \;  &>/dev/null
 find "$ELECTIONS_HISTORY_DIR" -maxdepth 1 -type f -mtime +7 -name '*' -ls -exec rm {} \; &>/dev/null
 
+# ==========================================
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"
