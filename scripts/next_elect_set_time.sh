@@ -184,9 +184,12 @@ _ENDCRN_
 else
 
 CRONT_JOBS=$(cat <<-_ENDCRN_
-$NXT_ELECT_1 * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log"
-$NXT_ELECT_2 * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log"
-$NXT_ELECT_3 * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log"
+SHELL=/bin/bash
+PATH=$USER_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+HOME=$USER_HOME
+$NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
 # $GPL_TIME_MH * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst"
 _ENDCRN_
 )
@@ -198,6 +201,7 @@ fi
 echo "$CRONT_JOBS" | sudo crontab -u $SCRPT_USER -
 
 sudo crontab -l -u $SCRPT_USER | tail -n 8
+echo "-------------------------------------------------------------------"
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date)"
 echo "================================================================================================"
