@@ -7,22 +7,20 @@ echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
-source $HOME/.cargo/env
 
-cd $HOME
 #=====================================================
-# Build tonos-cli
-[[ ! -z ${TONOS_CLI_SRC_DIR} ]] && rm -rf "${TONOS_CLI_SRC_DIR}"
-git clone --recurse-submodules "${TONOS_CLI_GIT_REPO}" "${TONOS_CLI_SRC_DIR}"
-cd "${TONOS_CLI_SRC_DIR}"
-git checkout "${TONOS_CLI_GIT_COMMIT}"
-cargo update
-cargo build --release
-cp -f "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"
+# download contracts
+rm -rf "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
+git clone ${CONTRACTS_GIT_REPO} "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+cd "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+git checkout $CONTRACTS_GIT_COMMIT 
+cd ${NODE_SRC_TOP_DIR}
+git clone --single-branch --branch multisig-surf-v2 https://github.com/tonlabs/ton-labs-contracts.git "${NODE_SRC_TOP_DIR}/Surf-contracts"
 
-echo
-$HOME/bin/tonos-cli version
-echo
+RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
+curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
+
 BUILD_END_TIME=$(date +%s)
 Build_mins=$(( (BUILD_END_TIME - BUILD_STRT_TIME)/60 ))
 Build_secs=$(( (BUILD_END_TIME - BUILD_STRT_TIME)%60 ))

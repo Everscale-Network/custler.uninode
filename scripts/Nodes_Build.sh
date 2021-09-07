@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-07-22 22:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -29,6 +29,8 @@ echo
 echo "################################### FreeTON nodes build script #####################################"
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
 
+BackUP_Time="$(date  +'%F_%T'|tr ':' '-')"
+
 case "${@}" in
     cpp)
         CPP_NODE_BUILD=true
@@ -48,9 +50,9 @@ esac
 
 #=====================================================
 # Packages set for different OSes
-PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip boost-all zstd pkgconf"
-PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip boost-devel boost-static libzstd-devel"
-PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libboost-all-dev libzstd-dev"
+PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip zstd pkgconf python"
+PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip libzstd-devel"
+PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libzstd-dev"
 
 PKG_MNGR_FreeBSD="sudo pkg"
 PKG_MNGR_CentOS="sudo dnf"
@@ -77,7 +79,7 @@ case "$OS_SYSTEM" in
         export ZSTD_LIB_DIR=/usr/local/lib
         PKGs_SET=$PKGS_FreeBSD
         PKG_MNGR=$PKG_MNGR_FreeBSD
-#        $PKG_MNGR remove -y rust
+        $PKG_MNGR delete -y rust boost-all|cat
         $PKG_MNGR update -f
         $PKG_MNGR upgrade -y
         FEXEC_FLG="-perm +111"
@@ -102,6 +104,9 @@ case "$OS_SYSTEM" in
         $PKG_MNGR group install -y "Development Tools"
         $PKG_MNGR config-manager --set-enabled powertools
         $PKG_MNGR --enablerepo=extras install -y epel-release
+        $PKG_MNGR remove -y boost
+        $PKG_MNGR install -y gcc-toolset-10-toolchain
+        source /opt/rh/gcc-toolset-10/enable
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.4.0/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
         ;;
 
@@ -109,7 +114,12 @@ case "$OS_SYSTEM" in
         export ZSTD_LIB_DIR=/usr/lib/x86_64-linux-gnu
         PKGs_SET=$PKGS_Ubuntu
         PKG_MNGR=$PKG_MNGR_Ubuntu
+        $PKG_MNGR install -y software-properties-common
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa
+        $PKG_MNGR remove -y libboost-all-dev|cat
         $PKG_MNGR update && $PKG_MNGR upgrade -y 
+        $PKG_MNGR install -y g++-10
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 90 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.4.0/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
         ;;
 
@@ -123,12 +133,38 @@ esac
 
 #=====================================================
 # Install packages
+echo
+echo '################################################'
 echo "---INFO: Install packages ... "
 $PKG_MNGR install -y $PKGs_SET
-echo "---INFO: Install packages ... DONE"
 
 #=====================================================
+# Install BOOST
+echo
+echo '################################################'
+echo '---INFO: Install BOOST from source'
+Installed_BOOST_Ver="$(cat /usr/local/include/boost/version.hpp 2>/dev/null | grep "define BOOST_LIB_VERSION"|awk '{print $3}'|tr -d '"'| awk -F'_' '{printf("%d%s%2d\n", $1,".",$2)}')"
+Required_BOOST_Ver="$(echo $BOOST_VERSION | awk -F'.' '{printf("%d%s%2d\n", $1,".",$2)}')"
+if [[ "$Installed_BOOST_Ver" != "$Required_BOOST_Ver" ]];then
+    mkdir -p $HOME/src
+    cd $HOME/src
+    sudo rm -rf $HOME/src/boost* |cat
+    sudo rm -rf /usr/local/include/boost |cat
+    sudo rm -f /usr/local/lib/libboost*  |cat
+    Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
+    wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
+    tar xf boost_${Boost_File_Version}.tar.gz
+    cd $HOME/src/boost_${Boost_File_Version}/
+    ./bootstrap.sh
+    sudo ./b2 install --prefix=/usr/local
+else
+    echo "---INFO: BOOST Version ${BOOST_VERSION} already installed"
+fi
+#=====================================================
 # Install or upgrade RUST
+echo
+echo '################################################'
+echo "---INFO: Install RUST ${RUST_VERSION}"
 cd $HOME
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y
 # curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o $HOME/rust_install.sh
@@ -140,19 +176,32 @@ cargo install cargo-binutils
 #=====================================================
 # Build C++ node
 if $CPP_NODE_BUILD;then
+    echo
+    echo '################################################'
+    echo "---INFO: Build C++ node ..."
     cd $SCRIPT_DIR
     [[ -d ${TON_SRC_DIR} ]] && rm -rf "${TON_SRC_DIR}"
 
     echo "---INFO: clone ${CNODE_GIT_REPO} (${CNODE_GIT_COMMIT})..."
-    git clone --recursive "${CNODE_GIT_REPO}" "${TON_SRC_DIR}"
-    cd "${TON_SRC_DIR}" && git checkout "${CNODE_GIT_COMMIT}"
+    git clone "${CNODE_GIT_REPO}" "${TON_SRC_DIR}"
+    cd "${TON_SRC_DIR}" 
+    git checkout "${CNODE_GIT_COMMIT}"
+    git submodule init && git submodule update --recursive
+    git submodule foreach 'git submodule init'
+    git submodule foreach 'git submodule update  --recursive'
     echo "---INFO: clone ${CNODE_GIT_REPO} (${CNODE_GIT_COMMIT})... DONE"
+    echo
     echo "---INFO: build a node..."
-    mkdir -p "${TON_BUILD_DIR}"
-    cd "${TON_BUILD_DIR}"
+    mkdir -p "${TON_BUILD_DIR}" && cd "${TON_BUILD_DIR}"
     cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DPORTABLE=ON
     ninja
     echo "---INFO: build a node... DONE"
+    echo
+
+    # cp $HOME/bin/lite-client $HOME/bin/lite-client_${BackUP_Time}|cat
+    # cp $HOME/bin/validator-engine $HOME/bin/validator-engine_${BackUP_Time}|cat
+    # cp $HOME/bin/validator-engine-console $HOME/bin/validator-engine-console_${BackUP_Time}|cat
+    
     cp -f $TON_BUILD_DIR/lite-client/lite-client $HOME/bin
     cp -f $TON_BUILD_DIR/validator-engine/validator-engine $HOME/bin
     cp -f $TON_BUILD_DIR/validator-engine-console/validator-engine-console $HOME/bin
@@ -168,30 +217,46 @@ fi
 #=====================================================
 # Build rust node
 if $RUST_NODE_BUILD;then
+    echo
+    echo '################################################'
     echo "---INFO: build RUST NODE ..."
     #---------------- crutch for user run
     sudo mkdir -p /node_db
     sudo chmod -R ugo+rw /node_db
     #----------------
+
     [[ -d ${RNODE_SRC_DIR} ]] && rm -rf "${RNODE_SRC_DIR}"
-    git clone --recurse-submodules "${RNODE_GIT_REPO}" $RNODE_SRC_DIR
-    cd $RNODE_SRC_DIR
+    # git clone --recurse-submodules "${RNODE_GIT_REPO}" $RNODE_SRC_DIR
+    git clone "${RNODE_GIT_REPO}" "${RNODE_SRC_DIR}"
+    cd "${RNODE_SRC_DIR}" 
     git checkout "${RNODE_GIT_COMMIT}"
-    git submodule init
-    git submodule update
+    git submodule init && git submodule update --recursive
+    git submodule foreach 'git submodule init'
+    git submodule foreach 'git submodule update  --recursive'
+
+    cd $RNODE_SRC_DIR
     cargo update
 
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
-    sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
+    #====== Uncomment to disabe node's logs competely
+    # sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
-    RUSTFLAGS="-C target-cpu=native" cargo build --release --features "compression"
+    # Add `sha2-native` feature (adds explicit `ed25519-dalek` dependency because it uses newer sha2 version)
+    # BSD/macOS sed requires an actual newline character to follow a\. I use copy+replace for compatibility
+    sed -i.bak -e '/^\[dependencies\]/p; s/\[dependencies\]/ed25519-dalek = "1.0"/' Cargo.toml
+    sed -i.bak -e '/^\[features\]/p; s/\[features\]/sha2-native = ["sha2\/asm", "ed25519-dalek\/asm"]/' Cargo.toml
+
+    RUSTFLAGS="-C target-cpu=native" cargo build --release --features "compression,sha2-native"
     # --features "metrics"
     # --features "external_db,metrics"
 
+    # cp $HOME/bin/rnode $HOME/bin/rnode_${BackUP_Time}|cat
     cp -f ${RNODE_SRC_DIR}/target/release/ton_node $HOME/bin/rnode
 
     #=====================================================
     # Build rust node console
+    echo '################################################'
+    echo "---INFO: Build rust node console ..."
     [[ -d ${RCONS_SRC_DIR} ]] && rm -rf "${RCONS_SRC_DIR}"
     git clone --recurse-submodules "${RCONS_GIT_REPO}" $RCONS_SRC_DIR
     cd $RCONS_SRC_DIR
@@ -222,8 +287,11 @@ fi
 # cp -f "${SOLC_SRC_DIR}/build/solc/solc" $HOME/bin/
 # cp -f "${SOLC_SRC_DIR}/lib/stdlib_sol.tvm" $HOME/bin/
 # echo "---INFO: build TON Solidity Compiler ... DONE."
+
 #=====================================================
 # Build TVM-linker
+echo
+echo '################################################'
 echo "---INFO: build TVM-linker ..."
 [[ ! -z ${TVM_LINKER_SRC_DIR} ]] && rm -rf "${TVM_LINKER_SRC_DIR}"
 git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
@@ -235,6 +303,8 @@ cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
 echo "---INFO: build TVM-linker ... DONE."
 #=====================================================
 # Build tonos-cli
+echo
+echo '################################################'
 echo "---INFO: build tonos-cli ... "
 [[ -d ${TONOS_CLI_SRC_DIR} ]] && rm -rf "${TONOS_CLI_SRC_DIR}"
 git clone --recurse-submodules "${TONOS_CLI_GIT_REPO}" "${TONOS_CLI_SRC_DIR}"
@@ -242,11 +312,15 @@ cd "${TONOS_CLI_SRC_DIR}"
 git checkout "${TONOS_CLI_GIT_COMMIT}"
 cargo update
 RUSTFLAGS="-C target-cpu=native" cargo build --release
+# cp $HOME/bin/tonos-cli $HOME/bin/tonos-cli_${BackUP_Time}|cat
 cp "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"
 echo "---INFO: build tonos-cli ... DONE"
 
 #=====================================================
 # download contracts
+echo
+echo '################################################'
+echo "---INFO: download contracts ... "
 rm -rf "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
 rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
 git clone ${CONTRACTS_GIT_REPO} "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
@@ -258,6 +332,8 @@ git clone --single-branch --branch multisig-surf-v2 https://github.com/tonlabs/t
 RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
 curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
+echo 
+echo '################################################'
 BUILD_END_TIME=$(date +%s)
 Build_mins=$(( (BUILD_END_TIME - BUILD_STRT_TIME)/60 ))
 Build_secs=$(( (BUILD_END_TIME - BUILD_STRT_TIME)%60 ))

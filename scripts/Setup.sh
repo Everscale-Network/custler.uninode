@@ -139,7 +139,6 @@ touch ${KEYS_DIR}/watchdog.beginning
 touch ${KEYS_DIR}/watchdog.blocked
 mkdir -p "$ELECTIONS_WORK_DIR"
 mkdir -p "${NODE_LOGS_ARCH}"
-rm -rf ~/.cargo
 echo " ..DONE"
 
 if [[ "$NODE_TYPE" == "RUST"  ]]; then

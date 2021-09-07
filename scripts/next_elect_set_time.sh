@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-# (C) Sergey Tyurin  2021-02-22 15:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -24,7 +24,7 @@ USER_HOME=$HOME
 [[ -n $(echo "$USER_HOME"|grep 'root') ]] && SCRPT_USER="root"
 
 DELAY_TIME=0        # Delay time from the start of elections
-TIME_SHIFT=600      # Time between sequential scripts
+TIME_SHIFT=300      # Time between sequential scripts
 
 echo
 echo "############################## Set crontab for next elections ##################################"
@@ -66,20 +66,21 @@ echo "INFO: Current Election ID: $election_id"
 
 case "$NODE_TYPE" in
     RUST)
-        ELECT_TIME_PAR=$($CALL_TC getconfig 15 2>&1 |sed -e '1,4d'|sed "s/Config p15: //")
-        LIST_PREV_VALS=$($CALL_TC getconfig 32 2>&1 |sed -e '1,4d'|sed "s/Config p32: //")
-        LIST_CURR_VALS=$($CALL_TC getconfig 34 2>&1 |sed -e '1,4d'|sed "s/Config p34: //")
-        LIST_NEXT_VALS=$($CALL_TC getconfig 36 2>&1 |sed -e '1,4d'|sed "s/Config p36: //")
-        declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq '.utime_until'| head -n 1`	            # utime_until
+        ELECT_TIME_PAR=$($CALL_RC -c "getconfig 15"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+        LIST_PREV_VALS=$($CALL_RC -c "getconfig 32"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+        LIST_CURR_VALS=$($CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+        LIST_NEXT_VALS=$($CALL_RC -c "getconfig 36"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+
+        declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq '.p34.utime_until'| head -n 1`	        # utime_until
         if [[ "$election_id" == "0" ]];then 
-            CURR_VAL_UNTIL=`echo "${LIST_PREV_VALS}" | jq '.utime_until'| head -n 1`	                # utime_until
-            if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != "null" ]];then
-                CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq '.utime_since'| head -n 1`	            # utime_since
+            CURR_VAL_UNTIL=`echo "${LIST_PREV_VALS}" | jq '.p32.utime_until'| head -n 1`	                # utime_until
+            if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != '{}' ]];then
+                CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq '.p36.utime_since'| head -n 1`	            # utime_since
             fi
         fi
-        declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq '.validators_elected_for'| head -n 1`	# validators_elected_for
-        declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.elections_start_before'| head -n 1`	# elections_start_before
-        declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.elections_end_before'| head -n 1`	# elections_end_before
+        declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq '.p15.validators_elected_for'| head -n 1`	# validators_elected_for
+        declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.p15.elections_start_before'| head -n 1`	# elections_start_before
+        declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.p15.elections_end_before'| head -n 1`	# elections_end_before
         ;;
     CPP)
         ELECT_TIME_PAR=`$CALL_LC -rc "getconfig 15" -t "3" -rc "quit" 2>/dev/null`
@@ -149,9 +150,11 @@ GET_F_T(){
     fi
 }
 
+Curr_Elect_Time=$((CURR_VAL_UNTIL - STRT_BEFORE))
+Next_Elect_Time=$((CURR_VAL_UNTIL + VAL_DUR - STRT_BEFORE))
 echo
-echo "Current elections time start: $PREV_ELECTION_TIME / $(GET_F_T "$PREV_ELECTION_TIME")"
-echo "Next elections time start: $NEXT_ELECTION_TIME / $(GET_F_T "$NEXT_ELECTION_TIME")"
+echo "Current elections time start: $Curr_Elect_Time / $(GET_F_T "$Curr_Elect_Time")"
+echo "Next elections time start: $Next_Elect_Time / $(GET_F_T "$Next_Elect_Time")"
 echo "-------------------------------------------------------------------"
 
 # if [[ ! -z $NEXT_VAL__EXIST ]] && [[ "$election_id" == "0" ]];then
@@ -171,9 +174,9 @@ CRONT_JOBS=$(cat <<-_ENDCRN_
 SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$USER_HOME/bin
 HOME=$USER_HOME
-$NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh >> ${TON_LOG_DIR}/validator.log
-$NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh >> ${TON_LOG_DIR}/validator.log
-$NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh >> ${TON_LOG_DIR}/validator.log && ./part_check.sh >> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
 # $GPL_TIME_MH * * *    cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst
 _ENDCRN_
 )
@@ -181,9 +184,12 @@ _ENDCRN_
 else
 
 CRONT_JOBS=$(cat <<-_ENDCRN_
-$NXT_ELECT_1 * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./prepare_elections.sh >> ${TON_LOG_DIR}/validator.log"
-$NXT_ELECT_2 * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./take_part_in_elections.sh >> ${TON_LOG_DIR}/validator.log"
-$NXT_ELECT_3 * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./next_elect_set_time.sh >> ${TON_LOG_DIR}/validator.log && ./part_check.sh >> ${TON_LOG_DIR}/validator.log"
+SHELL=/bin/bash
+PATH=$USER_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+HOME=$USER_HOME
+$NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
 # $GPL_TIME_MH * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst"
 _ENDCRN_
 )
@@ -195,8 +201,10 @@ fi
 echo "$CRONT_JOBS" | sudo crontab -u $SCRPT_USER -
 
 sudo crontab -l -u $SCRPT_USER | tail -n 8
+echo "-------------------------------------------------------------------"
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date)"
 echo "================================================================================================"
 
 exit 0
+

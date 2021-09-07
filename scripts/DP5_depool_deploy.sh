@@ -1,5 +1,5 @@
 #!/bin/bash
-# (C) Sergey Tyurin  2021-06-29 22:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -17,47 +17,60 @@
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
 
+echo
+echo "#################################### DePool deploy script ########################################"
+echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
+echo 
+
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
-ValidatorAssuranceT=1000000
-MinStakeT=1000000
-ParticipantRewardFraction=99
+echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
+echo
+echo -e "$(Determine_Current_Network)"
+echo
+
+ValidatorAssuranceT=100000
+MinStakeT=10
+ParticipantRewardFraction=95
 BalanceThresholdT=20
 
+SEND_ATTEMPTS=3
+
 #===========================================================
-# DePool_2020_12_08
+# DePool V1 2020_12_08
 # Code from commit 94bff38f9826a19a8ae55d5b48528912f21b3919
 DP_2020_12_08_MD5='8cca5ef28325e90c46ad9b0e35951d21'
 #-----------------------------------------------------------
-# DePool_2020_12_08
+# DePool V2  2020_12_08
 # Code from commit a49c96de2c22c0047a9c9d04e0d354d3b22d5937 
 DP_2020_12_11_MD5='206929ca364fd8fa225937ada19f30a0'
 DP_Proxy_2020_12_11_MD5="3b8e08ffc4cff249e1d33ece9587fcc3"
 #-----------------------------------------------------------
+# DePool V3 in main 2021_02_01
 DP_2021_02_01_MD5="d2bcd6b68525d3068c7cfecfe1510458"
 DP_Proxy_2021_02_01_MD5="0ef3a063ea9573fc7f068cb89a075868"
 #-----------------------------------------------------------
 DP_RUSTCUP_2021_06_29_MD5="d466351fcf1e051c563b2054625db8f5"
 DP_PROXY_RUSTCUP_2021_06_29_MD5="e614e99a3193173543670eded2094850"
 #-----------------------------------------------------------
+DP_RUSTCUP_2021_08_05_MD5="5f0134a55f033da266db5b16fec607fd"
+DP_PROXY_RUSTCUP_2021_08_05_MD5="73279e4e669a7ba80c3c9c6956d7f57e"
+#-----------------------------------------------------------
+
 
 CurrDP_MD5=$DP_2021_02_01_MD5
 CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
 
 NetName="${NETWORK_TYPE%%.*}"
 if [[ "$NetName" == "rustnet" ]];then
-    CurrDP_MD5=$DP_RUSTCUP_2021_06_29_MD5
-    CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_06_29_MD5
+    CurrDP_MD5=$DP_RUSTCUP_2021_08_05_MD5
+    CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_08_05_MD5
 fi
 
-echo
-echo "#################################### DePool deploy script ########################################"
-echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
-echo 
-echo "DP_MD5       = $DP_2021_02_01_MD5"
-echo "DP_Proxy_MD5 = $DP_Proxy_2021_02_01_MD5"
+echo "DP_MD5       = $CurrDP_MD5"
+echo "DP_Proxy_MD5 = $CurrProxy_MD5"
 echo
 
 #===========================================================
@@ -68,10 +81,10 @@ echo
 
 #===========================================================
 # check tonos-cli version
-TC_VER="$($CALL_TC deploy --help | grep 'tonos-cli-deploy')"
+TC_VER="$($CALL_TC deploy_message --help | grep 'tonos-cli-deploy_message')"
 [[ -z $TC_VER ]] && echo "###-ERROR(line $LINENO): You have to Update tonos-cli" && exit 1
 echo
-$CALL_TC deploy --help | grep 'tonos-cli-deploy'
+$CALL_TC deploy_message --help | grep 'tonos-cli-deploy_message'
 
 OS_SYSTEM=`uname`
 if [[ "$OS_SYSTEM" == "Linux" ]];then
@@ -158,9 +171,9 @@ echo "First 64 syms from ProxyCode:   ${ProxyCode:0:64}"
 #===========================================================
 # check depool balance
 
-Depool_INFO=`$CALL_TC account ${Depool_addr}`
-Depool_AMOUNT=`echo "$Depool_INFO" |grep 'balance:' | awk '{print $2}'`
-Depool_Status=`echo "$Depool_INFO" | grep 'acc_type:' |awk '{print $2}'`
+Depool_INFO="$(Get_Account_Info ${Depool_addr})"
+Depool_Status=`echo "$Depool_INFO" | awk '{print $1}'`
+Depool_AMOUNT=`echo "$Depool_INFO" | awk '{print $2}'`
 
 if [[ $Depool_AMOUNT -lt $((BalanceThreshold * 2  + 5000000000)) ]];then
     echo "###-ERROR(line $LINENO): You have not anought balance on depool address!"
@@ -168,47 +181,99 @@ if [[ $Depool_AMOUNT -lt $((BalanceThreshold * 2  + 5000000000)) ]];then
     exit 1
 fi
 
-if [[ ! "$Depool_Status" == "Uninit" ]];then
+if [[ "$Depool_Status" != "Uninit" ]];then
     echo "###-ERROR(line $LINENO): Depool_Status not 'Uninit'. Already deployed?"
     exit 1
 fi
 echo "Depool balance: $((Depool_AMOUNT/1000000000)) ; status: $Depool_Status"
 echo
+
 #===========================================================
-# read -p "### CHECK INFO TWICE!!! Is this a right Parameters? Think once more!  (yes/n)? " </dev/tty answer
-# case ${answer:0:3} in
-#     yes|YES )
-#         echo
-#         echo "Processing....."
-#     ;;
-#     * )
-#         echo
-#         echo "If you absolutely sure, type 'yes' "
-#         echo "Cancelled."
-#         exit 1
-#     ;;
-# esac
+read -p "### CHECK INFO TWICE!!! Is this a right Parameters? Think once more!  (yes/n)? " </dev/tty answer
+case ${answer:0:3} in
+    yes|YES )
+        echo
+        echo "Processing....."
+    ;;
+    * )
+        echo
+        echo "If you absolutely sure, type 'yes' "
+        echo "Cancelled."
+        exit 1
+    ;;
+esac
 #===========================================================
-# exit 0
-# from https://docs.ton.dev/86757ecb2/v/0/p/37a848-run-depool/t/019261 :
-# tonos-cli deploy DePool.tvc 
-#   '{
-#     "minStake":*number*
-#     "validatorAssurance":*number*,
-#     "proxyCode":"<ProxyContractCodeInBase64>",
-#     "validatorWallet":"<validatorWalletAddress>",
-#     "participantRewardFraction":*number*,
-#   }' 
-#   --abi DePool.abi.json 
-#   --sign depool.json --wc 0
+
 
 echo "{\"minStake\":$MinStake,\"validatorAssurance\":$ValidatorAssurance,\"proxyCode\":\"$ProxyCode\",\"validatorWallet\":\"$Validator_addr\",\"participantRewardFraction\":$ParticipantRewardFraction}"
 
-$CALL_TC deploy ${DSCs_DIR}/DePool.tvc \
-    "{\"minStake\":$MinStake,\"validatorAssurance\":$ValidatorAssurance,\"proxyCode\":\"$ProxyCode\",\"validatorWallet\":\"$Validator_addr\",\"participantRewardFraction\":$ParticipantRewardFraction}" \
-    --abi ${DSCs_DIR}/DePool.abi.json \
-    --sign ${KEYS_DIR}/${Depool_Name}.keys.json --wc 0 | tee ${KEYS_DIR}/${Depool_Name}_depool-deploy.log
 
-echo "================= Deploy Done =========================="
-echo 
+###################################################################################################################################
+# Deploy wallet
+
+#=================================================
+# make boc file 
+function Make_BOC_File(){
+    rm -f deploy.boc
+    TC_OUTPUT=$($CALL_TC deploy_message \
+        ${DSCs_DIR}/DePool.tvc \
+        "{\"minStake\":$MinStake,\"validatorAssurance\":$ValidatorAssurance,\"proxyCode\":\"$ProxyCode\",\"validatorWallet\":\"$Validator_addr\",\"participantRewardFraction\":$ParticipantRewardFraction}" \
+        --abi ${DSCs_DIR}/DePool.abi.json \
+        --sign ${KEYS_DIR}/${Depool_Name}.keys.json \
+        --wc 0 \
+        --raw \
+        --output deploy.boc \
+        | tee ${KEYS_DIR}/${Depool_Name}_deploy_depool_msg.log)
+    echo "${TC_OUTPUT}"
+}
+
+echo -n "---INFO(line $LINENO): Make deploy message BOC file..."
+
+MBF_Output="$(Make_BOC_File)"
+
+if [[ ! -f "deploy.boc" ]];then 
+    echo "###-ERROR(line $LINENO): Failed to make deploying message file!!!"
+    echo "$MBF_Output"
+    exit 1
+fi
+
+MBF_addr="$(echo "$MBF_Output"|grep "Contract's address:"|awk '{print $3}')"
+
+if [[ "${MBF_addr}" != "${Depool_addr}" ]];then
+    echo "###-ERROR(line $LINENO): Address from BOC ($MBF_addr) is not equal calc address (${Depool_addr}) !"
+    exit 1
+else
+    echo "DONE"
+fi
+
+#=================================================
+# Send deploy message to BlockChain
+echo -n "---INFO(line $LINENO): Send deploy message to blockchain..."
+Attempts_to_send=$SEND_ATTEMPTS
+while [[ $Attempts_to_send -gt 0 ]]; do
+    result=`Send_File_To_BC "deploy.boc"`
+    if [[ "$result" == "failed" ]]; then
+        echo "###-ERROR(line $LINENO): Send deploy message FAILED!!!"
+    else
+        echo "DONE"
+        break
+    fi
+    sleep 5
+    Account_Status=$(Get_Account_Info ${WALL_ADDR} | awk '{print $1}')
+    if [[ "$Account_Status" != "Active" ]];then
+        echoerr "+++-WARNING(line $LINENO): The message was not delivered. Sending again..""
+        Attempts_to_send=$((Attempts_to_send - 1))
+    else
+        echo "DONE"
+        break
+    fi
+done
+
+echo
+echo "Deploy message log saved to ${KEY_FILES_DIR}/${WAL_NAME}_deploy_depool_msg.log"
+echo
+echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+echo "================================================================================================"
+echo
+
 exit 0

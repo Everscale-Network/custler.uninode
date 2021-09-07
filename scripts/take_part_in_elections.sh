@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-03-09 15:00:00
+# (C) Sergey Tyurin  2021-08-19 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -212,11 +212,11 @@ if [[ "$STAKE_MODE" == "depool" ]];then
     Curr_DP_Round_ID=$(echo  "$Curr_Rounds_Info" | jq -r ".[1].id" | xargs printf "%d\n")
     Proxy_ID=$((Curr_DP_Round_ID % 2))
     File_Round_Proxy="`cat ${KEYS_DIR}/proxy${Proxy_ID}.addr`"
-    echo "Proxy addr   from file: $File_Round_Proxy"
+    echo "Proxy addr   from file: $File_Round_Proxy" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     [[ -z $File_Round_Proxy ]] && echo "###-ERROR(line $LINENO) Cannot get proxy for this round from file. Can't continue. Exit" && exit 1
 
     DP_Round_Proxy="$(echo "$Current_Depool_Info"|jq -r ".proxies[$Proxy_ID]")"
-    echo "Proxy addr from depool: $DP_Round_Proxy"
+    echo "Proxy addr from depool: $DP_Round_Proxy" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     [[ -z $DP_Round_Proxy ]] && echo "###-ERROR(line $LINENO) Cannot get proxy for this round from depool contract. Can't continue. Exit" && exit 1
 fi
 #####################################################################################
@@ -268,6 +268,13 @@ fi
 Validating_Start=${elections_id}
 Validating_Stop=$(( ${Validating_Start} + 1000 + ${validators_elected_for} + ${elections_start_before} + ${elections_end_before} + ${stake_held_for} ))
 echo "Validating_Start: $Validating_Start | Validating_Stop: $Validating_Stop"
+
+next_election_id=$((elections_id + validators_elected_for))
+if [[ "${Proxy_ID}" == "0" ]];then
+    echo "1" > ${ELECTIONS_WORK_DIR}/${next_election_id}_proxy.id
+else
+    echo "0" > ${ELECTIONS_WORK_DIR}/${next_election_id}_proxy.id
+fi
 
 #=================================================
 # Checking that query.boc already made for sending to Elector
@@ -447,7 +454,7 @@ do
     #################
     echo " DONE"
     if [[ $Attempts_to_send -le 0 ]];then
-        echo "###-=ERROR(line $LINENO): ALARM!!! Cannot make transaction for elections!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+        echo "###-=ERROR(line $LINENO): ALARM!!! Cannot send transaction for elections!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     else
         break
     fi

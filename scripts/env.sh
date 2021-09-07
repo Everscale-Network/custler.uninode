@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-# (C) Sergey Tyurin  2021-07-22 22:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -28,7 +28,10 @@ export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
 
 #=====================================================
 # Network related variables
-export NETWORK_TYPE="rustnet.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
+export NETWORK_TYPE="fld.ton.dev"       # can be main.* / net.* / fld.* / rustnet.*
+export NODE_TYPE="CPP"                  # Can be CPP / RUST
+
+export FORCE_USE_TONOSCLI=false         # NOT IMPLEMENTED for c++ node !!! For offnode works
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
 export MAX_FACTOR=3
 
@@ -36,7 +39,7 @@ export MSIG_FIX_STAKE=45000             # fixed stake for 'msig' mode (tokens). 
 export VAL_ACC_INIT_BAL=95000           # Initial balance on validator account for full balance staking (if MSIG_FIX_STAKE=0)
 export VAL_ACC_RESERVED=50              # Reserved amount staying on msig account in full staking mode
 
-export TIK_REPLANISH_AMOUNT=5           # If Tik acc balance less 2 tokens, It will be auto topup with this amount
+export TIK_REPLANISH_AMOUNT=10          # If Tik acc balance less 2 tokens, It will be auto topup with this amount
 
 export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to BC in seconds
 
@@ -75,24 +78,37 @@ export ENGINE_ADDITIONAL_PARAMS=""
 #=====================================================
 # GIT addresses & commits
 export RUST_VERSION="1.53.0"
+export BOOST_VERSION="1.76.0"
+export MIN_TC_VERSION="0.17.27"
 export INSTALL_DEPENDENCIES="yes"
+
 export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
-export CNODE_GIT_COMMIT="eae01917c1ed1bfc019d34a6c631160a86cb41eb"
+export CNODE_GIT_COMMIT="master"
+[[ "$NETWORK_TYPE" == "fld.ton.dev" ]] && export CNODE_GIT_COMMIT="GROTH16"
+
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="rustnet"
+
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
 export RCONS_GIT_COMMIT="master"
+
 export TONOS_CLI_GIT_REPO="https://github.com/tonlabs/tonos-cli.git"
 export TONOS_CLI_GIT_COMMIT="master"
+
 export TVM_LINKER_GIT_REPO="https://github.com/tonlabs/TVM-linker.git"
 export TVM_LINKER_GIT_COMMIT="master"
+
 export SOLC_GIT_REPO="https://github.com/tonlabs/TON-Solidity-Compiler.git"
 export SOLC_GIT_COMMIT="master"
+
 export CONTRACTS_GIT_REPO="https://github.com/tonlabs/ton-labs-contracts.git"
+export CONTRACTS_GIT_COMMIT="master"
+
+[[ "$NETWORK_TYPE" == "rustnet.ton.dev" ]] &&  export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
 
 #=====================================================
 # Source code folders
-export TON_SRC_DIR="${NODE_SRC_TOP_DIR}/ton"
+export TON_SRC_DIR="${NODE_SRC_TOP_DIR}/cnode"
 export TON_BUILD_DIR="${TON_SRC_DIR}/build"
 export TONOS_CLI_SRC_DIR="${NODE_SRC_TOP_DIR}/tonos-cli"
 export UTILS_DIR="${TON_BUILD_DIR}/utils"
@@ -167,3 +183,7 @@ export YellowBack="\e[43m"
 export BoldText="\e[1m"
 export Tg_CheckMark=$(echo -e "\U0002705")
 export Tg_SOS_sign=$(echo -e "\U0001F198")
+
+if [[ -f "${SCRIPT_DIR}/env_local.sh" ]]; then
+    source "${SCRIPT_DIR}/env_local.sh"
+fi
