@@ -198,9 +198,9 @@ if $CPP_NODE_BUILD;then
     echo "---INFO: build a node... DONE"
     echo
 
-    cp $HOME/bin/lite-client $HOME/bin/lite-client_${BackUP_Time}|cat
-    cp $HOME/bin/validator-engine $HOME/bin/validator-engine_${BackUP_Time}
-    cp $HOME/bin/validator-engine-console $HOME/bin/validator-engine-console_${BackUP_Time}
+    # cp $HOME/bin/lite-client $HOME/bin/lite-client_${BackUP_Time}|cat
+    # cp $HOME/bin/validator-engine $HOME/bin/validator-engine_${BackUP_Time}|cat
+    # cp $HOME/bin/validator-engine-console $HOME/bin/validator-engine-console_${BackUP_Time}|cat
     
     cp -f $TON_BUILD_DIR/lite-client/lite-client $HOME/bin
     cp -f $TON_BUILD_DIR/validator-engine/validator-engine $HOME/bin
