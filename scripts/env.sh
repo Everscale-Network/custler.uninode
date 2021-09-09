@@ -185,7 +185,7 @@ export Tg_CheckMark=$(echo -e "\U0002705")
 export Tg_SOS_sign=$(echo -e "\U0001F198")
 
 #=================================================
-export ServiceName="${ServiceName}"
+export ServiceName="tonnode"
 
 if [[ -f "${SCRIPT_DIR}/env_local.sh" ]]; then
     source "${SCRIPT_DIR}/env_local.sh"
