@@ -47,7 +47,7 @@ if [[ "${OS_SYSTEM}" == "Linux" ]];then
 ########################################################################
 ############## Node Services for Linux (Ubuntu & CentOS) ###############
 USE_THREADS=$((V_CPU - 2))
-SERVICE_FILE="/etc/systemd/system/tonnode.service"
+SERVICE_FILE="/etc/systemd/system/${ServiceName}.service"
 
 if [[ "$NODE_TYPE" == "RUST"  ]]; then
 #=====================================================
@@ -95,16 +95,16 @@ sudo chown root:root ${SERVICE_FILE}
 sudo chmod 644 ${SERVICE_FILE}
 [[ "$(hostnamectl |grep 'Operating System'|awk '{print $3}')" == "CentOS" ]] && sudo chcon system_u:object_r:etc_t:s0 ${SERVICE_FILE}
 sudo systemctl daemon-reload
-sudo systemctl enable tonnode
+sudo systemctl enable ${ServiceName}
 
 echo
-echo -e "To start node service run ${BoldText}${GreeBack}sudo service tonnode start${NormText}"
+echo -e "To start node service run ${BoldText}${GreeBack}sudo service ${ServiceName} start${NormText}"
 echo "To restart updated node or service - run all follow commands:"
 echo
-echo "sudo systemctl disable tonnode"
+echo "sudo systemctl disable ${ServiceName}"
 echo "sudo systemctl daemon-reload"
-echo "sudo systemctl enable tonnode"
-echo "sudo service tonnode restart"
+echo "sudo systemctl enable ${ServiceName}"
+echo "sudo service ${ServiceName} restart"
 
 # ************************************************************
 # ************** Setup watchdog service **********************
@@ -153,7 +153,7 @@ else   #  -------------------- OS select
 echo "---INFO: Setup rc daemon..."
 V_CPU=`sysctl -n hw.ncpu`
 USE_THREADS=$((V_CPU - 2))
-SERVICE_FILE="/usr/local/etc/rc.d/tonnode"
+SERVICE_FILE="/usr/local/etc/rc.d/${ServiceName}"
 cp -f ${CONFIGS_DIR}/FB_service.tmplt ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_LOG_DIR%${NODE_LOGS_ARCH}%" ${SCRIPT_DIR}/tmp.txt
 
@@ -191,18 +191,18 @@ fi   # -------------------- node type select
 sudo mv -f ${SCRIPT_DIR}/tmp.txt ${SERVICE_FILE}
 sudo chown root:wheel ${SERVICE_FILE}
 sudo chmod 755 ${SERVICE_FILE}
-[[ -z "$(cat /etc/rc.conf | grep 'tonnode_enable')" ]] && sudo sh -c "echo ' ' >> /etc/rc.conf; echo 'tonnode_enable="YES"' >> /etc/rc.conf"
+[[ -z "$(cat /etc/rc.conf | grep '${ServiceName}_enable')" ]] && sudo sh -c "echo ' ' >> /etc/rc.conf; echo '${ServiceName}_enable="YES"' >> /etc/rc.conf"
 ls -al ${SERVICE_FILE}
 
-echo -e "To start node service run ${BoldText}${GreeBack}'service tonnode start'${NormText}"
-echo "To restart updated node or service run 'service tonnode restart'"
+echo -e "To start node service run ${BoldText}${GreeBack}'service ${ServiceName} start'${NormText}"
+echo "To restart updated node or service run 'service ${ServiceName} restart'"
 echo
 # ************************************************************
 # ************** Setup watchdog service **********************
 # echo "Setup FreeBSD daemon for CNODE"
 # SERVICE_FILE="/usr/local/etc/rc.d/nodewd"
 # cp -f ${CONFIGS_DIR}/FB_service.tmplt ${SCRIPT_DIR}/tmp.txt
-# sed -i.bak "s%tonnode%nodewd%g" ${SCRIPT_DIR}/tmp.txt
+# sed -i.bak "s%${ServiceName}%nodewd%g" ${SCRIPT_DIR}/tmp.txt
 # sed -i.bak "s%N_LOG_DIR%${NODE_LOGS_ARCH}%" ${SCRIPT_DIR}/tmp.txt
 # sed -i.bak "s%N_SERVICE_DESCRIPTION%Free TON Node WatchDog Daemon%" ${SCRIPT_DIR}/tmp.txt
 # sed -i.bak "s%N_USER%${USER}%" ${SCRIPT_DIR}/tmp.txt

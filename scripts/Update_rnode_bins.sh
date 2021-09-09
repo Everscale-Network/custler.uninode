@@ -9,9 +9,9 @@ OS_SYSTEM=`uname -s`
 ./Nodes_Build.sh rust
 
 if [[ "$OS_SYSTEM" == "Linux" ]];then
-    sudo service tonnode stop
+    sudo service ${ServiceName} stop
 else
-    service tonnode stop
+    service ${ServiceName} stop
 fi
 
 cp -f ${RNODE_SRC_DIR}/target/release/ton_node $HOME/bin/rnode
@@ -19,9 +19,9 @@ cp -f ${RNODE_SRC_DIR}/target/release/ton_node $HOME/bin/rnode
 # ./setup_as_service.sh
 
 if [[ "$OS_SYSTEM" == "Linux" ]];then
-    sudo service tonnode start
+    sudo service ${ServiceName} start
 else
-    service tonnode start
+    service ${ServiceName} start
 fi
 
 exit 0

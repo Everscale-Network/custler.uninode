@@ -187,3 +187,6 @@ export Tg_SOS_sign=$(echo -e "\U0001F198")
 if [[ -f "${SCRIPT_DIR}/env_local.sh" ]]; then
     source "${SCRIPT_DIR}/env_local.sh"
 fi
+
+#=================================================
+export ServiceName="${ServiceName}"

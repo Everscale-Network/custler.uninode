@@ -61,9 +61,9 @@ function countdown_and_restart(){
         export reboot_countdown=$((reboot_countdown - 1))
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "===== ALARM! Node service restarting!!! =====" 2>&1 > /dev/null
         if [[ "$OS_SYSTEM" == "Linux" ]];then
-            sudo service tonnode restart|cat
+            sudo service ${ServiceName} restart|cat
         else
-            service tonnode restart|cat
+            service ${ServiceName} restart|cat
         fi
     fi
     if [[ $reboot_countdown -le 0 ]];then
