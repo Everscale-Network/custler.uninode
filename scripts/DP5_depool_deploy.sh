@@ -261,7 +261,7 @@ while [[ $Attempts_to_send -gt 0 ]]; do
     sleep 5
     Account_Status=$(Get_Account_Info ${WALL_ADDR} | awk '{print $1}')
     if [[ "$Account_Status" != "Active" ]];then
-        echoerr "+++-WARNING(line $LINENO): The message was not delivered. Sending again..""
+        echoerr "+++-WARNING(line $LINENO): The message was not delivered. Sending again.."
         Attempts_to_send=$((Attempts_to_send - 1))
     else
         echo "DONE"
