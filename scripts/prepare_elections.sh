@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-03-09 16:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -78,7 +78,7 @@ if [[ "$STAKE_MODE" == "msig" ]];then
     #=================================================
     # Load addresses and set variables
     Validator_addr=`cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr`
-    Work_Chain=`echo "${Validator_addr}" | cut -d ':' -f 1`
+    Work_Chain=${Validator_addr%%:*}
     if [[ -z $Validator_addr ]];then
         echo "###-ERROR(line $LINENO): Can't find validator address! ${KEYS_DIR}/${VALIDATOR_NAME}.addr"
         exit 1
@@ -93,7 +93,7 @@ if [[ "$STAKE_MODE" == "msig" ]];then
     fi
     Validator_Acc_Info="$(Get_Account_Info ${Validator_addr})"
     declare -i Validator_Acc_LT=`echo "$Validator_Acc_Info" | awk '{print $3}'`
-    Val_Adrr_HEX="$(echo "${Validator_addr}" | cut -d ':' -f 2)"
+    Val_Adrr_HEX=${Validator_addr##*:}
     #=================================================
     # prepare user signature for boc
     touch $Val_Adrr_HEX
@@ -296,8 +296,8 @@ if [[ -z $Depool_addr ]];then
     exit 1
 fi
 
-dpc_addr=`echo $Depool_addr | cut -d ':' -f 2`
-dpc_wc=`echo $Depool_addr | cut -d ':' -f 1`
+dpc_addr=${Depool_addr##*:}
+dpc_wc=${Depool_addr%%:*}
 if [[ ${#dpc_addr} -ne 64 ]] || [[ ${dpc_wc} -ne 0 ]];then
     echo "###-ERROR(line $LINENO): Wrong DePool address! ${Depool_addr}"
     exit 1
@@ -340,21 +340,123 @@ if [[ $Tik_Bal -lt 2000000000 ]];then
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
         "WARNING!!! Tik account has balance less 2 tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
     
-    TopUp_Result="$(${SCRIPT_DIR}/transfer_amount.sh ${VALIDATOR_NAME} Tik 10 | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log")"
+    # TopUp_Result="$(${SCRIPT_DIR}/transfer_amount.sh ${VALIDATOR_NAME} Tik 10 | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log")"
+    #================================================================
+    # Make BOC file to send
     Validator_addr="$(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr)"
     Custodians="$(Get_Account_Custodians_Info "$Validator_addr")"
     Val_Confirm_QTY=$(echo $Custodians|awk '{print $2}')
+
+    TA_BOC_File="${KEYS_DIR}/Transfer_Amount.boc"
+    rm -f "${TA_BOC_File}" &>/dev/null
+    TC_OUTPUT="$($CALL_TC message --raw --output ${TA_BOC_File} \
+    --sign "${KEYS_DIR}/${VALIDATOR_NAME}.keys.json" \
+    --abi "${SafeC_Wallet_ABI}" \
+    ${Validator_addr} submitTransaction \
+    "{\"dest\":\"${Tik_addr}\",\"value\":$((10 * 1000000000)),\"bounce\":true,\"allBalance\":false,\"payload\":\"\"}" \
+    --lifetime 600 | grep -i 'Message saved to file')"
+
+    if [[ ! -f ${TA_BOC_File} ]];then
+        echo "###-ERROR(line $LINENO): Failed to make BOC file ${TA_BOC_File}."
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
+            "${Tg_SOS_sign}###-ERROR(line $LINENO): Failed to make BOC file ${TA_BOC_File} for topup Tik account."
+    fi
+    # -------------------------------------------
+    Trans_List="$(Get_MSIG_Trans_List ${Validator_addr})"
+    Before_Trans_QTY=`echo "$Trans_List" | jq -r ".transactions|length"`
+    Before_Trans_QTY=$((Before_Trans_QTY))
+
+    if [[ $Before_Trans_QTY -ne 0 ]];then
+        echo "+++WARNING(line $LINENO): You have $Before_Trans_QTY unsigned transactions already."
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
+            "+++WARNING(line $LINENO): You have $Before_Trans_QTY unsigned transactions already."
+    fi
+
+    # -------------------------------------------
+    for (( i=1; i <= 5; i++ )); do
+        result=`Send_File_To_BC "${TA_BOC_File}"`
+        if [[ "$result" == "failed" ]]; then
+            echo " FAIL"
+            echo "Now sleep $LC_Send_MSG_Timeout secs and will try again.."
+            echo "--------------"
+            sleep $LC_Send_MSG_Timeout
+            continue
+        fi
+
+       if [[ $Val_Confirm_QTY -le 1 ]];then
+            ACCOUNT_INFO="$(Get_Account_Info $Validator_addr)"
+            Time_Unix=`echo $ACCOUNT_INFO |awk '{print $3}'`
+            if [[ $Time_Unix -gt $SRC_Time_Unix ]];then
+                echo -e "INFO: successfully sent $TRANSF_AMOUNT tokens."
+                break
+            fi
+       fi
+
+        Trans_List="$(Get_MSIG_Trans_List ${Validator_addr})"
+        Trans_QTY=`echo "$Trans_List" | jq -r ".transactions|length"`
+        Trans_QTY=$((Trans_QTY))
+        if [[ $Trans_QTY -gt $Before_Trans_QTY ]] && [[ $Val_Confirm_QTY -gt 1 ]];then
+            Last_Trans_ID=`echo "$Trans_List" | jq -r .transactions[$((Trans_QTY - 1))].id`
+            echo -e "INFO: successfully created transaction # $Last_Trans_ID"
+            break
+       fi
+    done
+
     if [[ $Val_Confirm_QTY -gt 1 ]];then
-        Trans_ID=$(echo "$TopUp_Result"| grep 'successfully created transaction'|awk '{print $6}')
-        ${SCRIPT_DIR}/Sign_Trans.sh ${VALIDATOR_NAME} $Trans_ID | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+        
+        ${SCRIPT_DIR}/Sign_Trans.sh ${VALIDATOR_NAME} $Last_Trans_ID | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     fi
 fi
+#=================================================
 
-Work_Chain=`echo "${Tik_addr}" | cut -d ':' -f 1`
+
+#=================================================
+# Check DePool has enough balance to operate, and replenish if no
+# ------------------------------------------------
+# check depool contract status
+Depool_Info="$(Get_Account_Info $Depool_addr)"
+Depool_Acc_State=`echo "$Depool_Info" |awk '{print $1}'`
+if [[ "$Depool_Acc_State" == "None" ]];then
+    echo -e "${BoldText}${RedBack}###-ERROR(line $LINENO): Depool Account does not exist! (no tokens, no code, nothing)${NormText}"
+    echo
+    exit 1
+elif [[ "$Depool_Acc_State" == "Uninit" ]];then
+    echo -e "${BoldText}${RedBack}###-ERROR(line $LINENO): Depool Account does not deployed.${NormText}"
+    echo "Has balance : $(echo "$Depool_Info" |awk '{print $2}')"
+    echo
+    exit 1
+fi
+
+# get info from DePool contract state
+Depool_Bal=$(( $(echo "$Depool_Info" |awk '{print $2}') ))      # nanotokens
+Current_Depool_Info="$(Get_DP_Info $Depool_addr)"
+DP_balanceThreshold=$(( $(echo "$Current_Depool_Info"|jq -r '.balanceThreshold') - 3000000000))       # nanotokens
+DP_Above_Thresh=$(( 10 * 1000000000))
+
+if [[ $Depool_Bal -lt $DP_balanceThreshold ]];then
+    Replanish_Amount=$(( DP_balanceThreshold - Depool_Bal + DP_Above_Thresh ))
+    echo "+++-WARNING(line $LINENO): DePool has balance less $((DP_balanceThreshold / 1000000000)) tokens!! I will topup it with $((DP_Above_Thresh / 1000000000)) tokens from ${VALIDATOR_NAME} account" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
+        "WARNING(line $LINENO): DePool has balance less $((DP_balanceThreshold / 1000000000)) tokens!! I will topup it with $((Replanish_Amount / 1000000000)) tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
+    Replenish_Payload='te6ccgEBAQEABgAACGhEx+s='
+
+    rm -f replanish.boc
+    TC_OUTPUT="$($CALL_TC message --raw --output replanish.boc \
+    --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json \
+    --abi $SafeC_Wallet_ABI \
+    "$(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr)" submitTransaction \
+    "{\"dest\":\"$(cat ${KEYS_DIR}/depool.addr)\",\"value\":$Replanish_Amount,\"bounce\":true,\"allBalance\":false,\"payload\":\"$Replenish_Payload\"}" \
+    | grep -i 'Message saved to file')"
+    Send_File_To_BC replanish.boc 
+    # TODO: Add signing for a few cutodians
+    # Required_Signs=`Get_Account_Custodians_Info $Validator_addr | awk '{print $2}'`
+    ./Sign_Trans.sh &>/dev/null
+fi
 
 #=================================================
 # prepare user signature
-tik_acc_addr=`echo "${Tik_addr}" | cut -d ':' -f 2`
+Work_Chain=${Tik_addr%%:*}
+tik_acc_addr=${Tik_addr##*:}
 touch $tik_acc_addr
 echo "${tik_secret}${tik_public}" > ${KEYS_DIR}/tik.keys.txt
 rm -f ${KEYS_DIR}/tik.keys.bin

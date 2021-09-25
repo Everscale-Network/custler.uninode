@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-02-17 18:00:00
+# (C) Sergey Tyurin  2021-09-02 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -80,6 +80,7 @@ if [ "$elections_id" == "0" ]; then
 
         echo "-----------------------------------------------------------------------------------------------------"
         echo
+
         # for icinga
         echo "ERROR ADNL NOT FOUND IN P34 OR P36 CONFIG" > "${nodeStats}"
         exit 1
@@ -120,8 +121,9 @@ echo "You will start validate from $(TD_unix2human ${elections_id})"
 
 TON_LIVE_URL=""
 # "https://ton.live/validators?section=details&public_key=${You_PubKey}&key_block_num=undefined"
-"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_CheckMark We are successfully participate in elections $election_id with stake $Your_Stake and ADNL:  $(echo "$ADNL_KEY" | tr "[:upper:]" "[:lower:]") ${TON_LIVE_URL}" 2>&1 > /dev/null
+"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server:" "$Tg_CheckMark We are successfully participate in elections $elections_id with stake $Your_Stake and ADNL:  $(echo "$ADNL_KEY" | tr "[:upper:]" "[:lower:]") ${TON_LIVE_URL}" 2>&1 > /dev/null
 echo "-----------------------------------------------------------------------------------------------------"
+echo $elections_id > ${ELECTIONS_WORK_DIR}/curent_elections_id.txt
 
 # for icinga
 echo "INFO ELECTION ID ${elections_id} ; DEPOOL ADDRESS $Depool_addr ; VALIDATOR ADDRESS $Validator_addr ; STAKE $Your_Stake ; ADNL ${ADNL_KEY} ; KEY IN ELECTOR $You_PubKey" > "${nodeStats}"
@@ -130,5 +132,10 @@ echo "INFO ELECTION ID ${elections_id} ; DEPOOL ADDRESS $Depool_addr ; VALIDATOR
 # Delete files older 7 days in elections log dirs
 find "$ELECTIONS_WORK_DIR" -maxdepth 1 -type f -mtime +7 -name '*' -ls -exec rm {} \;  &>/dev/null
 find "$ELECTIONS_HISTORY_DIR" -maxdepth 1 -type f -mtime +7 -name '*' -ls -exec rm {} \; &>/dev/null
+
+# ==========================================
+
+echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+echo "================================================================================================"
 
 exit 0

@@ -1,7 +1,7 @@
 #!/bin/bash
 DINFO_STRT_TIME=$(date +%s)
 
-# (C) Sergey Tyurin  2021-02-24 20:00:00
+# (C) Sergey Tyurin  2021-08-29 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -105,7 +105,7 @@ echo "==================== Elections Info ====================================="
 elections_id=$(Get_Current_Elections_ID)
 elections_id=$((elections_id))
 if [[ $elections_id -eq 0 ]];then
-    echo "   => There are no Elections now."
+    echo -e "   ${YellowBack}${BoldText}=> There are no Elections now.${NormText}"
 else
     echo "   => Elector Elections ID: $elections_id / $(echo "$elections_id" | gawk '{print strftime("%Y-%m-%d %H:%M:%S", $1)}')"
 fi

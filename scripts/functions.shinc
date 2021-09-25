@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (C) Sergey Tyurin  2021-07-22 22:00:00
+# (C) Sergey Tyurin  2021-08-29 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -76,7 +76,7 @@ case "$NetName" in
         $HOME/bin/tonos-cli config endpoint reset &>/dev/null
         $HOME/bin/tonos-cli config endpoint add $DApp_URL $MainNet_DApp_List &>/dev/null
         $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export NODE_TYPE="${NODE_TYPE:-CPP}"              # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
     net)
@@ -84,7 +84,7 @@ case "$NetName" in
         $HOME/bin/tonos-cli config endpoint reset &>/dev/null
         $HOME/bin/tonos-cli config endpoint add $DApp_URL $DevNet_DApp_List &>/dev/null
         $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export NODE_TYPE="${NODE_TYPE:-CPP}"              # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
     fld)
@@ -92,7 +92,7 @@ case "$NetName" in
         $HOME/bin/tonos-cli config endpoint reset &>/dev/null
         $HOME/bin/tonos-cli config endpoint add $DApp_URL $FLD_DApp_List &>/dev/null
         $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="CPP"              # can be 'RUST' or 'CPP'
+        export NODE_TYPE="${NODE_TYPE:-CPP}"              # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
         ;;
     rustnet)
@@ -100,7 +100,7 @@ case "$NetName" in
         $HOME/bin/tonos-cli config endpoint reset &>/dev/null
         $HOME/bin/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
         $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="RUST"                 # can be 'RUST' or 'CPP'
+        export NODE_TYPE="${NODE_TYPE:-RUST}"   # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
         ;;
     *)
@@ -244,29 +244,60 @@ function Check_DApp_URL() {
     fi
     echo "fine"
 }
+
 #=================================================
 # Get Smart Contract current state by dowloading it & save to file
 function Get_SC_current_state() { 
     # Input: acc in form x:xxx...xxx
     # result: file named xxx...xxx.tvc
-    # return: Output of lite-client executing
+    # return: Output of executing
     local w_acc="$1" 
     [[ -z $w_acc ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): func Get_SC_current_state: empty address" && exit 1
-    local s_acc=`echo "${w_acc}" | cut -d ':' -f 2`
-    for (( Try=0; Try <= 5; Try++ ))
-    do
-        rm -f ${s_acc}.tvc
-        local LC_OUTPUT=`$CALL_LC -rc "saveaccount ${s_acc}.tvc ${w_acc}" -rc "quit" 2>/dev/null`
-        local result=`echo ${LC_OUTPUT} | grep "written StateInit of account"`
-        [[ -n  $result ]] && break
-        sleep 3
-    done
+    local s_acc=${w_acc##*:}
+    local acc_wc=${w_acc%%:*}
+    case "${NODE_TYPE}" in
+        RUST)
+            NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+            if [[ "${NODE_WC}" == "${acc_wc}" ]] && ! $FORCE_USE_TONOSCLI  || [[ "${acc_wc}" == "-1" ]];then
+                for (( Try=0; Try <= 5; Try++ ))
+                do
+                    rm -f ${s_acc}.tvc
+                    local LC_OUTPUT="$($CALL_RC -c "getaccountstate ${w_acc} ${s_acc}.tvc")"
+                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
+                    sleep 3
+                done
+            else
+                for (( Try=0; Try <= 5; Try++ ))
+                do
+                    rm -f ${s_acc}.tvc
+                    local LC_OUTPUT="$($CALL_TC account $w_acc --dumpboc ${s_acc}.tvc)"
+                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
+                    sleep 3
+                done
+            fi
+            ;;
+        CPP)
+            for (( Try=0; Try <= 5; Try++ ))
+            do
+                rm -f ${s_acc}.tvc
+                local LC_OUTPUT=`$CALL_LC -rc "saveaccount ${s_acc}.tvc ${w_acc}" -rc "quit" 2>/dev/null`
+                local result=`echo ${LC_OUTPUT} | grep "written StateInit of account"`
+                [[ -n  $result ]] && break
+                sleep 3
+            done
+            ;;
+        *)
+            echoerr "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+            exit 1
+            ;;            
+    esac
+
     if [[ -z  $result ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get account state $w_acc. Can't continue. Sorry."
         echoerr "${LC_OUTPUT}"
         exit 1
     fi
-    echo "${LC_OUTPUT}"
+    echo "${result}"
 }
 #=================================================
 # Get current Time Diff
@@ -315,7 +346,8 @@ function Get_TimeDiff() {
 function Get_Elector_Address() { 
     case "${NODE_TYPE}" in
         RUST)
-            local elector_addr=`$CALL_TC getconfig 1 | grep -i 'Config p1' | awk '{print $3}'| tr -d '"'`
+            # local elector_addr=`$CALL_TC getconfig 1 | grep -i 'Config p1' | awk '{print $3}'| tr -d '"'`
+            local elector_addr="$($CALL_RC -c "getconfig 1"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'|jq -r '.p1')"
             ;;
         CPP)
             local elector_addr=`$CALL_LC -rc "getconfig 1" -rc "quit" 2>/dev/null | grep -i 'ConfigParam(1)' | awk '{print substr($4,15,64)}'`
@@ -343,7 +375,8 @@ function Get_Current_Elections_ID() {
                     elections_id=`$CALL_TC runget ${elector_addr} active_election_id 2>&1 | grep -i 'Result:' | awk -F'"' '{print $2}'`
                     ;;
                 "solidity")
-                    elections_id=$($CALL_TC run ${elector_addr} active_election_id {} --abi ${Elector_ABI} 2>&1 | grep "value0" | awk '{print $2}' | tr -d '"')
+                    local LC_OUTPUT="$(Get_SC_current_state "${elector_addr}")"
+                    local elections_id=$($CALL_TC -j run --boc ${elector_addr##*:}.tvc active_election_id '{}' --abi ${Elector_ABI} | jq -r '.value0')
                     ;;
                 *)
                     echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
@@ -370,12 +403,6 @@ function Get_Current_Elections_ID() {
             exit 1
             ;;            
     esac
-
-    if [[ -z $elections_id ]]; then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Can not get Elections ID!!!"
-        exit 1
-    fi
-
     echo "${elections_id}"
 }
 #=================================================
@@ -385,6 +412,10 @@ function Get_Current_Elections_ID() {
 function Get_Account_Info() {
     
     local ACCOUNT=`echo "$1"| tr '[:upper:]' '[:lower:]'`
+    local w_acc="$ACCOUNT" 
+    local s_acc=${w_acc##*:}
+    local acc_wc=${w_acc%%:*}
+    
     local acc_hex=`echo ${ACCOUNT}|cut -d ':' -f 2`
     if [[ ${#acc_hex} -ne 64 ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Wrong account address!"
@@ -393,14 +424,23 @@ function Get_Account_Info() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            local ACCOUNT_INFO=`$CALL_TC account ${ACCOUNT}` 2>&1
-            if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
-                echo "None 0 0"
-                return
+            NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+            if [[ "${NODE_WC}" == "${acc_wc}" ]] && ! $FORCE_USE_TONOSCLI || [[ "${acc_wc}" == "-1" ]];then
+                local ACCOUNT_INFO=`$CALL_RC -j -c "getaccount $ACCOUNT"`
+                if [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Account not found')" ]];then
+                    echo "None 0 0"
+                    return
+                fi
+            else
+                local ACCOUNT_INFO=`$CALL_TC -j account ${ACCOUNT}` 2>&1
+                if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
+                    echo "None 0 0"
+                    return
+                fi
             fi
-            local AMOUNT_nt=`echo "$ACCOUNT_INFO" |grep -i 'balance:' |awk '{print $2}'`
-            local LASTOP=`echo "$ACCOUNT_INFO" | grep -i 'last_paid:' | gawk '{print $2}'`
-            local STATUS=`echo "$ACCOUNT_INFO" | grep -i 'acc_type:'|awk '{print $2}'`
+            local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r '.balance'`
+            local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r '.last_paid'`
+            local STATUS=`echo "$ACCOUNT_INFO"    | jq -r  '.acc_type'`
             # AMOUNT_nt=`echo "scale=3; $AMOUNT_nt * 1000000000" | $CALL_BC | cut -d '.' -f 1`
             ;;
         CPP)
@@ -431,8 +471,11 @@ function Get_Account_Custodians_Info() {
     local ACCOUNT=$1
     case "${NODE_TYPE}" in
         RUST)
-            local Custod_QTY=`$CALL_TC run $ACCOUNT getCustodians {} --abi ${SafeC_Wallet_ABI} | sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq '.custodians|length'`
-            local Confirms_QTY=`$CALL_TC run $ACCOUNT getParameters {} --abi ${SafeC_Wallet_ABI}| sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.requiredTxnConfirms'`
+            # local Custod_QTY=`$CALL_TC run $ACCOUNT getCustodians {} --abi ${SafeC_Wallet_ABI} | sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq '.custodians|length'`
+            # local Confirms_QTY=`$CALL_TC run $ACCOUNT getParameters {} --abi ${SafeC_Wallet_ABI}| sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.requiredTxnConfirms'`
+            local LC_OUTPUT="$(Get_SC_current_state "$ACCOUNT")"
+            local Custod_QTY=`$CALL_TC -j run --boc ${ACCOUNT##*:}.tvc getCustodians '{}' --abi ${SafeC_Wallet_ABI}   | jq -r '.custodians|length'`
+            local Confirms_QTY=`$CALL_TC -j run --boc ${ACCOUNT##*:}.tvc getParameters '{}' --abi ${SafeC_Wallet_ABI} | jq -r '.requiredTxnConfirms'`
             ;;
         CPP)
             local val_acc_addr=`echo "${ACCOUNT}" | cut -d ':' -f 2`
@@ -470,17 +513,19 @@ function P34_ADNL_search() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            local P34_List="$($CALL_TC getconfig 34)"
-            if [[ -n $(echo "$P34_List" | grep "Config p34:" | grep "null") ]];then
+            # local P34_List="$($CALL_TC getconfig 34)"
+            local P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
+            if [[ -n $(echo "$P34_List" | grep '{}') ]];then
                 echo "null"
                 return
             fi
-            P34_list="$($CALL_TC getconfig 34 | sed -e '1,4d' |sed 's/Config p34: //')"
-            local found=`echo "${P34_list}" | jq ".list[]|select(.adnl_addr == \"$ADNL\")"`
+            # P34_list="$($CALL_TC getconfig 34 | sed -e '1,4d' |sed 's/Config p34: //')"
+            # P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
+            local found=`echo "${P34_List}" | jq ".p34.list[]|select(.adnl_addr == \"$ADNL\")"`
             if [[ -n $found ]]; then
                 local adnl="$(echo ${found} | jq -r .adnl_addr)"
                 local pkey="$(echo ${found} | jq -r .public_key)"
-                local wght="$(echo ${found} | jq -r .weight)"
+                local wght="$(echo ${found} | jq -r .weight_dec)"
                 Result="${pkey} ${wght}"
             fi
             ;;
@@ -522,17 +567,19 @@ function P36_ADNL_search() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            local P36_List="$($CALL_TC getconfig 36)"
-            if [[ -n $(echo "$P36_List" | grep "Config p36:" | grep "null") ]];then
+            # local P36_List="$($CALL_TC getconfig 36)"
+            local P36_List=`$CALL_RC -c "getconfig 36"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
+            if [[ -n $(echo "$P36_List" | grep '{}') ]];then
                 echo "null"
                 return
             fi
-            P36_list="$($CALL_TC getconfig 36 | sed -e '1,4d' |sed 's/Config p36: //')"
-            local found=`echo "${P36_list}" | jq ".list[]|select(.adnl_addr == \"$ADNL\")"`
+            # P36_list="$($CALL_TC getconfig 36 | sed -e '1,4d' |sed 's/Config p36: //')"
+            # P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
+            local found=`echo "${P36_List}" | jq ".p36.list[]|select(.adnl_addr == \"$ADNL\")"`
             if [[ -n $found ]]; then
                 local adnl="$(echo ${found} | jq -r .adnl_addr )"
                 local pkey="$(echo ${found} | jq -r .public_key )"
-                local wght="$(echo ${found} | jq -r .weight )"
+                local wght="$(echo ${found} | jq -r .weight_dec )"
                 Result="${pkey} ${wght}"
             fi
             ;;
@@ -684,7 +731,8 @@ function Elector_ADNL_Search() {
                     Result="$stake $time $max_factor $addr"
                     ;;
                 solidity)
-                    local Elector_Parts_List=`$CALL_TC run ${elector_addr} get {} --abi ${Elector_ABI} | sed -e "1,/Succeeded/d" | sed 's/Result: //'`
+                    local LC_OUTPUT="$(Get_SC_current_state "$elector_addr")"
+                    local Elector_Parts_List=`$CALL_TC -j run --boc ${elector_addr##*:}.tvc get '{}' --abi ${Elector_ABI}`
                     local Elections_Open=`echo $Elector_Parts_List | jq .election_open`
                     if [[ $Elections_Open == false ]]; then
                         echo "null"
@@ -759,7 +807,8 @@ function Get_NetConfig_P15() {
     local Result=""
     case "${NODE_TYPE}" in
         RUST)
-            local CONFIG_PAR_15=`$CALL_TC getconfig 15 2>&1`
+            # local CONFIG_PAR_15=`$CALL_TC getconfig 15 2>&1`
+            local CONFIG_PAR_15=`$CALL_RC -c "getconfig 15"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
             local validators_elected_for=`echo "${CONFIG_PAR_15}" | grep -i 'validators_elected_for' | awk '{print $2}' | tr -d ','`
             local elections_start_before=`echo "${CONFIG_PAR_15}" | grep -i 'elections_start_before' | awk '{print $2}' | tr -d ','`
             local elections_end_before=`echo "${CONFIG_PAR_15}"   | grep -i 'elections_end_before'   | awk '{print $2}' | tr -d ','`
@@ -804,7 +853,9 @@ function Get_DP_Rounds() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            Result="$($CALL_TC run "${Depool_addr}" getRounds {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
+            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
+            # Result="$($CALL_TC run "${Depool_addr}" getRounds {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
+             Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getRounds '{}' --abi $DePool_ABI)"
             ;;
         CPP)
             local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
@@ -836,7 +887,8 @@ function Get_DP_Self_Balance() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            DP_balance_nT="$($CALL_TC run "${Depool_addr}" getDePoolBalance {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.value0')"
+            local LC_OUTPUT="$(Get_SC_current_state "${Depool_addr}")"
+            DP_balance_nT="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getDePoolBalance {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.value0')"
             ;;
         CPP)
             local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
@@ -869,7 +921,8 @@ function Get_DP_Info() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            Result="$($CALL_TC run "${Depool_addr}" getDePoolInfo {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
+            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
+            Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getDePoolInfo '{}' --abi $DePool_ABI)"
             ;;
         CPP)
             local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
@@ -901,7 +954,9 @@ function Get_DP_Parts_List() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            Result="$($CALL_TC run "${Depool_addr}" getParticipants {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
+            # Result="$($CALL_TC run "${Depool_addr}" getParticipants {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
+            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
+            Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getParticipants '{}' --abi $DePool_ABI)"
             ;;
         CPP)
             local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
@@ -934,7 +989,9 @@ function Get_DP_Part_Info() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            Result="$($CALL_TC run "${Depool_addr}" getParticipantInfo "{\"addr\":\"${Part_addr}\"}" --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
+            # Result="$($CALL_TC run "${Depool_addr}" getParticipantInfo "{\"addr\":\"${Part_addr}\"}" --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
+            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
+            Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getParticipantInfo "{\"addr\":\"${Part_addr}\"}" --abi $DePool_ABI)"
             ;;
         CPP)
             local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
@@ -986,8 +1043,10 @@ function Get_MSIG_Trans_List() {
     fi
     case "${NODE_TYPE}" in
         RUST)
-            local TC_OUTPUT="$($CALL_TC run ${MSIG_ADDR} getTransactions {} --abi $SafeC_Wallet_ABI)"
-            Result="$(echo "$TC_OUTPUT" | sed -e "1,/Succeeded/d" | sed 's/Result: //')"
+            # local TC_OUTPUT="$($CALL_TC run ${MSIG_ADDR} getTransactions {} --abi $SafeC_Wallet_ABI)"
+            # Result="$(echo "$TC_OUTPUT" | sed -e "1,/Succeeded/d" | sed 's/Result: //')"
+            local LC_OUTPUT="$(Get_SC_current_state "$MSIG_ADDR")"
+            Result="$($CALL_TC -j run --boc ${MSIG_ADDR##*:}.tvc getTransactions '{}' --abi $SafeC_Wallet_ABI)"
             ;;
         CPP)
             local LC_OUTPUT="$(Get_SC_current_state "$MSIG_ADDR")"
@@ -1019,6 +1078,7 @@ function Send_MSIG_Trans_Confirm() {
     local wc=`echo "${MSIG_ADDR}" | cut -d ':' -f 1`
     local msig_public=`cat "$Keys_File" | jq -r '.public'`
     local msig_secret=`cat "$Keys_File" | jq -r '.secret'`
+    
     if [[ -z $msig_public ]] || [[ -z $msig_secret ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Can't find public and/or secret key in $Keys_File!"
         exit 1

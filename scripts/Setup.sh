@@ -123,9 +123,9 @@ trap '' 2
 # stop node service
 OS_SYSTEM=`uname -s`
 if [[ "$OS_SYSTEM" == "Linux" ]];then
-    sudo service tonnode stop|cat
+    sudo service ${ServiceName} stop|cat
 else
-    service tonnode stop|cat
+    service ${ServiceName} stop|cat
 fi
 
 #============================================

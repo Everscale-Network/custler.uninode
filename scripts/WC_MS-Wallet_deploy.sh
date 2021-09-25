@@ -53,6 +53,7 @@ echo "Deploy wallet to '${NETWORK_TYPE}' network"
 #==================================================
 # Check input parametrs
 WAL_NAME=$1
+KeysFileBaseName=${WAL_NAME%%-*}
 
 CodeOfWallet="$2"
 if [[ ! $CodeOfWallet == "Safe" ]] && [[ ! $CodeOfWallet == "SetCode" ]];then
@@ -87,11 +88,11 @@ echo "Wallet addr for deploy : $WALL_ADDR"
 
 #==================================================
 # Get Wallet work chain for deploy
-Work_Chain=`echo "${WALL_ADDR}" | cut -d ':' -f 1`
-if [[ ! "$Work_Chain" == "0" ]] && [[ ! "$Work_Chain" == "-1" ]];then
-    echo "###-ERROR(line $LINENO): Wrong work chain in address. Should be '0' or '-1'"
-    exit 1
-fi
+Work_Chain="${WALL_ADDR%%:*}"
+# if [[ ! "$Work_Chain" == "0" ]] && [[ ! "$Work_Chain" == "-1" ]];then
+#     echo "###-ERROR(line $LINENO): Wrong work chain in address. Should be '0' or '-1'"
+#     exit 1
+# fi
 echo "Wallet work chain for deploy : $Work_Chain"
 
 #=================================================
@@ -136,8 +137,8 @@ echo "ABI for wallet: $Wallet_ABI"
 Custodians_PubKeys=""
 for (( i=1; i<=$Cust_QTY; i++))
 do
-    PubKey="0x$(cat ${KEY_FILES_DIR}/${WAL_NAME}_${i}.keys.json | jq '.public'| tr -d '\"')"
-    SecKey="0x$(cat ${KEY_FILES_DIR}/${WAL_NAME}_${i}.keys.json | jq '.secret'| tr -d '\"')"
+    PubKey="0x$(cat ${KEY_FILES_DIR}/${KeysFileBaseName}_${i}.keys.json | jq '.public'| tr -d '\"')"
+    SecKey="0x$(cat ${KEY_FILES_DIR}/${KeysFileBaseName}_${i}.keys.json | jq '.secret'| tr -d '\"')"
     if [[ "$PubKey" == "0x" ]] || [[ "$SecKey" == "0x" ]];then
         echo
         echo "###-ERROR(line $LINENO): Can't find wallet public and/or secret key No: $i !"
@@ -155,7 +156,7 @@ echo
 
 #===========================================================
 # Check Wallet Address
-ADDR_from_Keys=$($CALL_TC genaddr $Wallet_Code $Wallet_ABI --setkey ${KEY_FILES_DIR}/${WAL_NAME}_1.keys.json --wc "$Work_Chain" | grep "Raw address:" | awk '{print $3}')
+ADDR_from_Keys=$($CALL_TC genaddr $Wallet_Code $Wallet_ABI --setkey ${KEY_FILES_DIR}/${KeysFileBaseName}_1.keys.json --wc "$Work_Chain" | grep "Raw address:" | awk '{print $3}')
 if [[ ! "$WALL_ADDR" == "$ADDR_from_Keys" ]];then
     echo "###-ERROR(line $LINENO): Given Wallet Address and calculated address is different. Possible you prepared it for another contract type or keys. "
     echo "Given addr: $WALL_ADDR"
@@ -187,7 +188,7 @@ function Make_BOC_File(){
         $Wallet_Code \
         "{\"owners\":[$Custodians_PubKeys],\"reqConfirms\":${ReqConfirms}}" \
         --abi $Wallet_ABI \
-        --sign ${KEY_FILES_DIR}/${WAL_NAME}_1.keys.json \
+        --sign ${KEY_FILES_DIR}/${KeysFileBaseName}_1.keys.json \
         --wc $Work_Chain \
         --raw \
         --output deploy.boc \

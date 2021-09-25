@@ -1,6 +1,6 @@
 #!/bin/bash -eE
 
-# (C) Sergey Tyurin  2021-03-15 10:00:00
+# (C) Sergey Tyurin  2021-01-25 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -23,7 +23,7 @@ echo "################################# DePool generate address script #########
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
 
 echo
-KEY_FILES_DIR="$HOME/DPKeys"
+KEY_FILES_DIR="$HOME/DPKeys_${HOSTNAME}"
 
 function show_usage(){
 echo
@@ -122,12 +122,10 @@ fi
 
 echo "If you want to replace exist depool, you need to delete all files in ${KEY_FILES_DIR}/ and 'depool.addr' & 'depool.keys.json' in ${KEYS_DIR}/ folder"
 echo
-echo "To deploy wallet, send tokens to it address and use MS-Wallet_deploy.sh script"
-echo
 echo -e "${BoldText}${RedBack} Save DePool seed phrase!! ${NormText} from 'depool_seed.txt' file in ${KEY_FILES_DIR}/"
 echo
-echo "To deploy Depool, send 50 tokens to this address and use 'DP4_depool_deploy.sh' script"
-echo -e "${BoldText}${GreeBack}### NB! ### Do not forget to change Depool paremeters at the begining of 'DP4_depool_deploy.sh' script${NormText}"
+echo "To deploy Depool, send 50 tokens to this address and use 'DP5_depool_deploy.sh' script"
+echo -e "${BoldText}${GreeBack}### NB! ### Do not forget to change Depool parameters at the beginning of 'DP5_depool_deploy.sh' script${NormText}"
 echo
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date)"
 echo "================================================================================================"

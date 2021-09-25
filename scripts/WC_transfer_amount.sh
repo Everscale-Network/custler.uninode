@@ -1,5 +1,5 @@
 #!/bin/bash
-# (C) Sergey Tyurin  2021-09-02 10:00:00
+# (C) Sergey Tyurin  2021-08-14 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -56,7 +56,10 @@ echo "ABI for wallet: $Wallet_ABI"
 #===========================================================
 # 
 SRC_NAME=$1
+SRC_KeysFileBaseName=${SRC_NAME%%-*}
+
 DST_NAME=$2
+
 TRANSF_AMOUNT="$3"
 NEW_ACC=$4
 [[ -z $TRANSF_AMOUNT ]] && tr_usage
@@ -79,7 +82,7 @@ if [[ -z $SRC_ACCOUNT ]];then
     echo "###-ERROR(line $LINENO): Can't find SRC address! ${KEYS_DIR}/${SRC_ACCOUNT}.addr"
     exit 1
 fi
-SRC_WC=`echo "$SRC_ACCOUNT" | cut -d ':' -f 1`
+SRC_WC="${SRC_ACCOUNT%%:*}"
 
 DST_ACCOUNT=$DST_NAME
 acc_fmt="$(echo "$DST_ACCOUNT" |  awk -F ':' '{print $2}')"
@@ -95,7 +98,7 @@ if [[ ${#dst_addr} -ne 64 ]] || [[ ${dpc_wc} -ne 0 ]];then
     exit 1
 fi
 
-SRC_KEY_FILE="${KEYS_DIR}/${1}.keys.json"
+SRC_KEY_FILE="${KEYS_DIR}/${SRC_KeysFileBaseName}_1.keys.json"
 msig_public=`cat $SRC_KEY_FILE | jq -r ".public"`
 msig_secret=`cat $SRC_KEY_FILE | jq -r ".secret"`
 if [[ -z $msig_public ]] || [[ -z $msig_secret ]];then
@@ -186,16 +189,16 @@ echo "Last operation time: $DST_TIME"
 echo
 echo "Transferring $TRANSF_AMOUNT ($NANO_AMOUNT) from ${SRC_NAME} to ${DST_NAME} ..." 
 
-read -p "### CHECK INFO TWICE!!! Is this a right tranfer?  (y/n)? " </dev/tty answer
-case ${answer:0:1} in
-    y|Y )
-        echo "Processing....."
-    ;;
-    * )
-        echo "Cancelled."
-        exit 1
-    ;;
-esac
+# read -p "### CHECK INFO TWICE!!! Is this a right tranfer?  (y/n)? " </dev/tty answer
+# case ${answer:0:1} in
+#     y|Y )
+#         echo "Processing....."
+#     ;;
+#     * )
+#         echo "Cancelled."
+#         exit 1
+#     ;;
+# esac
 
 # ==========================================================================
 
