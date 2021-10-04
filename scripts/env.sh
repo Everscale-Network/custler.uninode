@@ -184,6 +184,13 @@ export BoldText="\e[1m"
 export Tg_CheckMark=$(echo -e "\U0002705")
 export Tg_SOS_sign=$(echo -e "\U0001F198")
 
+# var for icinga monitoring
+#=================================================
+export prepElections="${TON_LOG_DIR}/prepForElections"
+export partInElections="${TON_LOG_DIR}/partInElections"
+export nextElections="${TON_LOG_DIR}/nextElections"
+export nodeStats="${TON_LOG_DIR}/nodeStats"
+
 #=================================================
 export ServiceName="tonnode"
 
