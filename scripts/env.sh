@@ -114,7 +114,7 @@ export C_ENGINE_ADDITIONAL_PARAMS=""
 # GIT addresses & commits
 export RUST_VERSION="1.55.0"
 export BOOST_VERSION="1.76.0"
-export MIN_TC_VERSION="0.22.4"
+export MIN_TC_VERSION="0.22.12"
 
 export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
 export CNODE_GIT_COMMIT="mainnet_patch"
