@@ -1,4 +1,4 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
 BUILD_STRT_TIME=$(date +%s)
 echo
@@ -18,6 +18,9 @@ source $HOME/.cargo/env
 git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
 cd "${TVM_LINKER_SRC_DIR}"
 git checkout "${TVM_LINKER_GIT_COMMIT}"
+git submodule init && git submodule update --recursive
+git submodule foreach 'git submodule init'
+git submodule foreach 'git submodule update  --recursive'
 
 cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
 cargo update

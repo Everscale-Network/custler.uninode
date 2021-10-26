@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2020-03-15 19:00:00
+# (C) Sergey Tyurin  2020-01-20 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -93,6 +93,18 @@ if [ ! -f "${R_CFG_DIR}/config.json" ]; then
     exit 1
 fi
 
+#===========================================
+# Set workchain for node
+if [[ "$(jq '.workchain' "${R_CFG_DIR}/config.json")" == "null" ]];then
+    echo "{\"workchain\": $NODE_WC}" | jq '. += $inputs[]' --slurpfile inputs "${R_CFG_DIR}/config.json" > "${R_CFG_DIR}/config.json.tmp"
+    mv -f "${R_CFG_DIR}/config.json.tmp" "${R_CFG_DIR}/config.json"
+else
+    jq ".workchain = $NODE_WC" "${R_CFG_DIR}/config.json"  > "${R_CFG_DIR}/config.json.tmp"
+    mv -f "${R_CFG_DIR}/config.json.tmp" "${R_CFG_DIR}/config.json"
+fi
+
+#===========================================
+# 
 if [ ! -f "${R_CFG_DIR}/console_config.json" ]; then
     echo "###-ERROR: ${R_CFG_DIR}/console_config.json does not created!"
     exit 1

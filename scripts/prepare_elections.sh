@@ -1,6 +1,6 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-09-02 10:00:00
+# (C) Sergey Tyurin  2021-10-19 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -38,7 +38,7 @@ source "${SCRIPT_DIR}/functions.shinc"
 [[ ! -d ${ELECTIONS_WORK_DIR} ]] && mkdir -p ${ELECTIONS_WORK_DIR}
 
 #=================================================
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
+echo -e "$(DispEnvInfo)"
 echo
 echo -e "$(Determine_Current_Network)"
 echo
@@ -108,14 +108,16 @@ if [[ "$STAKE_MODE" == "msig" ]];then
     xxd -r -p ${KEYS_DIR}/msig.keys.txt ${KEYS_DIR}/msig.keys.bin
     #=================================================
     # check availabylity to recover amount
+
     case "${NODE_TYPE}" in
         RUST)
+            LC_OUTPUT="$(Get_SC_current_state "${elector_addr}")"
             case ${ELECTOR_TYPE} in
                 "fift")
-                    recover_amount=$($CALL_TC runget 0x${elector_addr} compute_returned_stake "${Val_Adrr_HEX}" 2>&1 | grep "Result:" | awk -F'"' '{print $2}')
+                    recover_amount=$($CALL_TC runget --boc ${elector_addr##*:}.boc compute_returned_stake 0x${Val_Adrr_HEX} 2>&1 | grep "Result:" | awk -F'"' '{print $2}')
                     ;;
                 "solidity")
-                    recover_amount=$($CALL_TC run 0x${elector_addr} compute_returned_stake "{\"wallet_addr\":\"${Val_Adrr_HEX}\"}" --abi ${Elector_ABI} 2>&1 | grep -i "value0" | awk '{print $2}' | tr -d '"')
+                    recover_amount=$($CALL_TC run --boc ${elector_addr##*:}.boc compute_returned_stake "{\"wallet_addr\":\"${Val_Adrr_HEX}\"}" --abi ${Elector_ABI} 2>&1 | grep -i "value0" | awk '{print $2}' | tr -d '"')
                     ;;
                 *)
                     echo "###-ERROR(line $LINENO): Unknown Elector type! Set ELECTOR_TYPE= to 'fift' or 'solidity' in env.sh"
@@ -146,7 +148,8 @@ if [[ "$STAKE_MODE" == "msig" ]];then
     esac
     recover_amount=$((recover_amount))
     echo "INFO: recover_amount = ${recover_amount} nanotokens ( $((recover_amount/1000000000)) Tokens )"
-    #=================================================
+    # =================================================
+    # recover_amount=1
     if [ $recover_amount -gt 0 ]; then
 
         #=================================================
@@ -163,14 +166,24 @@ if [[ "$STAKE_MODE" == "msig" ]];then
             echo "###-ERROR(line $LINENO): Recover query payload is empty!!"
             exit 1
         fi
-        TVM_OUTPUT=$($CALL_TL message $Val_Adrr_HEX -a $SafeC_Wallet_ABI -m submitTransaction \
-        -p "{\"dest\":\"$elector_addr\",\"value\":1000000000,\"bounce\":true,\"allBalance\":false,\"payload\":\"$recover_query_payload\"}" -w -1 \
-        --setkey ${KEYS_DIR}/msig.keys.bin | tee ${ELECTIONS_WORK_DIR}/TVM_linker-recquery.log)
-        if [[ -z $(echo $TVM_OUTPUT | grep "boc file created") ]];then
-            echo "###-ERROR(line $LINENO): TVM linker CANNOT create boc file!!! Can't continue."
-            exit 1
+
+        # TVM_OUTPUT=$($CALL_TL message $Val_Adrr_HEX -a $SafeC_Wallet_ABI -m submitTransaction \
+        # -p "{\"dest\":\"$elector_addr\",\"value\":1000000000,\"bounce\":true,\"allBalance\":false,\"payload\":\"$recover_query_payload\"}" -w -1 \
+        # --setkey ${KEYS_DIR}/msig.keys.bin | tee ${ELECTIONS_WORK_DIR}/TVM_linker-recquery.log)
+
+        TC_OUTPUT="$($CALL_TC message --raw --output recover-msg.boc \
+        --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json \
+        --abi $SafeC_Wallet_ABI \
+        "$(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr)" submitTransaction \
+        "{\"dest\":\"$elector_addr\",\"value\":1000000000,\"bounce\":true,\"allBalance\":false,\"payload\":\"$recover_query_payload\"}" \
+        | grep -i 'Message saved to file')"
+
+        if [[ -z ${TC_OUTPUT} ]];then
+            echo "###-ERROR(line $LINENO): tonos-cli CANNOT create boc file!!! Can't continue."
+            exit 3
         fi
-        mv "$(echo "$Val_Adrr_HEX"| cut -c 1-8)-msg-body.boc" "${ELECTIONS_WORK_DIR}/recover-msg.boc"
+
+        mv -f recover-msg.boc "${ELECTIONS_WORK_DIR}/"
         echo "INFO:  DONE"
 
         #=================================================
@@ -256,7 +269,7 @@ if [[ "$STAKE_MODE" == "msig" ]];then
                 echo "INFO: Sending transaction for recover stake was done SUCCESSFULLY!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log" 
             else
                 echo "###-ERROR(line $LINENO): Sending transaction for stake recover FAILED!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-                "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" 2>&1 > /dev/null
+                "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Sending transaction for elections FAILED!!!" 2>&1 > /dev/null
             fi
         fi
     else
@@ -338,7 +351,7 @@ echo "Tik account balance: $(echo "scale=3; $Tik_Bal / 1000000000" | $CALL_BC)"
 if [[ $Tik_Bal -lt 2000000000 ]];then
     echo "+++-WARNING(line $LINENO): Tik account has balance less 2 tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
-        "WARNING!!! Tik account has balance less 2 tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
+        "${Tg_Warn_sign} WARNING!!! Tik account has balance less 2 tokens!! I will topup it with 10 tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
     
     # TopUp_Result="$(${SCRIPT_DIR}/transfer_amount.sh ${VALIDATOR_NAME} Tik 10 | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log")"
     #================================================================
@@ -369,7 +382,7 @@ if [[ $Tik_Bal -lt 2000000000 ]];then
     if [[ $Before_Trans_QTY -ne 0 ]];then
         echo "+++WARNING(line $LINENO): You have $Before_Trans_QTY unsigned transactions already."
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
-            "+++WARNING(line $LINENO): You have $Before_Trans_QTY unsigned transactions already."
+            "${Tg_Warn_sign} WARNING(line $LINENO): You have $Before_Trans_QTY unsigned transactions already."
     fi
 
     # -------------------------------------------
@@ -437,7 +450,7 @@ if [[ $Depool_Bal -lt $DP_balanceThreshold ]];then
     Replanish_Amount=$(( DP_balanceThreshold - Depool_Bal + DP_Above_Thresh ))
     echo "+++-WARNING(line $LINENO): DePool has balance less $((DP_balanceThreshold / 1000000000)) tokens!! I will topup it with $((DP_Above_Thresh / 1000000000)) tokens from ${VALIDATOR_NAME} account" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server: DePool Tik:" \
-        "WARNING(line $LINENO): DePool has balance less $((DP_balanceThreshold / 1000000000)) tokens!! I will topup it with $((Replanish_Amount / 1000000000)) tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
+        "${Tg_Warn_sign} WARNING(line $LINENO): DePool has balance less $((DP_balanceThreshold / 1000000000)) tokens!! I will topup it with $((Replanish_Amount / 1000000000)) tokens from ${VALIDATOR_NAME} account" 2>&1 > /dev/null
     Replenish_Payload='te6ccgEBAQEABgAACGhEx+s='
 
     rm -f replanish.boc

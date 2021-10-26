@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-02-24 20:00:00
+# (C) Sergey Tyurin 2021-09-20 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -17,41 +17,47 @@
 # may be republished without author(s) express written permission. 
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
+#
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
+# shellcheck source=env.sh
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
-#=================================================
+
 echo
-echo "Time Now: $(date  +'%F %T %Z')"
 echo -e "$(DispEnvInfo)"
 echo
-echo -e "$(Determine_Current_Network)"
-echo
 
+SLEEP_TIMEOUT=$1
+SLEEP_TIMEOUT=${SLEEP_TIMEOUT:="10"}
+MAX_TIME_DIFF=10
 
-#===========================================================
-# Check Marvin ABI
-if [[ ! -f $Marvin_ABI ]];then
-    echo "###-ERROR(line $LINENO): Can not find Wallet code or ABI. Check contracts folder."  
-    exit 1
-fi
+second_sync=false
 
-DST_NAME=${VALIDATOR_NAME}
-DST_KEY_FILE="${KEYS_DIR}/${VALIDATOR_NAME}.keys.json"
+while(true)
+do
+     TIME_DIFF=$(Get_TimeDiff)
 
-DST_ACCOUNT=`cat ${KEYS_DIR}/${DST_NAME}.addr`
-if [[ -z $DST_ACCOUNT ]];then
-    echo "###-ERROR(line $LINENO): Can't find SRC address! ${KEYS_DIR}/${DST_NAME}.addr"
-    exit 1
-fi
-msig_public=`cat $DST_KEY_FILE | jq ".public"`
-msig_secret=`cat $DST_KEY_FILE | jq ".secret"`
-if [[ -z $msig_public ]] || [[ -z $msig_secret ]];then
-    echo "###-ERROR(line $LINENO): Can't find public and/or secret key in ${DST_KEY_FILE}!"
-    exit 1
-fi
+    if [[ "$TIME_DIFF" == "Node Down" ]];then
+        echo "${Current_Net} Time: $(date +'%F %T %Z') ###-ALARM! NODE IS DOWN." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        # "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "ALARM! NODE IS DOWN." 2>&1 > /dev/null
+        sleep $SLEEP_TIMEOUT
+        continue
+    fi
 
-$CALL_TC call "$Marvin_Addr" grant "{\"addr\":\"$DST_ACCOUNT\"}" --abi "${Marvin_ABI}"
+    if [[ "$TIME_DIFF" == "No TimeDiff Info" ]];then
+        echo "${Current_Net} Time: $(date +'%F %T %Z') --- No masterchain blocks received yet." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        sleep $SLEEP_TIMEOUT
+        continue
+    else
+        echo "${Current_Net} Time: $(date +'%F %T %Z') TimeDiff: $TIME_DIFF" | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        if [[ $TIME_DIFF -le $MAX_TIME_DIFF ]];then
+            [[ second_sync ]] && exit 0
+            second_sync=true
+        fi
+    fi
+
+    sleep $SLEEP_TIMEOUT
+done
 
 exit 0

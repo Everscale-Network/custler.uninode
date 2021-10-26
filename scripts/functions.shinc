@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-08-29 15:00:00
+# (C) Sergey Tyurin  2021-10-19 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -48,60 +48,69 @@
 # Send_File_To_BC()
 # CNode_Make_Elect_Keys_and_BOC()
 # =====================================================
-#
+##################################################################################################################
+
+
+# =====================================================
+# Check components installed
+[[ ! -d "${ContractsDIR}" ]] && echo -e "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): ${BoldText}${RedBack}Can not find Contracts dir! Use upd_contracts.sh to download or update it!!${NormText}" && exit 1
+[[ ! -x "$NODE_BIN_DIR/tonos-cli" ]] && echo -e "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): ${BoldText}${RedBack}Can not find \"tonos-cli\"! Use upd_tonos-cli.sh to download or update it or build all binaries by Nodes_Build.sh!!${NormText}" && exit 1
 
 # =====================================================
 # check tonos-cli version
 # it should be not less MIN_TC_VERSION settled in env.sh
-Curr_TC_ver="$($HOME/bin/tonos-cli -j version |grep -i 'tonos-cli'|awk '{print $2}')"
+Curr_TC_ver="$($NODE_BIN_DIR/tonos-cli -j version |grep -i 'tonos-cli'|awk '{print $2}')"
 declare -i Curr_TC_Ver_NUM="1$(echo "$Curr_TC_ver" | awk -F'.' '{printf("%d%03d%03d%03d\n", $1,$2,$3,$4)}')"
 declare -i MIN_TC_Ver_NUM="1$(echo "$MIN_TC_VERSION" | awk -F'.' '{printf("%d%03d%03d%03d\n", $1,$2,$3,$4)}')"
 if [[ ${Curr_TC_Ver_NUM} -ge ${MIN_TC_Ver_NUM#0} ]];then
     echo "TC Version OK"
 else
-    echo -e "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): ${BoldText}${RedBack}TONOS-CLI version $Curr_TC_ver is too old! It has to be updated!!!${NormText}"
+    echo -e "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): ${BoldText}${RedBack}TONOS-CLI version $Curr_TC_ver is too old! It has to be updated to $MIN_TC_VERSION at least (use upd_tonos-cli.sh)!!!${NormText}"
 fi
 
 # =====================================================
 # Set appropriate endpoints according network settled in env.sh
-MainNet_DApp_List="https://main2.ton.dev,https://main3.ton.dev,https://main4.ton.dev"
-DevNet_DApp_List="https://net1.ton.dev,https://net5.ton.dev"
-FLD_DApp_List="https://gql.custler.net"
-RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev"
-
 NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
     main)
-        export DApp_URL="https://main.ton.dev"
-        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
-        $HOME/bin/tonos-cli config endpoint add $DApp_URL $MainNet_DApp_List &>/dev/null
-        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="${NODE_TYPE:-CPP}"              # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
+        export DApp_URL=${Main_DApp_URL}
+        $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $MainNet_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"                          # can be 'solidity' or 'fift'
         ;;
     net)
-        export DApp_URL="https://net.ton.dev"
-        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
-        $HOME/bin/tonos-cli config endpoint add $DApp_URL $DevNet_DApp_List &>/dev/null
-        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="${NODE_TYPE:-CPP}"              # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
+        export DApp_URL=${DevNet_DApp_URL}
+        $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $DevNet_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"                          # can be 'solidity' or 'fift'
         ;;
     fld)
-        export DApp_URL="https://gql.custler.net"
-        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
-        $HOME/bin/tonos-cli config endpoint add $DApp_URL $FLD_DApp_List &>/dev/null
-        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="${NODE_TYPE:-CPP}"              # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"          # can be 'solidity' or 'fift'
+        export DApp_URL=${FLD_DApp_URL}
+        $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $FLD_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"                          # can be 'solidity' or 'fift'
+        ;;
+    rfld)
+        export DApp_URL=${RFLD_DApp_URL}
+        $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $RFLD_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        export NODE_TYPE="${NODE_TYPE:=RUST}"               # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="fift"                          # can be 'solidity' or 'fift'
         ;;
     rustnet)
-        export DApp_URL="rustnet.ton.dev"
-        $HOME/bin/tonos-cli config endpoint reset &>/dev/null
-        $HOME/bin/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
-        $HOME/bin/tonos-cli config --url $DApp_URL &>/dev/null
-        export NODE_TYPE="${NODE_TYPE:-RUST}"   # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="solidity"          # can be 'solidity' or 'fift'
+        export DApp_URL=${RustNet_DApp_URL}
+        $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        export NODE_TYPE="${NODE_TYPE:=RUST}"               # can be 'RUST' or 'CPP'
+        export ELECTOR_TYPE="solidity"                      # can be 'solidity' or 'fift'
         ;;
     *)
         echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"
@@ -110,6 +119,7 @@ case "$NetName" in
 esac
 
 # =====================================================
+#
 function Determine_Current_Network() {
     # get current network zerostate
     local OS_SYSTEM=`uname -s`
@@ -138,6 +148,9 @@ function Determine_Current_Network() {
                 "rustnet.ton.dev")
                     CURR_NET_ID=$RST_NET_ID
                     ;;
+                "rfld.ton.dev")
+                    CURR_NET_ID=$RFLD_NET_ID
+                    ;;
                 *)
                     CURR_NET_ID="123456789ABCDEF0"
                     ;;
@@ -164,6 +177,9 @@ function Determine_Current_Network() {
         $RST_NET_ID)
             CurrNetInfo="${BoldText}${RedBack}You are in RustNet network${NormText}"
             ;;
+        $RFLD_NET_ID)
+            CurrNetInfo="${BoldText}${RedBack}You are in RFLD network${NormText}"
+            ;;
         *)
             CurrNetInfo="${BoldText}${RedBlink}You are in UNKNOWN network${NormText} or you need to update 'env.sh'"
             ;;
@@ -172,6 +188,10 @@ function Determine_Current_Network() {
 }
 # =====================================================
 function echoerr() { printf "\e[31;1m%s\e[0m\n" "$*" >&2; }
+# =====================================================
+function DispEnvInfo() {
+    echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $([ $FORCE_USE_DAPP ] && echo "DApp" || echo "console")"
+}
 # =====================================================
 function hex2dec() {
     local OS_SYSTEM=`uname -s`
@@ -249,51 +269,65 @@ function Check_DApp_URL() {
 # Get Smart Contract current state by dowloading it & save to file
 function Get_SC_current_state() { 
     # Input: acc in form x:xxx...xxx
-    # result: file named xxx...xxx.tvc
+    # result: file named xxx...xxx.boc
     # return: Output of executing
-    local w_acc="$1" 
-    [[ -z $w_acc ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): func Get_SC_current_state: empty address" && exit 1
-    local s_acc=${w_acc##*:}
-    local acc_wc=${w_acc%%:*}
-    case "${NODE_TYPE}" in
-        RUST)
-            NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
-            if [[ "${NODE_WC}" == "${acc_wc}" ]] && ! $FORCE_USE_TONOSCLI  || [[ "${acc_wc}" == "-1" ]];then
-                for (( Try=0; Try <= 5; Try++ ))
-                do
-                    rm -f ${s_acc}.tvc
-                    local LC_OUTPUT="$($CALL_RC -c "getaccountstate ${w_acc} ${s_acc}.tvc")"
-                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
-                    sleep 3
-                done
-            else
-                for (( Try=0; Try <= 5; Try++ ))
-                do
-                    rm -f ${s_acc}.tvc
-                    local LC_OUTPUT="$($CALL_TC account $w_acc --dumpboc ${s_acc}.tvc)"
-                    [[ -f  ${s_acc}.tvc ]] && local result="written StateInit of account" && break
-                    sleep 3
-                done
-            fi
-            ;;
-        CPP)
-            for (( Try=0; Try <= 5; Try++ ))
-            do
-                rm -f ${s_acc}.tvc
-                local LC_OUTPUT=`$CALL_LC -rc "saveaccount ${s_acc}.tvc ${w_acc}" -rc "quit" 2>/dev/null`
-                local result=`echo ${LC_OUTPUT} | grep "written StateInit of account"`
-                [[ -n  $result ]] && break
-                sleep 3
-            done
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+    local ACCOUNT="$1" 
+    [[ -z $ACCOUNT ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): func Get_SC_current_state: empty address" && exit 1
+    # account hex
+    local s_acc=${ACCOUNT##*:}
+    # account workchain
+    local acc_wc=${ACCOUNT%%:*}
 
+    if $FORCE_USE_DAPP ;then
+        for (( Try=0; Try <= 5; Try++ ))
+        do
+            rm -f ${s_acc}.boc
+            local LC_OUTPUT="$($CALL_TC account $ACCOUNT --dumpboc ${s_acc}.boc)"
+            [[ -f  ${s_acc}.boc ]] && local result="written StateInit of account" && break
+            sleep 3
+        done
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+                if [[ "${NODE_WC}" == "${acc_wc}" ]] || [[ "${acc_wc}" == "-1" ]];then
+                    for (( Try=0; Try <= 5; Try++ ))
+                    do
+                        rm -f ${s_acc}.boc
+                        local LC_OUTPUT="$($CALL_RC -c "getaccountstate ${ACCOUNT} ${s_acc}.boc")"
+                        [[ -f  ${s_acc}.boc ]] && local result="written StateInit of account" && break
+                        sleep 3
+                    done
+                else
+                    # node cannot get acc status from WC other than where it is and master, so use tonos-cli
+                    for (( Try=0; Try <= 5; Try++ ))
+                    do
+                        rm -f ${s_acc}.boc
+                        local LC_OUTPUT="$($CALL_TC account $ACCOUNT --dumpboc ${s_acc}.boc)"
+                        [[ -f  ${s_acc}.boc ]] && local result="written StateInit of account" && break
+                        sleep 3
+                    done
+                fi
+                ;;
+            CPP)
+                for (( Try=0; Try <= 5; Try++ ))
+                do
+                    # cpp LC write acc state as tvc only
+                    rm -f ${s_acc}.tvc
+                    local LC_OUTPUT=`$CALL_LC -rc "saveaccount ${s_acc}.tvc ${ACCOUNT}" -rc "quit" 2>/dev/null`
+                    local result=`echo ${LC_OUTPUT} | grep "written StateInit of account"`
+                    [[ -n  $result ]] && break
+                    sleep 3
+                done
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     if [[ -z  $result ]];then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get account state $w_acc. Can't continue. Sorry."
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get account state $ACCOUNT. Can't continue. Sorry."
         echoerr "${LC_OUTPUT}"
         exit 1
     fi
@@ -343,20 +377,25 @@ function Get_TimeDiff() {
 }
 #=================================================
 # Get ellector address
-function Get_Elector_Address() { 
-    case "${NODE_TYPE}" in
-        RUST)
-            # local elector_addr=`$CALL_TC getconfig 1 | grep -i 'Config p1' | awk '{print $3}'| tr -d '"'`
-            local elector_addr="$($CALL_RC -c "getconfig 1"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'|jq -r '.p1')"
-            ;;
-        CPP)
-            local elector_addr=`$CALL_LC -rc "getconfig 1" -rc "quit" 2>/dev/null | grep -i 'ConfigParam(1)' | awk '{print substr($4,15,64)}'`
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+function Get_Elector_Address() {
+    local elector_addr=""
+    if $FORCE_USE_DAPP ;then
+        elector_addr="$($CALL_TC -j getconfig 1|tr -d '"')"
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                # local elector_addr=`$CALL_TC getconfig 1 | grep -i 'Config p1' | awk '{print $3}'| tr -d '"'`
+                elector_addr="$($CALL_RC -c "getconfig 1"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'|jq -r '.p1')"
+                ;;
+            CPP)
+                elector_addr=`$CALL_LC -rc "getconfig 1" -rc "quit" 2>/dev/null | grep -i 'ConfigParam(1)' | awk '{print substr($4,15,64)}'`
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     if [[ -z $elector_addr ]]; then
         echoerr "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): Can not get Elector Address!!!"
         exit 1
@@ -368,41 +407,58 @@ function Get_Elector_Address() {
 function Get_Current_Elections_ID() {
     elector_addr="$(Get_Elector_Address)"
     local elections_id="0"
-    case "${NODE_TYPE}" in
-        RUST)
-            case "${ELECTOR_TYPE}" in
-                "fift")
-                    elections_id=`$CALL_TC runget ${elector_addr} active_election_id 2>&1 | grep -i 'Result:' | awk -F'"' '{print $2}'`
-                    ;;
-                "solidity")
-                    local LC_OUTPUT="$(Get_SC_current_state "${elector_addr}")"
-                    local elections_id=$($CALL_TC -j run --boc ${elector_addr##*:}.tvc active_election_id '{}' --abi ${Elector_ABI} | jq -r '.value0')
-                    ;;
-                *)
-                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
-                    exit 1
-                    ;;
-            esac
-            ;;
-        CPP)
-            case "${ELECTOR_TYPE}" in
-                "fift")
-                    elections_id=`$CALL_LC -rc "runmethod $elector_addr active_election_id" -rc "quit" 2>/dev/null | grep "result:" | awk '{print $3}'`
-                    ;;
-                "solidity")
-                    elections_id=$($CALL_TC run ${elector_addr} active_election_id {} --abi ${Elector_ABI} 2>&1 | grep "value0" | awk '{print $2}' | tr -d '"')
-                    ;;
-                *)
-                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
-                    exit 1
-                    ;;
-            esac
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+    if $FORCE_USE_DAPP ;then
+        case "${ELECTOR_TYPE}" in
+            "fift")
+                elections_id=$($CALL_TC -j runget ${elector_addr} active_election_id                           | jq -r '.value0')
+                ;;
+            "solidity")
+                elections_id=$($CALL_TC -j run    ${elector_addr} active_election_id '{}' --abi ${Elector_ABI} | jq -r '.value0')
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
+                exit 1
+                ;;
+        esac
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                local LC_OUTPUT="$(Get_SC_current_state "${elector_addr}")"
+                case "${ELECTOR_TYPE}" in
+                    "fift")
+                        # elections_id=`$CALL_TC runget ${elector_addr} active_election_id 2>&1 | grep -i 'Result:' | awk -F'"' '{print $2}'`
+                        elections_id=$($CALL_TC -j runget --boc ${elector_addr##*:}.boc active_election_id | jq -r '.value0')
+                        ;;
+                    "solidity")
+                        elections_id=$($CALL_TC -j run --boc ${elector_addr##*:}.boc active_election_id '{}' --abi ${Elector_ABI} | jq -r '.value0')
+                        ;;
+                    *)
+                        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            CPP)
+                case "${ELECTOR_TYPE}" in
+                    "fift")
+                        elections_id=`$CALL_LC -rc "runmethod $elector_addr active_election_id" -rc "quit" 2>/dev/null | grep "result:" | awk '{print $3}'`
+                        ;;
+                    "solidity")
+                        local LC_OUTPUT="$(Get_SC_current_state "${elector_addr}")"
+                        elections_id=$($CALL_TC -j run --tvc ${elector_addr##*:}.tvc active_election_id '{}' --abi ${Elector_ABI} | jq -r '.value0')
+                        ;;
+                    *)
+                        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     echo "${elections_id}"
 }
 #=================================================
@@ -410,56 +466,63 @@ function Get_Current_Elections_ID() {
 # Input: AccountHEX
 # Return: Active/Uninit/None nanoTokens LastOperTime
 function Get_Account_Info() {
-    
     local ACCOUNT=`echo "$1"| tr '[:upper:]' '[:lower:]'`
-    local w_acc="$ACCOUNT" 
-    local s_acc=${w_acc##*:}
-    local acc_wc=${w_acc%%:*}
-    
-    local acc_hex=`echo ${ACCOUNT}|cut -d ':' -f 2`
+    local acc_wc=${ACCOUNT%%:*}
+    local acc_hex=${ACCOUNT##*:}
     if [[ ${#acc_hex} -ne 64 ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Wrong account address!"
         echo "None 0 0" 
         return
     fi
-    case "${NODE_TYPE}" in
-        RUST)
-            NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
-            if [[ "${NODE_WC}" == "${acc_wc}" ]] && ! $FORCE_USE_TONOSCLI || [[ "${acc_wc}" == "-1" ]];then
-                local ACCOUNT_INFO=`$CALL_RC -j -c "getaccount $ACCOUNT"`
-                if [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Account not found')" ]];then
+    if $FORCE_USE_DAPP ;then
+        local ACCOUNT_INFO=`$CALL_TC -j account ${ACCOUNT}` 2>&1
+        if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
+            echo "None 0 0"
+            return
+        fi
+        local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r '.balance'`
+        local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r '.last_paid'`
+        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r  '.acc_type'`
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+                if [[ "${NODE_WC}" == "${acc_wc}" ]] || [[ "${acc_wc}" == "-1" ]];then
+                    local ACCOUNT_INFO=`$CALL_RC -j -c "getaccount $ACCOUNT"`
+                    if [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Nonexist')" ]] || [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Error')" ]];then
+                        echo "None 0 0"
+                        return
+                    fi
+                else
+                    local ACCOUNT_INFO=`$CALL_TC -j account ${ACCOUNT}` 2>&1
+                    if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
+                        echo "None 0 0"
+                        return
+                    fi
+                fi
+                local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r '.balance'`
+                local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r '.last_paid'`
+                local STATUS=`echo "$ACCOUNT_INFO"    | jq -r  '.acc_type'`
+                # AMOUNT_nt=`echo "scale=3; $AMOUNT_nt * 1000000000" | $CALL_BC | cut -d '.' -f 1`
+                ;;
+            CPP)
+                local ACCOUNT_INFO=`$CALL_LC -rc "getaccount ${ACCOUNT}" -rc "quit" 2>/dev/null`
+                if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'account state is empty')" ]];then
                     echo "None 0 0"
                     return
                 fi
-            else
-                local ACCOUNT_INFO=`$CALL_TC -j account ${ACCOUNT}` 2>&1
-                if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
-                    echo "None 0 0"
-                    return
-                fi
-            fi
-            local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r '.balance'`
-            local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r '.last_paid'`
-            local STATUS=`echo "$ACCOUNT_INFO"    | jq -r  '.acc_type'`
-            # AMOUNT_nt=`echo "scale=3; $AMOUNT_nt * 1000000000" | $CALL_BC | cut -d '.' -f 1`
-            ;;
-        CPP)
-            local ACCOUNT_INFO=`$CALL_LC -rc "getaccount ${ACCOUNT}" -rc "quit" 2>/dev/null`
-            if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'account state is empty')" ]];then
-                echo "None 0 0"
-                return
-            fi
-            local AMOUNT_nt=`echo "$ACCOUNT_INFO" |grep "account balance" | tr -d "ng"|awk '{print $4}'`
-            local LASTOP=`echo "$ACCOUNT_INFO" | grep "last_paid" | gawk -F ":" '{print $5}'`
-            local STATUS=`echo "$ACCOUNT_INFO" | grep 'state:'|tr -d ')'|tr -d '('|cut -d ':' -f 2`
-            [[ "${STATUS}" == "account_uninit" ]] && STATUS="Uninit"
-            [[ "${STATUS}" == "account_active" ]] && STATUS="Active"
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+                local AMOUNT_nt=`echo "$ACCOUNT_INFO" |grep "account balance" | tr -d "ng"|awk '{print $4}'`
+                local LASTOP=`echo "$ACCOUNT_INFO" | grep "last_paid" | gawk -F ":" '{print $5}'`
+                local STATUS=`echo "$ACCOUNT_INFO" | grep 'state:'|tr -d ')'|tr -d '('|cut -d ':' -f 2`
+                [[ "${STATUS}" == "account_uninit" ]] && STATUS="Uninit"
+                [[ "${STATUS}" == "account_active" ]] && STATUS="Active"
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     AMOUNT=`echo "scale=3; $((AMOUNT_nt)) / 1000000000" | $CALL_BC`
     echo "${STATUS} ${AMOUNT_nt} ${LASTOP}"
 }
@@ -469,30 +532,33 @@ function Get_Account_Info() {
 # Return: NumOfCustodians MinNumOfConfirmations
 function Get_Account_Custodians_Info() {
     local ACCOUNT=$1
-    case "${NODE_TYPE}" in
-        RUST)
-            # local Custod_QTY=`$CALL_TC run $ACCOUNT getCustodians {} --abi ${SafeC_Wallet_ABI} | sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq '.custodians|length'`
-            # local Confirms_QTY=`$CALL_TC run $ACCOUNT getParameters {} --abi ${SafeC_Wallet_ABI}| sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.requiredTxnConfirms'`
-            local LC_OUTPUT="$(Get_SC_current_state "$ACCOUNT")"
-            local Custod_QTY=`$CALL_TC -j run --boc ${ACCOUNT##*:}.tvc getCustodians '{}' --abi ${SafeC_Wallet_ABI}   | jq -r '.custodians|length'`
-            local Confirms_QTY=`$CALL_TC -j run --boc ${ACCOUNT##*:}.tvc getParameters '{}' --abi ${SafeC_Wallet_ABI} | jq -r '.requiredTxnConfirms'`
-            ;;
-        CPP)
-            local val_acc_addr=`echo "${ACCOUNT}" | cut -d ':' -f 2`
-            local LC_OUTPUT="$(Get_SC_current_state "$ACCOUNT")"
-            local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
-            if [[ -z  $result ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get account state. Can't continue. Sorry."
-                exit 1
-            fi
-            local Custod_QTY=`$CALL_TL test -a ${SafeC_Wallet_ABI} -m getCustodians -p '{}' --decode-c6 ${val_acc_addr} | grep '"custodians":'| jq -r ".custodians|length"`
-            local Confirms_QTY=`$CALL_TL test -a ${SafeC_Wallet_ABI} -m getParameters -p '{}' --decode-c6 ${val_acc_addr} | grep "requiredTxnConfirms" | jq -r '.requiredTxnConfirms'`
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+    local Custod_QTY=0
+    local Confirms_QTY=0
+    if $FORCE_USE_DAPP ;then
+        Custod_QTY=`$CALL_TC -j run ${ACCOUNT} getCustodians '{}' --abi ${SafeC_Wallet_ABI}   | jq -r '.custodians|length'`
+        Confirms_QTY=`$CALL_TC -j run ${ACCOUNT} getParameters '{}' --abi ${SafeC_Wallet_ABI} | jq -r '.requiredTxnConfirms'`
+    else
+        local LC_OUTPUT="$(Get_SC_current_state "$ACCOUNT")"
+        local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
+        if [[ -z  $result ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get account state. Can't continue. Sorry."
             exit 1
-            ;;            
-    esac
+        fi
+        case "${NODE_TYPE}" in
+            RUST)
+                Custod_QTY=`$CALL_TC -j run --boc ${ACCOUNT##*:}.boc getCustodians '{}' --abi ${SafeC_Wallet_ABI}   | jq -r '.custodians|length'`
+                Confirms_QTY=`$CALL_TC -j run --boc ${ACCOUNT##*:}.boc getParameters '{}' --abi ${SafeC_Wallet_ABI} | jq -r '.requiredTxnConfirms'`
+                ;;
+            CPP)
+                Custod_QTY=`$CALL_TC -j run --tvc ${ACCOUNT##*:}.tvc getCustodians '{}' --abi ${SafeC_Wallet_ABI}   | jq -r '.custodians|length'`
+                Confirms_QTY=`$CALL_TC -j run --tvc ${ACCOUNT##*:}.tvc getParameters '{}' --abi ${SafeC_Wallet_ABI} | jq -r '.requiredTxnConfirms'`
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     Custod_QTY=$((Custod_QTY))
     Confirms_QTY=$((Confirms_QTY))
     echo "${Custod_QTY} ${Confirms_QTY}"
@@ -511,44 +577,59 @@ function P34_ADNL_search() {
         echo "${Result}"
         return
     fi
-    case "${NODE_TYPE}" in
-        RUST)
-            # local P34_List="$($CALL_TC getconfig 34)"
-            local P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
-            if [[ -n $(echo "$P34_List" | grep '{}') ]];then
-                echo "null"
-                return
-            fi
-            # P34_list="$($CALL_TC getconfig 34 | sed -e '1,4d' |sed 's/Config p34: //')"
-            # P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
-            local found=`echo "${P34_List}" | jq ".p34.list[]|select(.adnl_addr == \"$ADNL\")"`
-            if [[ -n $found ]]; then
-                local adnl="$(echo ${found} | jq -r .adnl_addr)"
-                local pkey="$(echo ${found} | jq -r .public_key)"
-                local wght="$(echo ${found} | jq -r .weight_dec)"
-                Result="${pkey} ${wght}"
-            fi
-            ;;
-        CPP)
-            local P34_list="$($CALL_LC -rc "getconfig 34" -rc "quit" 2>/dev/null)"
-            if [[ ! -z $(echo "$P34_list" | grep "ConfigParam(34)" | grep "null") ]];then
-                echo "null"
-                return
-            fi
-            P34_list="$($CALL_LC -rc "getconfig 34" -rc "quit" 2>/dev/null | grep -i 'public_key:'| sed -e 's/^[[:space:]]*//'|tr -d ')')"
-            local found=`echo "${P34_list}" | grep -i "${ADNL}"`
-            if [[ -n $found ]]; then
-                local adnl="$(echo ${found} | awk '{print $4}' | awk -F':' '{print $2}' | tr -d 'x' | tr '[:upper:]' '[:lower:]')"
-                local pkey="$(echo ${found} | awk '{print $2}' | awk -F':' '{print $2}' | tr -d 'x' | tr '[:upper:]' '[:lower:]')"
-                local wght="$(echo ${found} | awk '{print $3}' | awk -F':' '{print $2}')"
-                Result="${pkey} ${wght}"
-            fi
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+    if $FORCE_USE_DAPP ;then
+        local P34_List=`$CALL_TC -j getconfig 34`
+        if [[ -n $(echo "$P34_List" | grep '{}') ]];then
+            echo "null"
+            return
+        fi
+        local found=`echo "${P34_List}" | jq ".list[]|select(.adnl_addr == \"$ADNL\")"`
+        if [[ -n $found ]]; then
+            local adnl="$(echo ${found} | jq -r .adnl_addr)"
+            local pkey="$(echo ${found} | jq -r .public_key)"
+            local wght="$(echo ${found} | jq -r .weight)"
+            Result="${pkey} ${wght}"
+        fi
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                # local P34_List="$($CALL_TC getconfig 34)"
+                local P34_List=`$CALL_RC -j -c "getconfig 34" | sed 's/config param: //'`
+                if [[ -n $(echo "$P34_List" | grep '{}') ]];then
+                    echo "null"
+                    return
+                fi
+                # P34_list="$($CALL_TC getconfig 34 | sed -e '1,4d' |sed 's/Config p34: //')"
+                # P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
+                local found=`echo "${P34_List}" | jq ".p34.list[]|select(.adnl_addr == \"$ADNL\")"`
+                if [[ -n $found ]]; then
+                    local adnl="$(echo ${found} | jq -r .adnl_addr)"
+                    local pkey="$(echo ${found} | jq -r .public_key)"
+                    local wght="$(echo ${found} | jq -r .weight_dec)"
+                    Result="${pkey} ${wght}"
+                fi
+                ;;
+            CPP)
+                local P34_list="$($CALL_LC -rc "getconfig 34" -rc "quit" 2>/dev/null)"
+                if [[ ! -z $(echo "$P34_list" | grep "ConfigParam(34)" | grep "null") ]];then
+                    echo "null"
+                    return
+                fi
+                P34_list="$($CALL_LC -rc "getconfig 34" -rc "quit" 2>/dev/null | grep -i 'public_key:'| sed -e 's/^[[:space:]]*//'|tr -d ')')"
+                local found=`echo "${P34_list}" | grep -i "${ADNL}"`
+                if [[ -n $found ]]; then
+                    local adnl="$(echo ${found} | awk '{print $4}' | awk -F':' '{print $2}' | tr -d 'x' | tr '[:upper:]' '[:lower:]')"
+                    local pkey="$(echo ${found} | awk '{print $2}' | awk -F':' '{print $2}' | tr -d 'x' | tr '[:upper:]' '[:lower:]')"
+                    local wght="$(echo ${found} | awk '{print $3}' | awk -F':' '{print $2}')"
+                    Result="${pkey} ${wght}"
+                fi
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     echo "${Result}"
 }
 #=================================================
@@ -565,56 +646,60 @@ function P36_ADNL_search() {
         echo "${Result}"
         return
     fi
-    case "${NODE_TYPE}" in
-        RUST)
-            # local P36_List="$($CALL_TC getconfig 36)"
-            local P36_List=`$CALL_RC -c "getconfig 36"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
-            if [[ -n $(echo "$P36_List" | grep '{}') ]];then
-                echo "null"
-                return
-            fi
-            # P36_list="$($CALL_TC getconfig 36 | sed -e '1,4d' |sed 's/Config p36: //')"
-            # P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
-            local found=`echo "${P36_List}" | jq ".p36.list[]|select(.adnl_addr == \"$ADNL\")"`
-            if [[ -n $found ]]; then
-                local adnl="$(echo ${found} | jq -r .adnl_addr )"
-                local pkey="$(echo ${found} | jq -r .public_key )"
-                local wght="$(echo ${found} | jq -r .weight_dec )"
-                Result="${pkey} ${wght}"
-            fi
-            ;;
-        CPP)
-            local P36_list="$($CALL_LC -rc "getconfig 36" -rc "quit" 2>/dev/null)"
-            if [[ ! -z $(echo "$P36_list" | grep "ConfigParam(36)" | grep "null") ]];then
-                echo "null"
-                return
-            fi
-            P36_list="$($CALL_LC -rc "getconfig 36" -rc "quit" 2>/dev/null | grep -i 'public_key:'| sed -e 's/^[[:space:]]*//'|tr -d ')')"
-            local found=`echo "${P36_list}" | grep -i "${ADNL}"`
-            if [[ -n $found ]]; then
-                local adnl="$(echo ${found} | awk '{print $4}' | awk -F':' '{print $2}' | tr -d 'x' | tr '[:upper:]' '[:lower:]')"
-                local pkey="$(echo ${found} | awk '{print $2}' | awk -F':' '{print $2}' | tr -d 'x' | tr '[:upper:]' '[:lower:]')"
-                local wght="$(echo ${found} | awk '{print $3}' | awk -F':' '{print $2}')"
-                Result="${pkey} ${wght}"
-            fi
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+    if $FORCE_USE_DAPP ;then
+        local P36_List="$($CALL_TC -j getconfig 36)"
+        if [[ -n $(echo "$P36_List" | grep '{}') ]];then
+            echo "null"
+            return
+        fi
+        local found=`echo "${P36_List}" | jq ".list[]|select(.adnl_addr == \"$ADNL\")"`
+        if [[ -n $found ]]; then
+            local adnl="$(echo ${found} | jq -r .adnl_addr )"
+            local pkey="$(echo ${found} | jq -r .public_key )"
+            local wght="$(echo ${found} | jq -r .weight_dec )"
+            Result="${pkey} ${wght}"
+        fi
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                # local P36_List="$($CALL_TC getconfig 36)"
+                local P36_List=`$CALL_RC -j -c "getconfig 36"|sed 's/config param: //'`
+                if [[ -n $(echo "$P36_List" | grep '{}') ]];then
+                    echo "null"
+                    return
+                fi
+                # P36_list="$($CALL_TC getconfig 36 | sed -e '1,4d' |sed 's/Config p36: //')"
+                # P34_List=`$CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
+                local found=`echo "${P36_List}" | jq ".p36.list[]|select(.adnl_addr == \"$ADNL\")"`
+                if [[ -n $found ]]; then
+                    local adnl="$(echo ${found} | jq -r .adnl_addr )"
+                    local pkey="$(echo ${found} | jq -r .public_key )"
+                    local wght="$(echo ${found} | jq -r .weight_dec )"
+                    Result="${pkey} ${wght}"
+                fi
+                ;;
+            CPP)
+                local P36_list="$($CALL_LC -rc "getconfig 36" -rc "quit" 2>/dev/null)"
+                if [[ ! -z $(echo "$P36_list" | grep "ConfigParam(36)" | grep "null") ]];then
+                    echo "null"
+                    return
+                fi
+                P36_list="$($CALL_LC -rc "getconfig 36" -rc "quit" 2>/dev/null | grep -i 'public_key:'| sed -e 's/^[[:space:]]*//'|tr -d ')')"
+                local found=`echo "${P36_list}" | grep -i "${ADNL}"`
+                if [[ -n $found ]]; then
+                    local adnl="$(echo ${found} | awk '{print $4}' | awk -F':' '{print $2}' | tr -d 'x' | tr '[:upper:]' '[:lower:]')"
+                    local pkey="$(echo ${found} | awk '{print $2}' | awk -F':' '{print $2}' | tr -d 'x' | tr '[:upper:]' '[:lower:]')"
+                    local wght="$(echo ${found} | awk '{print $3}' | awk -F':' '{print $2}')"
+                    Result="${pkey} ${wght}"
+                fi
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     echo "${Result}"
-}
-#=================================================
-# Get depool elections ID
-# Input: DePool_Addr
-# Output: DePool_elections_ID
-function Get_DePool_elec_ID() {
-    local Depool_addr="$1"
-    local Depool_Rounds_Info="$(Get_DP_Rounds $Depool_addr)"
-    local Curr_Rounds_Info="$(Rounds_Sorting_by_ID "$Depool_Rounds_Info")"
-    local Curr_DP_Elec_ID=$(echo   "$Curr_Rounds_Info" | jq -r ".[1].supposedElectedAt" | xargs printf "%10d\n")
-    echo $Curr_DP_Elec_ID
 }
 #=================================================
 # Get current Engine keys
@@ -697,105 +782,180 @@ function Get_Engine_ADNL() {
 }
 #=================================================
 # Search ADNL in Elector during elections
+# Input: ADNL in HEX format
 # Return: 
 #   "absent" - if not found
 #   "null" - if elections closed
 #   "stake time max_factor addr" - if found
 function Elector_ADNL_Search() {
     local Result="absent"
+    local Elector_Parts_List=""
+    local Elections_Open=""
+    local LC_OUTPUT=""
     local ADNL=`echo "$1"| tr '[:upper:]' '[:lower:]'| tr -d '"'`
     if [[ ${#ADNL} -ne 64 ]];then
         echo "${Result}"
         return
     fi
     elector_addr="$(Get_Elector_Address)"
-    case "${NODE_TYPE}" in
-        RUST)
-            case "${ELECTOR_TYPE}" in
-                fift)
-                    local Elector_Parts_List="$($CALL_TC runget ${elector_addr} participant_list_extended | grep -i 'result:' | tr "]]" "\n" | tr '[' '\n' | awk 'NF > 0'| tr '","' ' ')"
-                    local Elections_Open=`echo $Elector_Parts_List | grep -F '0 0 0 0 null 0 0'`
-                    if [[ -n $Elections_Open ]];then
-                        echo "null"
-                        return
-                    fi
-                    local found=`echo "${Elector_Parts_List}" | grep -i "0x${ADNL}"`
-                    if [[ -z $found ]];then
-                        echo "absent"
-                        return
-                    fi
-                    local stake=`echo "${found}" | awk '{print $1}'`
-                    local time=0
-                    local max_factor=`echo "${found}" | awk '{print $2}'`
-                    local addr=`echo "${Elector_Parts_List}" | grep -B 1 "0x${ADNL}" | head -1|cut -d 'x' -f 2`
-                    Result="$stake $time $max_factor $addr"
-                    ;;
-                solidity)
-                    local LC_OUTPUT="$(Get_SC_current_state "$elector_addr")"
-                    local Elector_Parts_List=`$CALL_TC -j run --boc ${elector_addr##*:}.tvc get '{}' --abi ${Elector_ABI}`
-                    local Elections_Open=`echo $Elector_Parts_List | jq .election_open`
-                    if [[ $Elections_Open == false ]]; then
-                        echo "null"
-                        return
-                    fi
-                    local found=`echo "$Elector_Parts_List" | jq ".cur_elect.members[]|select(.adnl_addr == \"0x${ADNL}\")"`
-                    if [[ -z $found ]];then
-                        echo "absent"
-                        return
-                    fi
-                    local stake="$(echo ${found} | jq -r .stake)"
-                    local time="$(echo ${found} |  jq -r .time)"
-                    local max_factor="$(echo ${found} | jq -r .max_factor)"
-                    local addr="$(echo ${found} | jq -r .addr|cut -d 'x' -f 2)"
-                    Result="$stake $time $max_factor $addr"
-                    ;;
-                *)
-                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
+    if $FORCE_USE_DAPP ;then
+        Elector_Parts_List="$($CALL_TC -j runget ${elector_addr} participant_list_extended)"
+        Elections_Open=`echo $Elector_Parts_List | jq -r '.value0'`
+        if [[ $Elections_Open -eq 0 ]];then
+            echo "null"
+            return
+        fi
+        case "${ELECTOR_TYPE}" in
+            fift)
+                Elector_Parts_List="$(echo $Elector_Parts_List| tr "]]" "\n" | tr '[' '\n' | awk 'NF > 0'| tr '","' ' ')"
+                local found=`echo "${Elector_Parts_List}" | grep -i "0x${ADNL}"`
+                if [[ -z $found ]];then
+                    echo "absent"
+                    return
+                fi
+                local stake=`echo "${found}" | awk '{print $1}'`
+                local time=0
+                local max_factor=`echo "${found}" | awk '{print $2}'`
+                local addr=`echo "${Elector_Parts_List}" | grep -B 1 "0x${ADNL}" | head -1|cut -d 'x' -f 2`
+                Result="$stake $time $max_factor $addr"
+                ;;
+            solidity)
+                local found=`echo "$Elector_Parts_List" | jq ".cur_elect.members[]|select(.adnl_addr == \"0x${ADNL}\")"`
+                if [[ -z $found ]];then
+                    echo "absent"
+                    return
+                fi
+                local stake="$(echo ${found} | jq -r .stake)"
+                local time="$(echo ${found} |  jq -r .time)"
+                local max_factor="$(echo ${found} | jq -r .max_factor)"
+                local addr="$(echo ${found} | jq -r .addr|cut -d 'x' -f 2)"
+                Result="$stake $time $max_factor $addr"
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
+                exit 1
+                ;;
+        esac
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                local LC_OUTPUT="$(Get_SC_current_state "$elector_addr")"
+                local res=`echo $LC_OUTPUT | grep "written StateInit of account"`
+                if [[ -z  $res ]];then
+                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get Elector state!!"
                     exit 1
-                    ;;
-            esac
-            ;;
-        CPP)
-        #### TODO: ADD solidity elector parsing ??
-            case "${ELECTOR_TYPE}" in
-                fift)
-                    local dec_val_adnl=$(hex2dec "$ADNL")
-                    trap 'echo LC TIMEOUT EXIT' EXIT
-                    local LC_OUTPUT="$($CALL_LC -rc "runmethodfull $elector_addr participant_list_extended" -rc "quit" 2>/dev/null | grep -i 'result:' | tr "]]" "\n" | tr '[' '\n' | awk 'NF > 0')"
-                    trap - EXIT
-                    local Elections_Open=`echo "$LC_OUTPUT" | grep -F '0 0 0 0 () 0 0'`
-                    if [[ -n $Elections_Open ]]; then
-                        echo "null"
-                        return
-                    fi
-                    # public key : [ stake, max_factor, wallet (addr), adnl (adnl_addr) ]
-                    local found=`echo "${LC_OUTPUT}" | grep -i "$dec_val_adnl"`
-                    if [[ -z $found ]];then
-                        echo "absent"
-                        return
-                    fi
-                    local stake=`echo "${LC_OUTPUT}" | grep "$dec_val_adnl" | awk '{print $1}'`
-                    local time=0
-                    local max_factor=`echo "${LC_OUTPUT}" | grep "$dec_val_adnl" | awk '{print $3}'`
-                    local addr=`echo "${LC_OUTPUT}" | grep -B 1 "$dec_val_adnl" | head -1`
-                    addr="$(dec2hex $addr)"
-                    Result="$stake $time $max_factor $addr"
-                    ;;
-                solidity)
-                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Not implemented for CPP node with Solidity Elector!"
-                    exit 1
-                    ;;
-                *)
-                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
-                    exit 1
-                    ;;
-            esac
-            ;;
-          *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+                fi
+                Elector_Parts_List="$($CALL_TC -j runget --boc ${elector_addr##*:}.boc participant_list_extended)"
+                Elections_Open=`echo $Elector_Parts_List | jq -r '.value0'`
+                if [[ $Elections_Open -eq 0 ]];then
+                    echo "null"
+                    return
+                fi
+                case "${ELECTOR_TYPE}" in
+                    fift)
+                        local Elector_Parts_List="$($CALL_TC runget --boc ${elector_addr##*:}.boc participant_list_extended | grep -i 'result:' | tr "]]" "\n" | tr '[' '\n' | awk 'NF > 0'| tr '","' ' ')"
+                        local Elections_Open=`echo $Elector_Parts_List | grep -F '0 0 0 0 null 0 0'`
+                        if [[ -n $Elections_Open ]];then
+                            echo "null"
+                            return
+                        fi
+                        local found=`echo "${Elector_Parts_List}" | grep -i "0x${ADNL}"`
+                        if [[ -z $found ]];then
+                            echo "absent"
+                            return
+                        fi
+                        local stake=`echo "${found}" | awk '{print $1}'`
+                        local time=0
+                        local max_factor=`echo "${found}" | awk '{print $2}'`
+                        local addr=`echo "${Elector_Parts_List}" | grep -B 1 "0x${ADNL}" | head -1|cut -d 'x' -f 2`
+                        Result="$stake $time $max_factor $addr"
+                        ;;
+                    solidity)
+                        local Elector_Parts_List=`$CALL_TC -j run --boc ${elector_addr##*:}.boc get '{}' --abi ${Elector_ABI}`
+                        local Elections_Open=`echo $Elector_Parts_List | jq -r .election_open`
+                        if [[ $Elections_Open -eq 0 ]]; then
+                            echo "null"
+                            return
+                        fi
+                        local found=`echo "$Elector_Parts_List" | jq ".cur_elect.members[]|select(.adnl_addr == \"0x${ADNL}\")"`
+                        if [[ -z $found ]];then
+                            echo "absent"
+                            return
+                        fi
+                        local stake="$(echo ${found} | jq -r .stake)"
+                        local time="$(echo ${found} |  jq -r .time)"
+                        local max_factor="$(echo ${found} | jq -r .max_factor)"
+                        local addr="$(echo ${found} | jq -r .addr|cut -d 'x' -f 2)"
+                        Result="$stake $time $max_factor $addr"
+                        ;;
+                    *)
+                        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            CPP)
+                case "${ELECTOR_TYPE}" in
+                    fift)
+                        local dec_val_adnl=$(hex2dec "$ADNL")
+                        trap 'echo LC TIMEOUT EXIT' EXIT
+                        local LC_OUTPUT="$($CALL_LC -rc "runmethodfull $elector_addr participant_list_extended" -rc "quit" 2>/dev/null | grep -i 'result:' | tr "]]" "\n" | tr '[' '\n' | awk 'NF > 0')"
+                        trap - EXIT
+                        local Elections_Open=`echo "$LC_OUTPUT" | grep -F '0 0 0 0 () 0 0'`
+                        if [[ -n $Elections_Open ]]; then
+                            echo "null"
+                            return
+                        fi
+                        # public key : [ stake, max_factor, wallet (addr), adnl (adnl_addr) ]
+                        local found=`echo "${LC_OUTPUT}" | grep -i "$dec_val_adnl"`
+                        if [[ -z $found ]];then
+                            echo "absent"
+                            return
+                        fi
+                        local stake=`echo "${LC_OUTPUT}" | grep "$dec_val_adnl" | awk '{print $1}'`
+                        local time=0
+                        local max_factor=`echo "${LC_OUTPUT}" | grep "$dec_val_adnl" | awk '{print $3}'`
+                        local addr=`echo "${LC_OUTPUT}" | grep -B 1 "$dec_val_adnl" | head -1`
+                        addr="$(dec2hex $addr)"
+                        Result="$stake $time $max_factor $addr"
+                        ;;
+                    solidity)
+                        local LC_OUTPUT="$(Get_SC_current_state "$elector_addr")"
+                        local res=`echo $LC_OUTPUT | grep "written StateInit of account"`
+                        if [[ -z  $res ]];then
+                            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get Elector state!!"
+                            exit 1
+                        fi
+                        local Elector_Parts_List=`$CALL_TC -j run --tvc ${elector_addr##*:}.tvc get '{}' --abi ${Elector_ABI}`
+                        local Elections_Open=`echo $Elector_Parts_List | jq -r .election_open`
+                        if [[ $Elections_Open -eq 0 ]]; then
+                            echo "null"
+                            return
+                        fi
+                        local found=`echo "$Elector_Parts_List" | jq ".cur_elect.members[]|select(.adnl_addr == \"0x${ADNL}\")"`
+                        if [[ -z $found ]];then
+                            echo "absent"
+                            return
+                        fi
+                        local stake="$(echo ${found} | jq -r .stake)"
+                        local time="$(echo ${found} |  jq -r .time)"
+                        local max_factor="$(echo ${found} | jq -r .max_factor)"
+                        local addr="$(echo ${found} | jq -r .addr|cut -d 'x' -f 2)"
+                        Result="$stake $time $max_factor $addr"
+
+                        ;;
+                    *)
+                        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): unknown ELECTOR_TYPE (${ELECTOR_TYPE})"
+                        exit 1
+                        ;;
+                esac
+                ;;
+              *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     echo "${Result}"
 }
 #=================================================
@@ -805,37 +965,48 @@ function Elector_ADNL_Search() {
 #
 function Get_NetConfig_P15() {
     local Result=""
-    case "${NODE_TYPE}" in
-        RUST)
-            # local CONFIG_PAR_15=`$CALL_TC getconfig 15 2>&1`
-            local CONFIG_PAR_15=`$CALL_RC -c "getconfig 15"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //'`
-            local validators_elected_for=`echo "${CONFIG_PAR_15}" | grep -i 'validators_elected_for' | awk '{print $2}' | tr -d ','`
-            local elections_start_before=`echo "${CONFIG_PAR_15}" | grep -i 'elections_start_before' | awk '{print $2}' | tr -d ','`
-            local elections_end_before=`echo "${CONFIG_PAR_15}"   | grep -i 'elections_end_before'   | awk '{print $2}' | tr -d ','`
-            local stake_held_for=`echo "${CONFIG_PAR_15}"         | grep -i 'stake_held_for'         | awk '{print $2}' | tr -d ','`
-            if [[ -z $validators_elected_for ]] || [[ -z $elections_start_before ]] || [[ -z $elections_end_before ]] || [[ -z $stake_held_for ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Get network election params (p15) FAILED!!!"
-                exit 1
-            fi
-            ;;
-        CPP)
-            trap 'echo LC TIMEOUT EXIT' EXIT
-            local CONFIG_PAR_15=`$CALL_LC -rc "getconfig 15" -rc "quit" 2>/dev/null | grep -i "ConfigParam(15)"`
-            trap - EXIT
-            local validators_elected_for=`echo $CONFIG_PAR_15 | awk '{print $4}'| awk -F ":" '{print $2}'`
-            local elections_start_before=`echo $CONFIG_PAR_15 | awk '{print $5}'| awk -F ":" '{print $2}'`
-            local elections_end_before=`echo $CONFIG_PAR_15   | awk '{print $6}'| awk -F ":" '{print $2}'`
-            local stake_held_for=`echo $CONFIG_PAR_15         | awk '{print $7}'| awk -F ":" '{print $2}' | tr -d ')'`
-            if [[ -z $validators_elected_for ]] || [[ -z $elections_start_before ]] || [[ -z $elections_end_before ]] || [[ -z $stake_held_for ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Get network election params (p15) FAILED!!!"
-                exit 1
-            fi
-            ;;
-          *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+    if $FORCE_USE_DAPP ;then
+        local CONFIG_PAR_15=`$CALL_TC -j getconfig 15`
+        local validators_elected_for=`echo "${CONFIG_PAR_15}" | jq -r '.validators_elected_for'`
+        local elections_start_before=`echo "${CONFIG_PAR_15}" | jq -r '.elections_start_before'`
+        local elections_end_before=`echo "${CONFIG_PAR_15}"   | jq -r '.elections_end_before'  `
+        local stake_held_for=`echo "${CONFIG_PAR_15}"         | jq -r '.stake_held_for'        `
+        if [[ -z $validators_elected_for ]] || [[ -z $elections_start_before ]] || [[ -z $elections_end_before ]] || [[ -z $stake_held_for ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Get network election params (p15) FAILED!!!"
             exit 1
-            ;;            
-    esac
+        fi
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                local CONFIG_PAR_15=`$CALL_RC -j -c "getconfig 15"|sed 's/config param: //'`
+                local validators_elected_for=`echo "${CONFIG_PAR_15}" | jq -r '.p15.validators_elected_for'`
+                local elections_start_before=`echo "${CONFIG_PAR_15}" | jq -r '.p15.elections_start_before'`
+                local elections_end_before=`echo "${CONFIG_PAR_15}"   | jq -r '.p15.elections_end_before'  `
+                local stake_held_for=`echo "${CONFIG_PAR_15}"         | jq -r '.p15.stake_held_for'        `
+                if [[ -z $validators_elected_for ]] || [[ -z $elections_start_before ]] || [[ -z $elections_end_before ]] || [[ -z $stake_held_for ]];then
+                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Get network election params (p15) FAILED!!!"
+                    exit 1
+                fi
+                ;;
+            CPP)
+                trap 'echo LC TIMEOUT EXIT' EXIT
+                local CONFIG_PAR_15=`$CALL_LC -rc "getconfig 15" -rc "quit" 2>/dev/null | grep -i "ConfigParam(15)"`
+                trap - EXIT
+                local validators_elected_for=`echo $CONFIG_PAR_15 | awk '{print $4}'| awk -F ":" '{print $2}'`
+                local elections_start_before=`echo $CONFIG_PAR_15 | awk '{print $5}'| awk -F ":" '{print $2}'`
+                local elections_end_before=`echo $CONFIG_PAR_15   | awk '{print $6}'| awk -F ":" '{print $2}'`
+                local stake_held_for=`echo $CONFIG_PAR_15         | awk '{print $7}'| awk -F ":" '{print $2}' | tr -d ')'`
+                if [[ -z $validators_elected_for ]] || [[ -z $elections_start_before ]] || [[ -z $elections_end_before ]] || [[ -z $stake_held_for ]];then
+                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Get network election params (p15) FAILED!!!"
+                    exit 1
+                fi
+                ;;
+              *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     Result="$validators_elected_for $elections_start_before $elections_end_before $stake_held_for"
     echo "${Result}"
 }
@@ -846,167 +1017,32 @@ function Get_NetConfig_P15() {
 function Get_DP_Rounds() {
     local Result=""
     local Depool_addr="$1"
-    local dpc_addr=`echo $Depool_addr | cut -d ':' -f 2`
     if [[ ! -f $DePool_ABI ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot find DePool ABI. Can't continue. Sorry."
         exit 1
     fi
-    case "${NODE_TYPE}" in
-        RUST)
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            # Result="$($CALL_TC run "${Depool_addr}" getRounds {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
-             Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getRounds '{}' --abi $DePool_ABI)"
-            ;;
-        CPP)
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
-            if [[ -z  $result ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!!"
-                exit 1
-            fi
-            Result="$($CALL_TL test -a $DePool_ABI -m getRounds -p "{}" --decode-c6 $dpc_addr | grep -i 'rounds')"
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+    if $FORCE_USE_DAPP ;then
+        Result="$($CALL_TC -j run ${Depool_addr} getRounds '{}' --abi $DePool_ABI)"
+    else
+        local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
+        local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
+        if [[ -z  $result ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!! $Depool_addr"
             exit 1
-            ;;            
-    esac
-    echo "${Result}"
-}
-#=================================================
-# Get DePool Self balance
-#   Input: DePool_Addr
-#   Output: DePool self balance in Tokens XXX.XXX
-function Get_DP_Self_Balance() {
-    local Result=""
-    local Depool_addr="$1"
-    local dpc_addr=`echo $Depool_addr | cut -d ':' -f 2`
-    if [[ ! -f $DePool_ABI ]];then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot find DePool ABI. Can't continue. Sorry."
-        exit 1
+        fi
+        case "${NODE_TYPE}" in
+            RUST)
+                Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.boc getRounds '{}' --abi $DePool_ABI)"
+                ;;
+            CPP)
+                Result="$($CALL_TC -j run --tvc ${Depool_addr##*:}.tvc getRounds '{}' --abi $DePool_ABI)"
+                ;;
+              *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
     fi
-    case "${NODE_TYPE}" in
-        RUST)
-            local LC_OUTPUT="$(Get_SC_current_state "${Depool_addr}")"
-            DP_balance_nT="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getDePoolBalance {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //'|jq -r '.value0')"
-            ;;
-        CPP)
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
-            if [[ -z  $result ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!!"
-                exit 1
-            fi
-            DP_balance_nT="$($CALL_TL test -a $DePool_ABI -m getDePoolBalance -p "{}" --decode-c6 $dpc_addr | grep -i 'value0')"
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
-    Result="$(echo "scale=3; $((DP_balance_nT)) / 1000000000" | $CALL_BC)"
-    echo "${Result}"
-}
-#=================================================
-# Get DePool INFO
-# Input: DePool_Addr
-# Output: DePool Info in json format
-function Get_DP_Info() {
-    local Result=""
-    local Depool_addr="$1"
-    local dpc_addr=`echo $Depool_addr | cut -d ':' -f 2`
-    if [[ ! -f $DePool_ABI ]];then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot find DePool ABI. Can't continue. Sorry."
-        exit 1
-    fi
-    case "${NODE_TYPE}" in
-        RUST)
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getDePoolInfo '{}' --abi $DePool_ABI)"
-            ;;
-        CPP)
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
-            if [[ -z  $result ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!!"
-                exit 1
-            fi
-            Result="$($CALL_TL test -a $DePool_ABI -m getDePoolInfo -p "{}" --decode-c6 $dpc_addr | grep -i 'validatorWallet')"
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
-    echo "${Result}"
-}
-#=================================================
-# Get DePool List of Partisipants 
-# Input: DePool_Addr
-# Output: DePool Info in json format
-function Get_DP_Parts_List() {
-    local Result=""
-    local Depool_addr="$1"
-    local dpc_addr=`echo $Depool_addr | cut -d ':' -f 2`
-    if [[ ! -f $DePool_ABI ]];then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot find DePool ABI. Can't continue. Sorry."
-        exit 1
-    fi
-    case "${NODE_TYPE}" in
-        RUST)
-            # Result="$($CALL_TC run "${Depool_addr}" getParticipants {} --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getParticipants '{}' --abi $DePool_ABI)"
-            ;;
-        CPP)
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
-            if [[ -z  $result ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!!"
-                exit 1
-            fi
-            Result="$($CALL_TL test -a $DePool_ABI -m getParticipants -p "{}" --decode-c6 $dpc_addr | grep 'participants')"
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
-    echo "${Result}"
-}
-#=================================================
-# Get DePool Partisipant Info
-# Input: DePool_Addr Part_Addr
-# Output: DePool Partisipant Info in json format
-function Get_DP_Part_Info() {
-    local Result=""
-    local Depool_addr="$1"
-    local dpc_addr=`echo $Depool_addr | cut -d ':' -f 2`
-    local Part_addr="$2"
-    if [[ ! -f $DePool_ABI ]];then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot find DePool ABI. Can't continue. Sorry."
-        exit 1
-    fi
-    case "${NODE_TYPE}" in
-        RUST)
-            # Result="$($CALL_TC run "${Depool_addr}" getParticipantInfo "{\"addr\":\"${Part_addr}\"}" --abi $DePool_ABI |sed -e '1,/Succeeded./d'|sed 's/Result: //')"
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.tvc getParticipantInfo "{\"addr\":\"${Part_addr}\"}" --abi $DePool_ABI)"
-            ;;
-        CPP)
-            local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
-            local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
-            if [[ -z  $result ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!!"
-                exit 1
-            fi
-            Result="$($CALL_TL test -a $DePool_ABI -m getParticipantInfo -p "{\"addr\":\"$Part_addr\"}" --decode-c6 $dpc_addr|grep -i 'withdrawValue')"
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
     echo "${Result}"
 }
 #=================================================
@@ -1030,38 +1066,175 @@ function Rounds_Sorting_by_ID() {
     echo "[${RS_0},${RS_1},${RS_2},${RS_3}]"
 }
 #=================================================
+# Get depool elections ID
+# Input: DePool_Addr
+# Output: DePool_elections_ID
+function Get_DePool_elec_ID() {
+    local Depool_addr="$1"
+    local Depool_Rounds_Info="$(Get_DP_Rounds $Depool_addr)"
+    local Curr_Rounds_Info="$(Rounds_Sorting_by_ID "$Depool_Rounds_Info")"
+    local Curr_DP_Elec_ID=$(echo   "$Curr_Rounds_Info" | jq -r ".[1].supposedElectedAt" | xargs printf "%10d\n")
+    echo $Curr_DP_Elec_ID
+}
+#=================================================
+# Get DePool Self balance
+#   Input: DePool_Addr
+#   Output: DePool self balance in Tokens XXX.XXX
+function Get_DP_Self_Balance() {
+    local Result=""
+    local Depool_addr="$1"
+    if $FORCE_USE_DAPP ;then
+        DP_balance_nT="$($CALL_TC -j run ${Depool_addr} getDePoolBalance '{}' --abi $DePool_ABI|jq -r '.value0')"
+    else
+        local LC_OUTPUT="$(Get_SC_current_state "${Depool_addr}")"
+        local res=`echo $LC_OUTPUT | grep "written StateInit of account"`
+        if [[ -z  $res ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!! $Depool_addr"
+            exit 1
+        fi
+        case "${NODE_TYPE}" in
+            RUST)
+                DP_balance_nT="$($CALL_TC -j run --boc ${Depool_addr##*:}.boc getDePoolBalance '{}' --abi $DePool_ABI|jq -r '.value0')"
+                ;;
+            CPP)
+                DP_balance_nT="$($CALL_TC -j run --tvc ${Depool_addr##*:}.tvc getDePoolBalance '{}' --abi $DePool_ABI|jq -r '.value0')"
+                ;;
+              *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
+    Result="$(echo "scale=3; $((DP_balance_nT)) / 1000000000" | $CALL_BC)"
+    echo "${Result}"
+}
+#=================================================
+# Get DePool INFO
+# Input: DePool_Addr
+# Output: DePool Info in json format
+function Get_DP_Info() {
+    local Result=""
+    local Depool_addr="$1"
+    if $FORCE_USE_DAPP ;then
+        Result="$($CALL_TC -j run ${Depool_addr} getDePoolInfo '{}' --abi $DePool_ABI)"
+    else
+        local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
+        local res=`echo $LC_OUTPUT | grep "written StateInit of account"`
+        if [[ -z  $res ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!! $Depool_addr"
+            exit 1
+        fi
+        case "${NODE_TYPE}" in
+            RUST)
+                Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.boc getDePoolInfo '{}' --abi $DePool_ABI)"
+                ;;
+            CPP)
+                Result="$($CALL_TC -j run --tvc ${Depool_addr##*:}.tvc getDePoolInfo '{}' --abi $DePool_ABI)"
+                ;;
+              *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
+    echo "${Result}"
+}
+#=================================================
+# Get DePool List of Partisipants 
+# Input: DePool_Addr
+# Output: DePool Info in json format
+function Get_DP_Parts_List() {
+    local Result=""
+    local Depool_addr="$1"
+    if $FORCE_USE_DAPP ;then
+        Result="$($CALL_TC -j run ${Depool_addr} getParticipants '{}' --abi $DePool_ABI)"
+    else
+        local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
+        local res=`echo $LC_OUTPUT | grep "written StateInit of account"`
+        if [[ -z  $res ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!! $Depool_addr"
+            exit 1
+        fi
+        case "${NODE_TYPE}" in
+            RUST)
+                Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.boc getParticipants '{}' --abi $DePool_ABI)"
+                ;;
+            CPP)
+                Result="$($CALL_TC -j run --tvc ${Depool_addr##*:}.tvc getParticipants '{}' --abi $DePool_ABI)"
+                ;;
+              *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
+    echo "${Result}"
+}
+#=================================================
+# Get DePool Partisipant Info
+# Input: DePool_Addr Part_Addr
+# Output: DePool Partisipant Info in json format
+function Get_DP_Part_Info() {
+    local Result=""
+    local Depool_addr="$1"
+    local Part_addr="$2"
+    if $FORCE_USE_DAPP ;then
+        Result="$($CALL_TC -j run ${Depool_addr} getParticipantInfo "{\"addr\":\"${Part_addr}\"}" --abi $DePool_ABI)"
+    else
+        local LC_OUTPUT="$(Get_SC_current_state "$Depool_addr")"
+        local res=`echo $LC_OUTPUT | grep "written StateInit of account"`
+        if [[ -z  $res ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get DePool state!! $Depool_addr"
+            exit 1
+        fi
+        case "${NODE_TYPE}" in
+            RUST)
+                Result="$($CALL_TC -j run --boc ${Depool_addr##*:}.boc getParticipantInfo "{\"addr\":\"${Part_addr}\"}" --abi $DePool_ABI)"
+                ;;
+            CPP)
+                Result="$($CALL_TC -j run --tvc ${Depool_addr##*:}.tvc getParticipantInfo "{\"addr\":\"${Part_addr}\"}" --abi $DePool_ABI)"
+                ;;
+              *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
+    echo "${Result}"
+}
+#=================================================
 # Get MSIG transactions List
 # Input: msig address
 # Output: transactions in json
 function Get_MSIG_Trans_List() {
     local Result="{}"
     local MSIG_ADDR="$1"
-    local pure_addr=`echo "${MSIG_ADDR}" | cut -d ':' -f 2`
     if [[ ! -f $SafeC_Wallet_ABI ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot find SafeCodeWallet ABI. Can't continue. Sorry."
         exit 1
     fi
-    case "${NODE_TYPE}" in
-        RUST)
-            # local TC_OUTPUT="$($CALL_TC run ${MSIG_ADDR} getTransactions {} --abi $SafeC_Wallet_ABI)"
-            # Result="$(echo "$TC_OUTPUT" | sed -e "1,/Succeeded/d" | sed 's/Result: //')"
-            local LC_OUTPUT="$(Get_SC_current_state "$MSIG_ADDR")"
-            Result="$($CALL_TC -j run --boc ${MSIG_ADDR##*:}.tvc getTransactions '{}' --abi $SafeC_Wallet_ABI)"
-            ;;
-        CPP)
-            local LC_OUTPUT="$(Get_SC_current_state "$MSIG_ADDR")"
-            local result=`echo $LC_OUTPUT | grep "written StateInit of account"`
-            if [[ -z  $result ]];then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get account state!! Account: $MSIG_ADDR"
-                exit 1
-            fi
-            Result="$($CALL_TL test -a $SafeC_Wallet_ABI -m getTransactions -p "{}" --decode-c6 $pure_addr|grep -i '"transactions":')"
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+    if $FORCE_USE_DAPP ;then
+        Result="$($CALL_TC -j run ${MSIG_ADDR} getTransactions '{}' --abi $SafeC_Wallet_ABI)"
+    else
+        local LC_OUTPUT="$(Get_SC_current_state "$MSIG_ADDR")"
+        local res=`echo $LC_OUTPUT | grep "written StateInit of account"`
+        if [[ -z  $res ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get account state!! Account: $MSIG_ADDR"
             exit 1
-            ;;            
-    esac
+        fi
+        case "${NODE_TYPE}" in
+            RUST)
+                Result="$($CALL_TC -j run --boc ${MSIG_ADDR##*:}.boc getTransactions '{}' --abi $SafeC_Wallet_ABI)"
+                ;;
+            CPP)
+                Result="$($CALL_TC -j run --tvc ${MSIG_ADDR##*:}.tvc getTransactions '{}' --abi $SafeC_Wallet_ABI)"
+                ;;
+              *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     echo "${Result}"
 }
 #=================================================
@@ -1074,57 +1247,65 @@ function Send_MSIG_Trans_Confirm() {
     local Trans_ID="$1"
     local MSIG_ADDR="$2"
     local Keys_File="$3"
-    local pure_addr=`echo "${MSIG_ADDR}" | cut -d ':' -f 2`
-    local wc=`echo "${MSIG_ADDR}" | cut -d ':' -f 1`
-    local msig_public=`cat "$Keys_File" | jq -r '.public'`
-    local msig_secret=`cat "$Keys_File" | jq -r '.secret'`
+    local wc=${MSIG_ADDR%%:*}
     
-    if [[ -z $msig_public ]] || [[ -z $msig_secret ]];then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Can't find public and/or secret key in $Keys_File!"
-        exit 1
-    fi
     if [[ ! -f $SafeC_Wallet_ABI ]] || [[ ! -f $Keys_File ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot find SafeCodeWallet ABI or Keys file. Can't continue. Sorry."
         exit 1
     fi
- 
-    # prepare user signatures
-    echo "${msig_secret}${msig_public}" > tmp.keys.txt
-    rm -f tmp.keys.bin
-    xxd -r -p tmp.keys.txt tmp.keys.bin
-    local TVM_OUTPUT=$($CALL_TL message $pure_addr -a ${SafeC_Wallet_ABI} -m confirmTransaction -p "{\"transactionId\":$Trans_ID}" -w $wc --setkey tmp.keys.bin)
-    if [[ -z $(echo "$TVM_OUTPUT" | grep "boc file created") ]];then
-        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): TVM linker CANNOT create boc file for signature!!! Can't continue. Exit."
+    local msig_public=`cat "$Keys_File" | jq -r '.public'`
+    local msig_secret=`cat "$Keys_File" | jq -r '.secret'`
+    if [[ -z $msig_public ]] || [[ -z $msig_secret ]];then
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Can't find public and/or secret key in $Keys_File!"
         exit 1
     fi
-    mv -f "$(echo "$pure_addr"| cut -c 1-8)-msg-body.boc" "confirm-msg.boc"
 
-    case "${NODE_TYPE}" in
-        RUST)
-            if [[ -e $($CALL_RC -c "sendmessage confirm-msg.boc" | grep -i 'success') ]]; then
-            #if [[ -e $($CALL_TC call ${MSIG_ADDR} confirmTransaction "{\"transactionId\":\"${Trans_ID}\"}" --abi $SafeC_Wallet_ABI --sign $Keys_File 1>&2 | grep -i 'Succeeded.') ]]; then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
-                exit 1
-            fi
-            rm -f tmp.keys.bin tmp.keys.txt confirm-msg.boc
-            Result="success"
-            sleep $LC_Send_MSG_Timeout
-            ;;
-        CPP)
-            local LC_OUT="$($CALL_LC -rc "sendfile confirm-msg.boc" -rc 'quit' 2>&1 | grep 'external message status is 1')"
-            if [[ -z "$LC_OUT" ]]; then
-                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
-                exit 1
-            fi
-            rm -f tmp.keys.bin tmp.keys.txt confirm-msg.boc
-            Result="success"
-            sleep $LC_Send_MSG_Timeout
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+    TC_OUTPUT="$($CALL_TC message --raw --output confirm-msg.boc \
+    --sign ${Keys_File} \
+    --abi $SafeC_Wallet_ABI \
+    "$MSIG_ADDR" confirmTransaction \
+    "{\"transactionId\":$Trans_ID}" \
+    | grep -i 'Message saved to file')"
+    if [[ -z ${TC_OUTPUT} ]];then
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): CANNOT create boc file for signature!!! Can't continue. Exit."
+        exit 1
+    fi
+    if $FORCE_USE_DAPP ;then
+        if [[ -e $($CALL_TC sendfile confirm-msg.boc| grep -i 'success') ]]; then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
             exit 1
-            ;;            
-    esac
+        fi
+        rm -f tmp.keys.bin tmp.keys.txt confirm-msg.boc
+        Result="success"
+        sleep $LC_Send_MSG_Timeout
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                if [[ -e $($CALL_RC -c "sendmessage confirm-msg.boc" | grep -i 'success') ]]; then
+                #if [[ -e $($CALL_TC call ${MSIG_ADDR} confirmTransaction "{\"transactionId\":\"${Trans_ID}\"}" --abi $SafeC_Wallet_ABI --sign $Keys_File 1>&2 | grep -i 'Succeeded.') ]]; then
+                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
+                    exit 1
+                fi
+                rm -f tmp.keys.bin tmp.keys.txt confirm-msg.boc
+                Result="success"
+                sleep $LC_Send_MSG_Timeout
+                ;;
+            CPP)
+                local LC_OUT="$($CALL_LC -rc "sendfile confirm-msg.boc" -rc 'quit' 2>&1 | grep 'external message status is 1')"
+                if [[ -z "$LC_OUT" ]]; then
+                    echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
+                    exit 1
+                fi
+                rm -f tmp.keys.bin tmp.keys.txt confirm-msg.boc
+                Result="success"
+                sleep $LC_Send_MSG_Timeout
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     echo "${Result}"
 }
 #=================================================
@@ -1135,24 +1316,31 @@ function Send_File_To_BC() {
     local Result="failed"
     local BOC_File="$1"
     [[ ! -f $BOC_File ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): File to send not found!!!"
-    case "${NODE_TYPE}" in
-        RUST)
-            if [[ -n $($CALL_RC -c "sendmessage $BOC_File" | grep -i 'success') ]]; then
-            #if [[ -n $($CALL_TC sendfile $BOC_File &>/dev/null) ]] ; then
-               Result="success"
-            fi
+
+    if $FORCE_USE_DAPP ;then
+        if [[ -n $($CALL_TC sendfile "$BOC_File"| grep -i 'success') ]]; then
+            Result="success"
             sleep $LC_Send_MSG_Timeout
-            ;;
-        CPP)
-            local LC_OUT="$($CALL_LC -rc "sendfile $BOC_File" -rc 'quit' 2>&1 | grep 'external message status is 1')"
-            [[ -n "$(echo "$LC_OUT" | grep -i 'external message status is 1')" ]] && Result="success"
-            sleep $LC_Send_MSG_Timeout
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+        fi
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                if [[ -n $($CALL_RC -c "sendmessage $BOC_File" | grep -i 'success') ]]; then
+                   Result="success"
+                fi
+                sleep $LC_Send_MSG_Timeout
+                ;;
+            CPP)
+                local LC_OUT="$($CALL_LC -rc "sendfile $BOC_File" -rc 'quit' 2>&1 | grep 'external message status is 1')"
+                [[ -n "$(echo "$LC_OUT" | grep -i 'external message status is 1')" ]] && Result="success"
+                sleep $LC_Send_MSG_Timeout
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
     echo "${Result}"
 }
 #=================================================

@@ -1,6 +1,6 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-03-15 15:00:00
+# (C) Sergey Tyurin  2021-01-25 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -61,9 +61,9 @@ function countdown_and_restart(){
         export reboot_countdown=$((reboot_countdown - 1))
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "===== ALARM! Node service restarting!!! =====" 2>&1 > /dev/null
         if [[ "$OS_SYSTEM" == "Linux" ]];then
-            sudo service ${ServiceName} restart|cat
+            sudo service tonnode restart|cat
         else
-            service ${ServiceName} restart|cat
+            service tonnode restart|cat
         fi
     fi
     if [[ $reboot_countdown -le 0 ]];then

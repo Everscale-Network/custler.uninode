@@ -1,5 +1,7 @@
-#!/bin/bash
-# (C) Sergey Tyurin  2021-09-02 10:00:00
+#!/usr/bin/env bash
+set -eE
+
+# (C) Sergey Tyurin  2021-10-19 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -34,7 +36,7 @@ source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 echo
 echo "Time Now: $(date  +'%F %T %Z')"
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE"
+echo -e "$(DispEnvInfo)"
 echo
 echo -e "$(Determine_Current_Network)"
 echo
@@ -61,11 +63,11 @@ TRANSF_AMOUNT="$3"
 NEW_ACC=$4
 [[ -z $TRANSF_AMOUNT ]] && tr_usage
 
-NANO_AMOUNT=`$CALL_TC convert tokens $TRANSF_AMOUNT|grep -v 'Config'| grep "[0-9]"`
-if [[ $NANO_AMOUNT -lt 100000000 ]];then
-    echo "###-ERROR(line $LINENO): Can't transfer too small amount of nanotokens! (${NANO_AMOUNT})nt"
-    exit 1
-fi
+NANO_AMOUNT=`$CALL_TC convert tokens $TRANSF_AMOUNT|grep -v 'Config'| grep "[0-9]"|bc`
+# if [[ $NANO_AMOUNT -lt 100000000 ]];then
+#     echo "###-ERROR(line $LINENO): Can't transfer too small amount of nanotokens! (${NANO_AMOUNT})nt"
+#     exit 1
+# fi
 echo "Nanotokens to transfer: $NANO_AMOUNT"
 
 if [[ "$NEW_ACC" == "new" ]];then

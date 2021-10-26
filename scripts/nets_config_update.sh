@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 # (C) Sergey Tyurin  2021-01-02 10:00:00
 
 # Disclaimer

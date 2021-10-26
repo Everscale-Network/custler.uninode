@@ -1,4 +1,4 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
 BUILD_STRT_TIME=$(date +%s)
 echo
@@ -16,6 +16,10 @@ cd $HOME
 git clone --recurse-submodules "${TONOS_CLI_GIT_REPO}" "${TONOS_CLI_SRC_DIR}"
 cd "${TONOS_CLI_SRC_DIR}"
 git checkout "${TONOS_CLI_GIT_COMMIT}"
+git submodule init && git submodule update --recursive
+git submodule foreach 'git submodule init'
+git submodule foreach 'git submodule update  --recursive'
+
 cargo update
 cargo build --release
 cp -f "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"

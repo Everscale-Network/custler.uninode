@@ -1,6 +1,6 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-03-15 15:00:00
+# (C) Sergey Tyurin  2021-02-23 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -26,29 +26,30 @@ source "${SCRIPT_DIR}/functions.shinc"
 
 echo
 echo -e "$(Determine_Current_Network)"
+echo -e "$(DispEnvInfo)"
 echo
 
 SLEEP_TIMEOUT=$1
 SLEEP_TIMEOUT=${SLEEP_TIMEOUT:="60"}
 ALARM_TIME_DIFF=$2
 ALARM_TIME_DIFF=${ALARM_TIME_DIFF:=100}
-Current_Net="$(echo "${NODE_TYPE}" | cut -c 1) $(echo "${NETWORK_TYPE}" | cut -d '.' -f 1)"
+Current_Net="$(echo "${NODE_TYPE}" | cut -c 1) $(echo "${NETWORK_TYPE%%.*}")"
 
 while(true)
 do
     TIME_DIFF=$(Get_TimeDiff)
 
     if [[ "$TIME_DIFF" == "Node Down" ]];then
-        echo "${Current_Net} Time: $(date +'%F %T %Z') ###-ALARM! NODE IS DOWN." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        echo "${Current_Net}:${NODE_WC} Time: $(date +'%F %T %Z') ###-ALARM! NODE IS DOWN." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
         # "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "ALARM! NODE IS DOWN." 2>&1 > /dev/null
         sleep $SLEEP_TIMEOUT
         continue
     fi
 
     if [[ "$TIME_DIFF" == "No TimeDiff Info" ]];then
-        echo "${Current_Net} Time: $(date +'%F %T %Z') --- No masterchain blocks received yet." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        echo "${Current_Net}:${NODE_WC} Time: $(date +'%F %T %Z') --- No masterchain blocks received yet." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
     else
-        echo "${Current_Net} Time: $(date +'%F %T %Z') TimeDiff: $TIME_DIFF" | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        echo "${Current_Net}:${NODE_WC} Time: $(date +'%F %T %Z') TimeDiff: $TIME_DIFF" | tee -a ${NODE_LOGS_ARCH}/time-diff.log
         if [[ $TIME_DIFF -gt $ALARM_TIME_DIFF ]];then
         :
         # "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "ALARM! NODE out of sync. TimeDiff: $TIME_DIFF" 2>&1 > /dev/null
@@ -59,3 +60,4 @@ do
 done
 
 exit 0
+ WC: ;

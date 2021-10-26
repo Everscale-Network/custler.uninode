@@ -1,6 +1,7 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
+set -eE
 
-# (C) Sergey Tyurin  2021-09-02 10:00:00
+# (C) Sergey Tyurin  2021-10-19 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -18,7 +19,11 @@
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
 
-# All generated executables will be placed in the $ HOME/bin folder.
+# All generated executables will be placed in the $NODE_BIN_DIR folder.
+# Options:
+#  cpp  - build cpp node with utils
+#  rust - build rust node with utils
+#  dapp - build rust node with utils for DApp server. If NODE_TYPE="CPP" in env.sh, node will be build w/o compressions for CPP network
 
 BUILD_STRT_TIME=$(date +%s)
 
@@ -28,6 +33,7 @@ source "${SCRIPT_DIR}/env.sh"
 echo
 echo "################################### FreeTON nodes build script #####################################"
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
+echo -e "$(DispEnvInfo)"
 
 BackUP_Time="$(date  +'%F_%T'|tr ':' '-')"
 
@@ -35,24 +41,32 @@ case "${@}" in
     cpp)
         CPP_NODE_BUILD=true
         RUST_NODE_BUILD=false
+        DAPP_NODE_BUILD=false
         ;;
     rust)
         CPP_NODE_BUILD=false
         RUST_NODE_BUILD=true
+        DAPP_NODE_BUILD=false
+        ;;
+    dapp)
+        CPP_NODE_BUILD=false
+        RUST_NODE_BUILD=true
+        DAPP_NODE_BUILD=true
         ;;
     *)
         CPP_NODE_BUILD=true
         RUST_NODE_BUILD=true
+        DAPP_NODE_BUILD=false
         ;;
 esac
 
-[[ ! -d $HOME/bin ]] && mkdir -p $HOME/bin
+[[ ! -d $NODE_BIN_DIR ]] && mkdir -p $NODE_BIN_DIR
 
 #=====================================================
 # Packages set for different OSes
-PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip zstd pkgconf python"
-PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip libzstd-devel"
-PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libzstd-dev"
+PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl p7zip zstd pkgconf python google-perftools"
+PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip libzstd-devel gperftools gperftools-devel"
+PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip bc libzstd-dev libgoogle-perftools-dev"
 
 PKG_MNGR_FreeBSD="sudo pkg"
 PKG_MNGR_CentOS="sudo dnf"
@@ -83,7 +97,7 @@ case "$OS_SYSTEM" in
         $PKG_MNGR update -f
         $PKG_MNGR upgrade -y
         FEXEC_FLG="-perm +111"
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.4.0/yq_freebsd_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_freebsd_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
         #	libmicrohttpd \ 
         #   does not build with libmicrohttpd-0.9.71
         #   build & install libmicrohttpd-0.9.70
@@ -102,12 +116,28 @@ case "$OS_SYSTEM" in
         PKG_MNGR=$PKG_MNGR_CentOS
         $PKG_MNGR -y update --allowerasing
         $PKG_MNGR group install -y "Development Tools"
-        $PKG_MNGR config-manager --set-enabled powertools
+        $PKG_MNGR config-manager --set-enabled powertools 
         $PKG_MNGR --enablerepo=extras install -y epel-release
         $PKG_MNGR remove -y boost
+        $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
         $PKG_MNGR install -y gcc-toolset-10-toolchain
         source /opt/rh/gcc-toolset-10/enable
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.4.0/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        ;;
+
+    Oracle)
+        export ZSTD_LIB_DIR=/usr/lib64
+        PKGs_SET=$PKGS_CentOS
+        PKG_MNGR=$PKG_MNGR_CentOS
+        $PKG_MNGR -y update --allowerasing
+        $PKG_MNGR group install -y "Development Tools"
+        $PKG_MNGR config-manager --set-enabled ol8_codeready_builder
+        $PKG_MNGR install -y oracle-epel-release-el8
+        $PKG_MNGR remove -y boost
+        $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
+        $PKG_MNGR install -y gcc-toolset-10-toolchain
+        source /opt/rh/gcc-toolset-10/enable
+        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
         ;;
 
     Ubuntu)
@@ -120,7 +150,7 @@ case "$OS_SYSTEM" in
         $PKG_MNGR update && $PKG_MNGR upgrade -y 
         $PKG_MNGR install -y g++-10
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 90 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.4.0/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
         ;;
 
     *)
@@ -139,26 +169,28 @@ echo "---INFO: Install packages ... "
 $PKG_MNGR install -y $PKGs_SET
 
 #=====================================================
-# Install BOOST
-echo
-echo '################################################'
-echo '---INFO: Install BOOST from source'
-Installed_BOOST_Ver="$(cat /usr/local/include/boost/version.hpp 2>/dev/null | grep "define BOOST_LIB_VERSION"|awk '{print $3}'|tr -d '"'| awk -F'_' '{printf("%d%s%2d\n", $1,".",$2)}')"
-Required_BOOST_Ver="$(echo $BOOST_VERSION | awk -F'.' '{printf("%d%s%2d\n", $1,".",$2)}')"
-if [[ "$Installed_BOOST_Ver" != "$Required_BOOST_Ver" ]];then
-    mkdir -p $HOME/src
-    cd $HOME/src
-    sudo rm -rf $HOME/src/boost* |cat
-    sudo rm -rf /usr/local/include/boost |cat
-    sudo rm -f /usr/local/lib/libboost*  |cat
-    Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
-    wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
-    tar xf boost_${Boost_File_Version}.tar.gz
-    cd $HOME/src/boost_${Boost_File_Version}/
-    ./bootstrap.sh
-    sudo ./b2 install --prefix=/usr/local
-else
-    echo "---INFO: BOOST Version ${BOOST_VERSION} already installed"
+# Install BOOST for C++ node
+if [[ "$NODE_TYPE" == "CPP" ]]; then
+    echo
+    echo '################################################'
+    echo '---INFO: Install BOOST from source'
+    Installed_BOOST_Ver="$(cat /usr/local/include/boost/version.hpp 2>/dev/null | grep "define BOOST_LIB_VERSION"|awk '{print $3}'|tr -d '"'| awk -F'_' '{printf("%d%s%2d\n", $1,".",$2)}')"
+    Required_BOOST_Ver="$(echo $BOOST_VERSION | awk -F'.' '{printf("%d%s%2d\n", $1,".",$2)}')"
+    if [[ "$Installed_BOOST_Ver" != "$Required_BOOST_Ver" ]];then
+        mkdir -p $HOME/src
+        cd $HOME/src
+        sudo rm -rf $HOME/src/boost* |cat
+        sudo rm -rf /usr/local/include/boost |cat
+        sudo rm -f /usr/local/lib/libboost*  |cat
+        Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
+        wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
+        tar xf boost_${Boost_File_Version}.tar.gz
+        cd $HOME/src/boost_${Boost_File_Version}/
+        ./bootstrap.sh
+        sudo ./b2 install --prefix=/usr/local
+    else
+        echo "---INFO: BOOST Version ${BOOST_VERSION} already installed"
+    fi
 fi
 #=====================================================
 # Install or upgrade RUST
@@ -198,20 +230,21 @@ if $CPP_NODE_BUILD;then
     echo "---INFO: build a node... DONE"
     echo
 
-    # cp $HOME/bin/lite-client $HOME/bin/lite-client_${BackUP_Time}|cat
-    # cp $HOME/bin/validator-engine $HOME/bin/validator-engine_${BackUP_Time}|cat
-    # cp $HOME/bin/validator-engine-console $HOME/bin/validator-engine-console_${BackUP_Time}|cat
+    # cp $NODE_BIN_DIR/lite-client $NODE_BIN_DIR/lite-client_${BackUP_Time}|cat
+    # cp $NODE_BIN_DIR/validator-engine $NODE_BIN_DIR/validator-engine_${BackUP_Time}|cat
+    # cp $NODE_BIN_DIR/validator-engine-console $NODE_BIN_DIR/validator-engine-console_${BackUP_Time}|cat
     
-    cp -f $TON_BUILD_DIR/lite-client/lite-client $HOME/bin
-    cp -f $TON_BUILD_DIR/validator-engine/validator-engine $HOME/bin
-    cp -f $TON_BUILD_DIR/validator-engine-console/validator-engine-console $HOME/bin
+    cp -f $TON_BUILD_DIR/lite-client/lite-client $NODE_BIN_DIR/
+    cp -f $TON_BUILD_DIR/validator-engine/validator-engine $NODE_BIN_DIR/
+    cp -f $TON_BUILD_DIR/validator-engine-console/validator-engine-console $NODE_BIN_DIR/
+    cp -f $TON_BUILD_DIR//crypto/fift $NODE_BIN_DIR/
 
     #=====================================================
     echo "---INFO: build utils (convert_address)..."
     cd "${NODE_SRC_TOP_DIR}/utils/convert_address"
     cargo update
     cargo build --release
-    cp "${NODE_SRC_TOP_DIR}/utils/convert_address/target/release/convert_address" "$HOME/bin/"
+    cp "${NODE_SRC_TOP_DIR}/utils/convert_address/target/release/convert_address" "$NODE_BIN_DIR/"
     echo "---INFO: build utils (convert_address)... DONE"
 fi
 #=====================================================
@@ -220,10 +253,6 @@ if $RUST_NODE_BUILD;then
     echo
     echo '################################################'
     echo "---INFO: build RUST NODE ..."
-    #---------------- crutch for user run
-    sudo mkdir -p /node_db
-    sudo chmod -R ugo+rw /node_db
-    #----------------
 
     [[ -d ${RNODE_SRC_DIR} ]] && rm -rf "${RNODE_SRC_DIR}"
     # git clone --recurse-submodules "${RNODE_GIT_REPO}" $RNODE_SRC_DIR
@@ -235,7 +264,6 @@ if $RUST_NODE_BUILD;then
     git submodule foreach 'git submodule update  --recursive'
 
     cd $RNODE_SRC_DIR
-    cargo update
 
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
     #====== Uncomment to disabe node's logs competely
@@ -246,12 +274,21 @@ if $RUST_NODE_BUILD;then
     sed -i.bak -e '/^\[dependencies\]/p; s/\[dependencies\]/ed25519-dalek = "1.0"/' Cargo.toml
     sed -i.bak -e '/^\[features\]/p; s/\[features\]/sha2-native = ["sha2\/asm", "ed25519-dalek\/asm"]/' Cargo.toml
 
-    RUSTFLAGS="-C target-cpu=native" cargo build --release --features "compression,sha2-native"
-    # --features "metrics"
-    # --features "external_db,metrics"
+    cargo update
 
-    # cp $HOME/bin/rnode $HOME/bin/rnode_${BackUP_Time}|cat
-    cp -f ${RNODE_SRC_DIR}/target/release/ton_node $HOME/bin/rnode
+    # --features "compression,sha2-native,external_db,metrics"
+    if $DAPP_NODE_BUILD;then
+        RNODE_FEATURES="compression,sha2-native,external_db,metrics"
+        [[ "$NODE_TYPE" == "CPP" ]] && RNODE_FEATURES="sha2-native,external_db,metrics"
+    else
+        RNODE_FEATURES="compression,sha2-native"
+    fi
+    echo "---INFO: RNODE build flags: $RNODE_FEATURES "
+
+    RUSTFLAGS="-C target-cpu=native" cargo build --release --features "${RNODE_FEATURES}"
+
+    # cp $NODE_BIN_DIR/rnode $NODE_BIN_DIR/rnode_${BackUP_Time}|cat
+    cp -f ${RNODE_SRC_DIR}/target/release/ton_node $NODE_BIN_DIR/rnode
 
     #=====================================================
     # Build rust node console
@@ -263,11 +300,13 @@ if $RUST_NODE_BUILD;then
     git checkout "${RCONS_GIT_COMMIT}"
     git submodule init
     git submodule update
+    cargo update
     RUSTFLAGS="-C target-cpu=native" cargo build --release
 
-    find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $HOME/bin/ \;
+    find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $NODE_BIN_DIR/ \;
     echo "---INFO: build RUST NODE ... DONE."
 fi
+
 #=====================================================
 # Build TON Solidity Compiler (solc)
 # echo "---INFO: build TON Solidity Compiler ..."
@@ -284,23 +323,24 @@ fi
 #     V_CPU=`sysctl -n hw.ncpu`
 # fi
 # cmake --build . -- -j $V_CPU
-# cp -f "${SOLC_SRC_DIR}/build/solc/solc" $HOME/bin/
-# cp -f "${SOLC_SRC_DIR}/lib/stdlib_sol.tvm" $HOME/bin/
+# cp -f "${SOLC_SRC_DIR}/build/solc/solc" $NODE_BIN_DIR/
+# cp -f "${SOLC_SRC_DIR}/lib/stdlib_sol.tvm" $NODE_BIN_DIR/
 # echo "---INFO: build TON Solidity Compiler ... DONE."
 
 #=====================================================
 # Build TVM-linker
-echo
-echo '################################################'
-echo "---INFO: build TVM-linker ..."
-[[ ! -z ${TVM_LINKER_SRC_DIR} ]] && rm -rf "${TVM_LINKER_SRC_DIR}"
-git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
-cd "${TVM_LINKER_SRC_DIR}"
-git checkout "${TVM_LINKER_GIT_COMMIT}"
-cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
-RUSTFLAGS="-C target-cpu=native" cargo build --release
-cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
-echo "---INFO: build TVM-linker ... DONE."
+# echo
+# echo '################################################'
+# echo "---INFO: build TVM-linker ..."
+# [[ ! -z ${TVM_LINKER_SRC_DIR} ]] && rm -rf "${TVM_LINKER_SRC_DIR}"
+# git clone --recurse-submodules "${TVM_LINKER_GIT_REPO}" "${TVM_LINKER_SRC_DIR}"
+# cd "${TVM_LINKER_SRC_DIR}"
+# git checkout "${TVM_LINKER_GIT_COMMIT}"
+# cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
+# RUSTFLAGS="-C target-cpu=native" cargo build --release
+# cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $NODE_BIN_DIR/
+# echo "---INFO: build TVM-linker ... DONE."
+
 #=====================================================
 # Build tonos-cli
 echo
@@ -312,8 +352,8 @@ cd "${TONOS_CLI_SRC_DIR}"
 git checkout "${TONOS_CLI_GIT_COMMIT}"
 cargo update
 RUSTFLAGS="-C target-cpu=native" cargo build --release
-# cp $HOME/bin/tonos-cli $HOME/bin/tonos-cli_${BackUP_Time}|cat
-cp "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"
+# cp $NODE_BIN_DIR/tonos-cli $NODE_BIN_DIR/tonos-cli_${BackUP_Time}|cat
+cp "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$NODE_BIN_DIR/"
 echo "---INFO: build tonos-cli ... DONE"
 
 #=====================================================
@@ -321,15 +361,14 @@ echo "---INFO: build tonos-cli ... DONE"
 echo
 echo '################################################'
 echo "---INFO: download contracts ... "
-rm -rf "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+rm -rf "${ContractsDIR}"
 rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
-git clone ${CONTRACTS_GIT_REPO} "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
-cd "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+git clone ${CONTRACTS_GIT_REPO} "${ContractsDIR}"
+cd "${ContractsDIR}"
 git checkout $CONTRACTS_GIT_COMMIT 
 cd ${NODE_SRC_TOP_DIR}
-git clone --single-branch --branch multisig-surf-v2 https://github.com/tonlabs/ton-labs-contracts.git "${NODE_SRC_TOP_DIR}/Surf-contracts"
+git clone --single-branch --branch ${Surf_GIT_Commit} ${CONTRACTS_GIT_REPO} "${ContractsDIR}/Surf-contracts"
 
-RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
 curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
 echo 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # (C) Sergey Tyurin  2020-08-01 11:00:00
 
@@ -29,13 +29,13 @@ echo
 
 if [[ "$NETWORK_TYPE" != "rustnet.ton.dev" ]];then
     echo "###-ERROR: This script for RustNet only!!!"
-    exit 1
+#    exit 1
 fi
 
 #===========================================
 # Stop rnode service
 echo -n "---INFO: Stopping tonnode service ..."
-sudo service ${ServiceName} stop
+sudo service tonnode stop
 sleep 5
 echo " ..DONE"
 
@@ -63,7 +63,7 @@ echo " ..DONE"
 #===========================================
 # Start rnode service
 echo -n "---INFO: Starting tonnode service ..."
-sudo service ${ServiceName} start
+sudo service tonnode start
 sleep 5
 echo " ..DONE"
 

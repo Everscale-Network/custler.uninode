@@ -1,5 +1,7 @@
-#!/bin/bash
-# (C) Sergey Tyurin  2021-09-02 10:00:00
+#!/usr/bin/env bash
+set -eE
+
+# (C) Sergey Tyurin  2021-10-19 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -26,15 +28,10 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
+echo -e "$(DispEnvInfo)"
 echo
 echo -e "$(Determine_Current_Network)"
 echo
-
-ValidatorAssuranceT=100000
-MinStakeT=10
-ParticipantRewardFraction=95
-BalanceThresholdT=20
 
 SEND_ATTEMPTS=3
 
@@ -58,34 +55,46 @@ DP_PROXY_RUSTCUP_2021_06_29_MD5="e614e99a3193173543670eded2094850"
 DP_RUSTCUP_2021_08_05_MD5="5f0134a55f033da266db5b16fec607fd"
 DP_PROXY_RUSTCUP_2021_08_05_MD5="73279e4e669a7ba80c3c9c6956d7f57e"
 #-----------------------------------------------------------
-
+DP_RFLD_2021_10_02_MD5="48b7b03fbac93749d2ae24a23f17b9e7"
+DP_PROXY_RFLD_2021_10_02_MD5="0ef3a063ea9573fc7f068cb89a075868"
+#-----------------------------------------------------------
 
 CurrDP_MD5=$DP_2021_02_01_MD5
 CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
 
 NetName="${NETWORK_TYPE%%.*}"
-if [[ "$NetName" == "rustnet" ]];then
-    CurrDP_MD5=$DP_RUSTCUP_2021_08_05_MD5
-    CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_08_05_MD5
-fi
+case "$NetName" in
+    main)
+        CurrDP_MD5=$DP_2021_02_01_MD5
+        CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
+        ;;
+    net)
+        CurrDP_MD5=$DP_2021_02_01_MD5
+        CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
+        ;;
+    fld)
+        CurrDP_MD5=$DP_2021_02_01_MD5
+        CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
+        ;;
+    rustnet)
+        CurrDP_MD5=$DP_RUSTCUP_2021_08_05_MD5
+        CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_08_05_MD5
+        ;;
+    rfld)
+        CurrDP_MD5=$DP_RFLD_2021_10_02_MD5
+        CurrProxy_MD5=$DP_PROXY_RFLD_2021_10_02_MD5
+        ;;
+    *)
+        echo "###-WARNING(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE}) DePool's code set to default!"
+        ;;
+esac
 
 echo "DP_MD5       = $CurrDP_MD5"
 echo "DP_Proxy_MD5 = $CurrProxy_MD5"
 echo
 
 #===========================================================
-# NETWORK INFO
-echo
-echo -e "$(Determine_Current_Network)"
-echo
-
-#===========================================================
-# check tonos-cli version
-TC_VER="$($CALL_TC deploy_message --help | grep 'tonos-cli-deploy_message')"
-[[ -z $TC_VER ]] && echo "###-ERROR(line $LINENO): You have to Update tonos-cli" && exit 1
-echo
-$CALL_TC deploy_message --help | grep 'tonos-cli-deploy_message'
-
+# 
 OS_SYSTEM=`uname`
 if [[ "$OS_SYSTEM" == "Linux" ]];then
         GetMD5="md5sum --tag"
@@ -97,15 +106,16 @@ fi
 echo 
 echo "================= Deploy DePool contract =========================="
 
-MinStake=`$CALL_TC convert tokens ${MinStakeT} | grep "[0-9]"`
+MinStake=`$CALL_TC -j convert tokens ${MinStakeT}`
+ValidatorAssurance=`$CALL_TC -j convert tokens ${ValidatorAssuranceT}`
 
-ValidatorAssurance=`$CALL_TC convert tokens ${ValidatorAssuranceT} | grep "[0-9]"`
-
-ProxyCode="$($CALL_TL decode --tvc ${DSCs_DIR}/DePoolProxy.tvc |grep 'code: ' | awk '{print $2}')"
+ProxyCode="$($CALL_TC -j decode stateinit --tvc ${DSCs_DIR}/DePoolProxy.tvc | jq -r '.code')"
 [[ -z $ProxyCode ]] && echo "###-ERROR(line $LINENO): DePoolProxy.tvc not found in ${DSCs_DIR}/DePoolProxy.tvc" && exit 1
+ProxyCode_hash="$($CALL_TC -j decode stateinit --tvc ${DSCs_DIR}/DePoolProxy.tvc | jq -r '.code_hash')"
 
-DepoolCode="$($CALL_TL decode --tvc ${DSCs_DIR}/DePool.tvc |grep 'code: ' | awk '{print $2}')"
+DepoolCode="$($CALL_TC -j decode stateinit --tvc ${DSCs_DIR}/DePool.tvc | jq -r '.code')"
 [[ -z $DepoolCode ]] && echo "###-ERROR(line $LINENO): DePool.tvc not found in ${DSCs_DIR}/DePool.tvc" && exit 1
+DepoolCode_hash="$($CALL_TC -j decode stateinit --tvc ${DSCs_DIR}/DePool.tvc | jq -r '.code_hash')"
 VrfDepoolCode=${DepoolCode:0:64}
 
 DePoolMD5=$($GetMD5 ${DSCs_DIR}/DePool.tvc |awk '{print $4}')
@@ -120,17 +130,20 @@ if [[ ! "${ProxyMD5}" == "${CurrProxy_MD5}" ]];then
     exit 1
 fi
 
-
 Validator_addr=`cat ${KEYS_DIR}/${HOSTNAME}.addr`
 [[ -z $Validator_addr ]] && echo "###-ERROR(line $LINENO): Validator address not found in ${KEYS_DIR}/${HOSTNAME}.addr" && exit 1
 
+# Validator_WC=$($CALL_RC -j -c getstats|grep 'processed workchain'|awk '{print $3}'|tr -d ',')
+# [[ "${Validator_WC}" == "masterchain" ]] && Validator_WC=$((-1))
+Validator_WC=$NODE_WC
 
-# BalanceThreshold=`$CALL_TC convert tokens ${BalanceThresholdT} | grep "[0-9]"`
+# BalanceThreshold=`$CALL_TC -j convert tokens ${BalanceThresholdT}`
 # echo "BalanceThreshold $BalanceThresholdT in nanoTon:  $BalanceThreshold"
+
 #=================================================
 # Addresses and vars
 Depool_Name=$1
-Depool_Name=${Depool_Name:-"depool"}
+Depool_Name=${Depool_Name:="depool"}
 Depool_addr=`cat ${KEYS_DIR}/${Depool_Name}.addr`
 if [[ -z $Depool_addr ]];then
     echo
@@ -138,13 +151,20 @@ if [[ -z $Depool_addr ]];then
     echo
     exit 1
 fi
+Depool_WC=${Depool_addr%%:*}
 Depoo_Keys=${KEYS_DIR}/${Depool_Name}.keys.json
 Depool_Public_Key=`cat $Depoo_Keys | jq -r ".public"`
 [[ -z $Depool_Public_Key ]] && echo "###-ERROR(line $LINENO): Depool_Public_Key not found in ${KEYS_DIR}/${Depool_Name}.keys.json" && exit 1
 
+# [[ ${Validator_WC} -ne ${Depool_WC} ]] && echo "###-ERROR(line $LINENO): Depool_WC=${Depool_WC} not equal Validator_WC=${Validator_WC}" && exit 1
+if [[ ${Validator_WC} -ne ${Depool_WC} ]] && [[ ${Validator_WC} -ne -1 ]] && [[ ${Depool_WC} -ne 0 ]];then
+    echo -e "${BoldText}${YellowBack}###-WARNING(line $LINENO): Depool_WC=${Depool_WC} not equal Validator_WC=${Validator_WC}!! ${NormText}" 
+    # exit 1
+fi
+
 #===========================================================
 # Check DePool Address
-DP_ADDR_from_Keys=$($CALL_TC genaddr ${DSCs_DIR}/DePool.tvc ${DSCs_DIR}/DePool.abi.json --setkey $Depoo_Keys --wc "0" | grep "Raw address:" | awk '{print $3}')
+DP_ADDR_from_Keys=$($CALL_TC genaddr ${DSCs_DIR}/DePool.tvc ${DSCs_DIR}/DePool.abi.json --setkey $Depoo_Keys --wc "$Depool_WC" | grep "Raw address:" | awk '{print $3}')
 if [[ ! "$Depool_addr" == "$DP_ADDR_from_Keys" ]];then
     echo "###-ERROR(line $LINENO): Given DePool Address and calculated address is different. Possible you prepared it for another contract. "
     echo "Given addr: $Depool_addr"
@@ -157,6 +177,7 @@ fi
 # print INFO
 echo "Validator_addr:    $Validator_addr"
 echo "Depool Address:    $Depool_addr"
+echo "     Depool WC:    $Depool_WC"
 echo "Depool_Public_Key: $Depool_Public_Key"
 echo
 echo "Minimal Stake:                $MinStakeT"
@@ -220,7 +241,7 @@ function Make_BOC_File(){
         "{\"minStake\":$MinStake,\"validatorAssurance\":$ValidatorAssurance,\"proxyCode\":\"$ProxyCode\",\"validatorWallet\":\"$Validator_addr\",\"participantRewardFraction\":$ParticipantRewardFraction}" \
         --abi ${DSCs_DIR}/DePool.abi.json \
         --sign ${KEYS_DIR}/${Depool_Name}.keys.json \
-        --wc 0 \
+        --wc ${Depool_WC} \
         --raw \
         --output deploy.boc \
         | tee ${KEYS_DIR}/${Depool_Name}_deploy_depool_msg.log)
@@ -259,7 +280,7 @@ while [[ $Attempts_to_send -gt 0 ]]; do
         break
     fi
     sleep 5
-    Account_Status=$(Get_Account_Info ${WALL_ADDR} | awk '{print $1}')
+    Account_Status=$(Get_Account_Info ${Depool_addr} | awk '{print $1}')
     if [[ "$Account_Status" != "Active" ]];then
         echoerr "+++-WARNING(line $LINENO): The message was not delivered. Sending again.."
         Attempts_to_send=$((Attempts_to_send - 1))
@@ -270,7 +291,7 @@ while [[ $Attempts_to_send -gt 0 ]]; do
 done
 
 echo
-echo "Deploy message log saved to ${KEY_FILES_DIR}/${WAL_NAME}_deploy_depool_msg.log"
+echo "Deploy message log saved to ${KEYS_DIR}/${Depool_Name}_deploy_depool_msg.log"
 echo
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"

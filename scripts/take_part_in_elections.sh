@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-08-19 15:00:00
+# (C) Sergey Tyurin  2021-10-19 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -21,7 +21,7 @@
 ####################################
 # we can't work on desynced node
 TIMEDIFF_MAX=100
-MAX_FACTOR=${MAX_FACTOR:-3}
+MAX_FACTOR=${MAX_FACTOR:=3}
 SEND_ATTEMPTS=3
 ####################################
 
@@ -34,7 +34,7 @@ source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
 #=================================================
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
+echo -e "$(DispEnvInfo)"
 echo
 echo -e "$(Determine_Current_Network)"
 echo
@@ -340,7 +340,7 @@ if [[ $Trans_QTY -gt 0 ]];then
     [[ "$STAKE_MODE" == "depool" ]] && Exist_DP_Trans_Qty=$(echo "$Trans_List" | jq -r "[.transactions[]|select(.dest == \"$Depool_addr\")]|length")
     echo "+++WARNING(line $LINENO): You have unsigned transactions on the validator address!! Transactions: to elector: $Exist_El_Trans_Qty; To DePool: $Exist_DP_Trans_Qty"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" \
-        "+++WARNING($(basename "$0") line $LINENO): You have unsigned transactions on the validator address!! Transactions: to elector: $Exist_El_Trans_Qty; To DePool: $Exist_DP_Trans_Qty" 2>&1 > /dev/null
+        "${Tg_Warn_sign} WARNING($(basename "$0") line $LINENO): You have unsigned transactions on the validator address!! Transactions: to elector: $Exist_El_Trans_Qty; To DePool: $Exist_DP_Trans_Qty" 2>&1 > /dev/null
 fi
 echo "Total transactions qty:      $Trans_QTY"          | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
 echo "To DePool transactions qty:  $Exist_DP_Trans_Qty" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
@@ -378,17 +378,24 @@ fi
 # ===============================================================
 # make boc for sending
 function Make_transaction_BOC() {
-    TVM_OUTPUT=$($CALL_TL message $Val_Adrr_HEX \
-        -a ${SafeC_Wallet_ABI} \
-        -m submitTransaction \
-        -p "{\"dest\":\"$Stake_DST_Addr\",\"value\":$NANOSTAKE,\"bounce\":true,\"allBalance\":false,\"payload\":\"$validator_query_payload\"}" \
-        -w $Work_Chain --setkey ${KEYS_DIR}/msig.keys.bin)
+    # TVM_OUTPUT=$($CALL_TL message $Val_Adrr_HEX \
+    #     -a ${SafeC_Wallet_ABI} \
+    #     -m submitTransaction \
+    #     -p "{\"dest\":\"$Stake_DST_Addr\",\"value\":$NANOSTAKE,\"bounce\":true,\"allBalance\":false,\"payload\":\"$validator_query_payload\"}" \
+    #     -w $Work_Chain --setkey ${KEYS_DIR}/msig.keys.bin)
 
-    if [[ -z $(echo $TVM_OUTPUT | grep "boc file created") ]];then
-        echo "###-ERROR(line $LINENO): TVM linker CANNOT create boc file!!! Can't continue."
+    local TC_OUTPUT="$($CALL_TC message --raw --output ${elections_id}_vaidator-query-msg.boc \
+        --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json \
+        --abi $SafeC_Wallet_ABI \
+        "$(cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr)" submitTransaction \
+        "{\"dest\":\"$Stake_DST_Addr\",\"value\":$NANOSTAKE,\"bounce\":true,\"allBalance\":false,\"payload\":\"$validator_query_payload\"}" \
+        | grep -i 'Message saved to file')"
+
+    if [[ -z ${TC_OUTPUT} ]];then
+        echo "###-ERROR(line $LINENO): tonos-cli CANNOT create boc file!!! Can't continue."
         exit 3
     fi
-    mv -f "$(echo "$Val_Adrr_HEX"| cut -c 1-8)-msg-body.boc" "${ELECTIONS_WORK_DIR}/${elections_id}_vaidator-query-msg.boc"
+    mv -f ${elections_id}_vaidator-query-msg.boc ${ELECTIONS_WORK_DIR}/
 }
 
 Required_Signs=`Get_Account_Custodians_Info $Validator_addr | awk '{print $2}'`
@@ -430,7 +437,7 @@ function Send_Bid_Msg(){
                 echo "INFO: Sending transaction for elections was done SUCCESSFULLY!" >> "${ELECTIONS_WORK_DIR}/${elections_id}.log"
                 break
             else
-                echoerr "###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+                echoerr "###-ERROR(line $LINENO): Sending transaction for elections FAILED!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
                 Attempts_to_send=$((Attempts_to_send - 1))
             fi
         fi
@@ -462,12 +469,10 @@ done
 ########################################################################
 # Final checking
 # ===============================================================
-# Verifying that a transaction has been created
+# Verifying that a transaction has been created 
 
-# for icinga
-if [[ -f ${partInElections} ]]; then echo "" > "${partInElections}"; fi
+if [[ -f ${partInElections} ]]; then echo "" > "${partInElections}"; fi     # for icinga
 
-# main script
 if [[ $Required_Signs -gt 1 ]];then
     Trans_List="$(Get_MSIG_Trans_List ${Validator_addr})"
     New_Trans_Qty=$(( $(echo "$Trans_List" | jq -r "[.transactions[]|select(.dest == \"$Trans_DST_Addr\")]|length") ))
@@ -476,13 +481,11 @@ if [[ $Required_Signs -gt 1 ]];then
         echo "INFO: Making transaction for elections was done SUCCESSFULLY! Trnasaction ID: $Elect_Trans_ID You have to sign this transaction!!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         echo "Made transaction ID: $Elect_Trans_ID" >> "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         ${SCRIPT_DIR}/Sign_Trans.sh ${VALIDATOR_NAME} ${Elect_Trans_ID}| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-        # for icinga
-        echo "INFO PARTICIPATION IN ELECTION ${elections_id} OK TRANSACTION" >> "${partInElections}"
+        echo "INFO PARTICIPATION IN ELECTION ${elections_id} OK TRANSACTION" >> "${partInElections}"        # for icinga
     else
         echo "###-ERROR(line $LINENO): Transaction does not made or timeout is too low!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server ALARM!!!" "$Tg_SOS_sign ###-ERROR(line $LINENO): Transaction does not made or timeout is too low!" 
-        # for icinga
-        echo "ERROR PARTICIPATION IN ELECTION ${elections_id} FAILED TRANSACTION" >> "${partInElections}"
+        echo "ERROR PARTICIPATION IN ELECTION ${elections_id} FAILED TRANSACTION" >> "${partInElections}"   # for icinga
     fi
 else
     # ===============================================================
@@ -491,13 +494,11 @@ else
     declare -i Validator_Acc_LT_Sent=`echo "$Validator_Acc_Info" | awk '{print $3}'`
     if [[ $Validator_Acc_LT_Sent -gt $Validator_Acc_LT ]];then
         echo "INFO: Sending transaction for elections was done SUCCESSFULLY!"| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-        # for icinga
-        echo "INFO PARTICIPATION IN ELECTION ${elections_id} OK" >> "${partInElections}"
+        echo "INFO PARTICIPATION IN ELECTION ${elections_id} OK" >> "${partInElections}"        # for icinga
     else
-        echo "###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Sending transaction for eletction FAILED!!!" 2>&1 > /dev/null
-        # for icinga
-        echo "ERROR PARTICIPATION IN ELECTION ${elections_id} FAILED" >> "${partInElections}"
+        echo "###-ERROR(line $LINENO): Sending transaction for elections FAILED!!!" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Sending transaction for elections FAILED!!!" 2>&1 > /dev/null
+        echo "ERROR PARTICIPATION IN ELECTION ${elections_id} FAILED" >> "${partInElections}"   # for icinga
     fi
 fi
 

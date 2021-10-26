@@ -1,4 +1,4 @@
-#!/bin/bash -eE
+#!/bin/bash
 
 # (C) Sergey Tyurin  2021-08-19 16:00:00
 
@@ -38,7 +38,7 @@ source "${SCRIPT_DIR}/functions.shinc"
 [[ ! -d ${ELECTIONS_WORK_DIR} ]] && mkdir -p ${ELECTIONS_WORK_DIR}
 
 #=================================================
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
+echo -e "$(DispEnvInfo)"
 echo
 #########################################################
 GET_F_T(){

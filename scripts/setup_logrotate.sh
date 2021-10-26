@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2020-01-21 19:00:00
+# (C) Sergey Tyurin  2020-10-19 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -86,15 +86,18 @@ echo "$NODES_LOG_ROT" > rot_nodelog.cfg
 OS_SYSTEM=`uname -s`
 if [[ "$OS_SYSTEM" == "Linux" ]];then
 #==============================================================================
-# Ubuntu & CentOS
-    LOGROT_FILE="/etc/logrotate.d/${ServiceName}"
+# Ubuntu, CentOS & Oracle
+    Lunux_Distrib="$(hostnamectl |grep 'Operating System'|awk '{print $3}')"
+    LOGROT_FILE="/etc/logrotate.d/tonnode"
     Root_UN="$(id -un root)"
     Root_GN="$(id -gn root)"
     sudo cp -f rot_nodelog.cfg ${LOGROT_FILE}
     sudo chown ${Root_UN}:${Root_GN} ${LOGROT_FILE}
     sudo chmod 644 ${LOGROT_FILE}
-    [[ "$(hostnamectl |grep 'Operating System'|awk '{print $3}')" == "CentOS" ]] && sudo chcon system_u:object_r:etc_t:s0 ${LOGROT_FILE}
-
+    if [[ "${Lunux_Distrib}" == "CentOS" ]] || [[ "${Lunux_Distrib}" == "Oracle" ]];then
+        # ll -Z /etc/systemd/system
+        sudo chcon system_u:object_r:etc_t:s0 ${LOGROT_FILE}
+    fi
 Run_Script=$(cat <<-_ENDNLR_
 #!/bin/sh
 
@@ -112,12 +115,14 @@ _ENDNLR_
     sudo mv -f tmp.txt ${Cron_Run_File}
     sudo chown ${Root_UN}:${Root_GN} ${Cron_Run_File}
     sudo chmod 755 ${Cron_Run_File}
-    [[ "$(hostnamectl |grep 'Operating System'|awk '{print $3}')" == "CentOS" ]] && sudo chcon system_u:object_r:etc_t:s0 ${Cron_Run_File}
-
+    if [[ "${Lunux_Distrib}" == "CentOS" ]] || [[ "${Lunux_Distrib}" == "Oracle" ]];then
+        # ll -Z /etc/systemd/system
+        sudo chcon system_u:object_r:etc_t:s0 ${Cron_Run_File}
+    fi
 else
 #==============================================================================
 # FreeBSD
-    LOGROT_FILE="/usr/local/etc/logrotate.d/${ServiceName}"
+    LOGROT_FILE="/usr/local/etc/logrotate.d/tonnode"
     Root_UN="$(id -un root)"
     Root_GN="$(id -gn root)"
     sudo cp -f rot_nodelog.cfg ${LOGROT_FILE}

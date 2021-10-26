@@ -1,6 +1,6 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-01-20 15:00:00
+# (C) Sergey Tyurin  2021-10-19 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -25,6 +25,9 @@ source "${SCRIPT_DIR}/functions.shinc"
 echo
 echo "################################# Nodes setup script ###################################"
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
+echo
+echo -e "$(DispEnvInfo)"
+echo
 
 #============================================
 # Check vars settings. 
@@ -76,7 +79,7 @@ fi
 # Get external IP address
 NODE_IP_ADDR=""
 until [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -eq 3 ]]; do
-    NODE_IP_ADDR="$(curl -sS ipv4bot.whatismyipaddress.com)"
+    NODE_IP_ADDR="$(curl -4 icanhazip.com)"
 done
 
 #============================================
@@ -171,20 +174,19 @@ echo " ..DONE"
 # tonos-cli config --url="https://${NETWORK_TYPE}"
 # to be able to use old versions tonos-cli we need two config files
 # special DApp server for FLD network :)
-echo -n "---INFO: Set network for tonos-cli..."
-if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
-#    jq -c ".url = \"https://gql.custler.net\"" tonlabs-cli.conf.json > tonlabs-cli.conf.tmp && mv -f tonlabs-cli.conf.tmp tonlabs-cli.conf.json
-    jq -c ".url = \"https://gql.custler.net\"" tonos-cli.conf.json > tonos-cli.conf.tmp && mv -f tonos-cli.conf.tmp tonos-cli.conf.json
-else
-#    jq -c ".url = \"https://${NETWORK_TYPE}\"" tonlabs-cli.conf.json > tonlabs-cli.conf.tmp && mv -f tonlabs-cli.conf.tmp tonlabs-cli.conf.json
-    jq -c ".url = \"https://${NETWORK_TYPE}\"" tonos-cli.conf.json > tonos-cli.conf.tmp && mv -f tonos-cli.conf.tmp tonos-cli.conf.json
-fi
-echo " ..DONE"
+# echo -n "---INFO: Set network for tonos-cli..."
+# if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
+# #    jq -c ".url = \"https://gql.custler.net\"" tonlabs-cli.conf.json > tonlabs-cli.conf.tmp && mv -f tonlabs-cli.conf.tmp tonlabs-cli.conf.json
+#     jq -c ".url = \"https://gql.custler.net\"" tonos-cli.conf.json > tonos-cli.conf.tmp && mv -f tonos-cli.conf.tmp tonos-cli.conf.json
+# else
+# #    jq -c ".url = \"https://${NETWORK_TYPE}\"" tonlabs-cli.conf.json > tonlabs-cli.conf.tmp && mv -f tonlabs-cli.conf.tmp tonlabs-cli.conf.json
+#     jq -c ".url = \"https://${NETWORK_TYPE}\"" tonos-cli.conf.json > tonos-cli.conf.tmp && mv -f tonos-cli.conf.tmp tonos-cli.conf.json
+# fi
+# echo " ..DONE"
 
 #============================================
 # set log rotate
-# NB! - should be log '>>' in run.sh or 'append' in service. In other case corytrancate will not work
-# For linux OS setup logrotate as service, for FreeBSD - in cron 
+# NB! - should be log '>>' in run.sh or 'append' in service. In other case copytrancate will not work
 ./setup_logrotate.sh
 
 #===========================================
@@ -203,7 +205,9 @@ fi
 # Generate validator contracts addresses and keys
 # Use: ./Prep-Msig.sh <Wallet name> <'Safe' or 'SetCode'> <Num of custodians> <workchain>
 ./Prep-Msig.sh Tik Safe 1 0
-./Prep-Msig.sh $HOSTNAME Safe 3 0
+Val_WC=0
+[[ "$STAKE_MODE" == "msig" ]] && Val_WC="-1"
+./Prep-Msig.sh $HOSTNAME Safe 3 ${Val_WC}
 ./Prep-DePool.sh
 
 #######################################################

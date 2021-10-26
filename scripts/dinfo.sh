@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 DINFO_STRT_TIME=$(date +%s)
 
-# (C) Sergey Tyurin  2021-08-29 15:00:00
+# (C) Sergey Tyurin  2021-10-19 15:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -36,7 +37,7 @@ source "${SCRIPT_DIR}/functions.shinc"
 
 #=================================================
 echo
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
+echo -e "$(DispEnvInfo)"
 echo
 echo -e "$(Determine_Current_Network)"
 echo
@@ -65,7 +66,7 @@ fi
 
 dpc_addr=`echo $Depool_addr | cut -d ':' -f 2`
 dpc_wc=`echo $Depool_addr | cut -d ':' -f 1`
-if [[ ${#dpc_addr} -ne 64 ]] || [[ "${dpc_wc}" != "0" ]];then
+if [[ ${#dpc_addr} -ne 64 ]] || [[ ${dpc_wc} -lt 0 ]];then
     echo "###-ERROR(line $LINENO): Wrong depool address! ${Depool_addr}"
     exit 1
 fi

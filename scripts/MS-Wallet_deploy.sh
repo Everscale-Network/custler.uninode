@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# (C) Sergey Tyurin 2021-08-15 15:00:00
+# (C) Sergey Tyurin 2021-10-19 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -28,6 +28,10 @@ echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
+
+echo
+echo -e "$(DispEnvInfo)"
+echo
 
 KEY_FILES_DIR=${KEYS_DIR}
 SEND_ATTEMPTS=3
@@ -62,7 +66,7 @@ if [[ ! $CodeOfWallet == "Safe" ]] && [[ ! $CodeOfWallet == "SetCode" ]];then
 fi
 Cust_QTY=$3
 if [[ $Cust_QTY -lt 1 ]] || [[ $Cust_QTY -gt 32 ]];then
-    echo "###-ERROR(line $LINENO): Wrong Num of custodians must be >= 3 and <= 31"  
+    echo "###-ERROR(line $LINENO): Wrong Num of custodians must be >= 1 and <= 31"  
     show_usage
     exit 1
 fi
@@ -72,6 +76,7 @@ if [[ $ReqConfirms -gt $Cust_QTY ]] || [[ $ReqConfirms -lt 1 ]];then
     show_usage
     exit 1
 fi
+ForceDeploy=$5
 
 #==================================================
 # Get Wallet address for deploy
@@ -88,23 +93,23 @@ echo "Wallet addr for deploy : $WALL_ADDR"
 #==================================================
 # Get Wallet work chain for deploy
 Work_Chain=`echo "${WALL_ADDR}" | cut -d ':' -f 1`
-if [[ ! "$Work_Chain" == "0" ]] && [[ ! "$Work_Chain" == "-1" ]];then
-    echo "###-ERROR(line $LINENO): Wrong work chain in address. Should be '0' or '-1'"
-    exit 1
-fi
+# if [[ ! "$Work_Chain" == "0" ]] && [[ ! "$Work_Chain" == "-1" ]];then
+#     echo "###-ERROR(line $LINENO): Wrong work chain in address. Should be '0' or '-1'"
+#     [[ "${ForceDeploy}" != "force" ]] && exit 1
+# fi
 echo "Wallet work chain for deploy : $Work_Chain"
 
 #=================================================
 # Check deployed already
-ACCOUNT_INFO=`$CALL_TC account ${WALL_ADDR}`
-AMOUNT=`echo "$ACCOUNT_INFO" |grep "balance:" |awk '{print $2}'`
+ACCOUNT_INFO="$(Get_Account_Info "${WALL_ADDR}")"
+AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
 ACTUAL_BALANCE=$(echo "scale=3; $((AMOUNT)) / 1000000000" | $CALL_BC)
-ACC_STATUS=`echo "$ACCOUNT_INFO" | grep 'acc_type:'|awk '{print $2}'`
+ACC_STATUS=`echo "$ACCOUNT_INFO" | awk '{print $1}'`
 if [[ "$ACC_STATUS" == "Active" ]];then
     echo
-    echo "###-ERROR(line $LINENO): Wallet deployed already. Status: \"$ACC_STATUS\"; Balance: $ACTUAL_BALANCE"
+    echo -e "###-ERROR(line $LINENO): ${YellowBack}${BoldText}Wallet deployed already.${NormText} Status: \"$ACC_STATUS\"; Balance: $ACTUAL_BALANCE"
     echo
-    exit 1
+    [[ "${ForceDeploy}" != "force" ]] && exit 1
 fi
 echo "Wallet status : \"$ACC_STATUS\""
 
@@ -161,7 +166,7 @@ if [[ ! "$WALL_ADDR" == "$ADDR_from_Keys" ]];then
     echo "Given addr: $WALL_ADDR"
     echo "Calc  addr: $ADDR_from_Keys"
     echo 
-    exit 1
+    [[ "${ForceDeploy}" != "force" ]] && exit 1
 fi
 
 #=================================================
@@ -209,7 +214,7 @@ MBF_addr="$(echo "$MBF_Output"|grep "Contract's address:"|awk '{print $3}')"
 
 if [[ "${MBF_addr}" != "${WALL_ADDR}" ]];then
     echo "###-ERROR(line $LINENO): Address from BOC ($MBF_addr) is not equal calc address ($WALL_ADDR) !"
-    exit 1
+    [[ "${ForceDeploy}" != "force" ]] && exit 1
 else
     echo "DONE"
 fi

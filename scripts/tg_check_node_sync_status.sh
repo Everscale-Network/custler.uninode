@@ -1,4 +1,4 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
 # (C) Sergey Tyurin  2021-01-25 15:00:00
 

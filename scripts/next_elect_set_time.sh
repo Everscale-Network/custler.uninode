@@ -1,6 +1,7 @@
-#!/bin/bash 
+#!/usr/bin/env bash
+set -eE
 
-# (C) Sergey Tyurin  2021-09-02 10:00:00
+# (C) Sergey Tyurin  2021-10-19 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -18,14 +19,6 @@
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
 
-SCRPT_USER=$USER
-USER_HOME=$HOME
-[[ -z "$SCRPT_USER" ]] && SCRPT_USER=$LOGNAME
-[[ -n $(echo "$USER_HOME"|grep 'root') ]] && SCRPT_USER="root"
-
-DELAY_TIME=0        # Delay time from the start of elections
-TIME_SHIFT=300      # Time between sequential scripts
-
 echo
 echo "############################## Set crontab for next elections ##################################"
 echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
@@ -34,8 +27,13 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
+SCRPT_USER=$USER
+USER_HOME=$HOME
+[[ -z "$SCRPT_USER" ]] && SCRPT_USER=$LOGNAME
+[[ -n $(echo "$USER_HOME"|grep 'root') ]] && SCRPT_USER="root"
+
 #=================================================
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
+echo -e "$(DispEnvInfo)"
 echo
 echo -e "$(Determine_Current_Network)"
 echo
@@ -64,46 +62,63 @@ echo "INFO: Elector Address: $elector_addr"
 election_id=$(Get_Current_Elections_ID)
 echo "INFO: Current Election ID: $election_id"
 
-case "$NODE_TYPE" in
-    RUST)
-        ELECT_TIME_PAR=$($CALL_RC -c "getconfig 15"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
-        LIST_PREV_VALS=$($CALL_RC -c "getconfig 32"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
-        LIST_CURR_VALS=$($CALL_RC -c "getconfig 34"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
-        LIST_NEXT_VALS=$($CALL_RC -c "getconfig 36"|sed -e '1,/GIT_BRANCH:/d'|sed 's/config param: //')
+if $FORCE_USE_DAPP ;then
+    ELECT_TIME_PAR=$($CALL_TC -j getconfig 15)
+    LIST_CURR_VALS=$($CALL_TC -j getconfig 34)
+    LIST_NEXT_VALS=$($CALL_TC -j getconfig 36)
 
-        declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq '.p34.utime_until'| head -n 1`	        # utime_until
-        if [[ "$election_id" == "0" ]];then 
-            CURR_VAL_UNTIL=`echo "${LIST_PREV_VALS}" | jq '.p32.utime_until'| head -n 1`	                # utime_until
-            if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != '{}' ]];then
-                CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq '.p36.utime_since'| head -n 1`	            # utime_since
-            fi
+    declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.utime_until'`	            # utime_until
+    if [[ "$election_id" == "0" ]];then 
+        CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.utime_since'`	                # utime_until
+        if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != '{}' ]];then
+            CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq -r '.utime_since'`	            # utime_since
         fi
-        declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq '.p15.validators_elected_for'| head -n 1`	# validators_elected_for
-        declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.p15.elections_start_before'| head -n 1`	# elections_start_before
-        declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq '.p15.elections_end_before'| head -n 1`	# elections_end_before
-        ;;
-    CPP)
-        ELECT_TIME_PAR=`$CALL_LC -rc "getconfig 15" -t "3" -rc "quit" 2>/dev/null`
-        LIST_PREV_VALS=`$CALL_LC -rc "getconfig 32" -t "3" -rc "quit" 2>/dev/null`
-        LIST_CURR_VALS=`$CALL_LC -rc "getconfig 34" -t "3" -rc "quit" 2>/dev/null`
-        LIST_NEXT_VALS=`$CALL_LC -rc "getconfig 36" -t "3" -rc "quit" 2>/dev/null`
-        declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | grep -i "cur_validators"  | awk -F ":" '{print $4}'|awk '{print $1}'`	# utime_until
-        NEXT_VAL_EXIST=`echo "${LIST_NEXT_VALS}"| grep -i "ConfigParam(36)" | grep -i 'null'`                                       # Config p36: null
-        if [[ "$election_id" == "0" ]];then 
-            CURR_VAL_UNTIL=`echo "${LIST_PREV_VALS}" | grep -i "prev_validators"  | awk -F ":" '{print $4}'|awk '{print $1}'`	    # utime_until
-            if [[ -z "$NEXT_VAL_EXIST" ]];then
-                CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | grep -i "next_validators"  | awk -F ":" '{print $3}'|awk '{print $1}'`	# utime_until
+    fi
+    declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq -r '.validators_elected_for'`	# validators_elected_for
+    declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.elections_start_before'`	# elections_start_before
+    declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.elections_end_before'  `	# elections_end_before
+else
+    case "$NODE_TYPE" in
+        RUST)
+            ELECT_TIME_PAR=$($CALL_RC -j -c "getconfig 15"|sed 's/config param: //')
+            LIST_CURR_VALS=$($CALL_RC -j -c "getconfig 34"|sed 's/config param: //')
+            LIST_NEXT_VALS=$($CALL_RC -j -c "getconfig 36"|sed 's/config param: //')
+
+            declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.p34.utime_until'`	            # utime_until
+            if [[ "$election_id" == "0" ]];then 
+                CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.p34.utime_since'`	                # utime_until
+                if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != '{}' ]];then
+                    CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq -r '.p36.utime_since'`	            # utime_since
+                fi
             fi
-        fi
-        declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | grep -i "ConfigParam(15)" | awk -F ":" '{print $2}' |awk '{print $1}'`	# validators_elected_for
-        declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | grep -i "ConfigParam(15)" | awk -F ":" '{print $3}' |awk '{print $1}'`	# elections_start_before
-        declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | grep -i "ConfigParam(15)" | awk -F ":" '{print $4}' |awk '{print $1}'`	# elections_end_before
-        ;;
-    *)
-        echo "###-ERROR(line $LINENO): Unknown node type! Set NODE_TYPE= to 'RUST' or CPP' in env.sh"
-        exit 1
-        ;; 
-esac
+            declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq -r '.p15.validators_elected_for'`	# validators_elected_for
+            declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.p15.elections_start_before'`	# elections_start_before
+            declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.p15.elections_end_before'  `	# elections_end_before
+            ;;
+        CPP)
+            # ConfigParam(34) = (
+            # cur_validators:(validators_ext utime_since:1632812112 utime_until:1632822912 total:16 main:16 total_weight:1152921504606846968
+            ELECT_TIME_PAR=`$CALL_LC -rc "getconfig 15" -t "3" -rc "quit" 2>/dev/null`
+            LIST_CURR_VALS=`$CALL_LC -rc "getconfig 34" -t "3" -rc "quit" 2>/dev/null`
+            LIST_NEXT_VALS=`$CALL_LC -rc "getconfig 36" -t "3" -rc "quit" 2>/dev/null`
+            declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | grep -i "cur_validators"  | awk -F ":" '{print $4}'|awk '{print $1}'`	# utime_until
+            NEXT_VAL_EXIST=`echo "${LIST_NEXT_VALS}"| grep -i "ConfigParam(36)" | grep -i 'null'`                                       # Config p36: null
+            if [[ "$election_id" == "0" ]];then 
+                CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | grep -i "cur_validators"  | awk -F ":" '{print $3}'|awk '{print $1}'`	    # utime_until
+                if [[ -z "$NEXT_VAL_EXIST" ]];then
+                    CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | grep -i "next_validators"  | awk -F ":" '{print $3}'|awk '{print $1}'`	# utime_until
+                fi
+            fi
+            declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | grep -i "ConfigParam(15)" | awk -F ":" '{print $2}' |awk '{print $1}'`	# validators_elected_for
+            declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | grep -i "ConfigParam(15)" | awk -F ":" '{print $3}' |awk '{print $1}'`	# elections_start_before
+            declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | grep -i "ConfigParam(15)" | awk -F ":" '{print $4}' |awk '{print $1}'`	# elections_end_before
+            ;;
+        *)
+            echo "###-ERROR(line $LINENO): Unknown node type! Set NODE_TYPE= to 'RUST' or CPP' in env.sh"
+            exit 1
+            ;; 
+    esac
+fi
 #===================================================
 # 
 PREV_ELECTION_TIME=$((CURR_VAL_UNTIL - STRT_BEFORE + TIME_SHIFT + DELAY_TIME))
@@ -172,7 +187,7 @@ if [[ "$OS_SYSTEM" == "FreeBSD" ]];then
 
 CRONT_JOBS=$(cat <<-_ENDCRN_
 SHELL=/bin/bash
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$USER_HOME/bin
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$NODE_BIN_DIR
 HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
@@ -185,7 +200,7 @@ else
 
 CRONT_JOBS=$(cat <<-_ENDCRN_
 SHELL=/bin/bash
-PATH=$USER_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+PATH=$NODE_BIN_DIR:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
 HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
@@ -202,11 +217,13 @@ echo "$CRONT_JOBS" | sudo crontab -u $SCRPT_USER -
 
 sudo crontab -l -u $SCRPT_USER | tail -n 8
 
+#=================================================
 # for icinga
 echo "# prepare , participation , next elections" > "${nextElections}"
 echo "INFO ELECTIONS $NXT_ELECT_1 $NXT_ELECT_2 $NXT_ELECT_3" >> "${nextElections}"
 
 echo "-------------------------------------------------------------------"
+
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date)"
 echo "================================================================================================"
 

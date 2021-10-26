@@ -1,4 +1,4 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
 BUILD_STRT_TIME=$(date +%s)
 echo
@@ -10,15 +10,14 @@ source "${SCRIPT_DIR}/env.sh"
 
 #=====================================================
 # download contracts
-rm -rf "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
-rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
-git clone ${CONTRACTS_GIT_REPO} "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
-cd "${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+rm -rf "${ContractsDIR}"
+rm -rf "${ContractsDIR}/Surf-contracts"
+git clone ${CONTRACTS_GIT_REPO} "${ContractsDIR}"
+cd "${ContractsDIR}"
 git checkout $CONTRACTS_GIT_COMMIT 
-cd ${NODE_SRC_TOP_DIR}
-git clone --single-branch --branch multisig-surf-v2 https://github.com/tonlabs/ton-labs-contracts.git "${NODE_SRC_TOP_DIR}/Surf-contracts"
+cd ${ContractsDIR}
+git clone --single-branch --branch ${Surf_GIT_Commit} ${CONTRACTS_GIT_REPO} "${ContractsDIR}/Surf-contracts"
 
-RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
 curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
 BUILD_END_TIME=$(date +%s)

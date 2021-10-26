@@ -1,4 +1,4 @@
-#!/bin/bash -eE
+#!/usr/bin/env bash
 
 BUILD_STRT_TIME=$(date +%s)
 echo
@@ -21,6 +21,11 @@ fi
 git clone --recurse-submodules "${RCONS_GIT_REPO}" $RCONS_SRC_DIR
 cd $RCONS_SRC_DIR
 git checkout "${RCONS_GIT_COMMIT}"
+git submodule init && git submodule update --recursive
+git submodule foreach 'git submodule init'
+git submodule foreach 'git submodule update  --recursive'
+
+cargo update
 cargo build --release
 
 find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $HOME/bin/ \;
