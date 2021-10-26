@@ -106,7 +106,7 @@ fi
 echo 
 echo "================= Deploy DePool contract =========================="
 
-MinStake=`$CALL_TC -j convert tokens ${MinStakeT}||jq -r '.value'`
+MinStake=`$CALL_TC -j convert tokens ${MinStakeT}|jq -r '.value'`
 ValidatorAssurance=`$CALL_TC -j convert tokens ${ValidatorAssuranceT}|jq -r '.value'`
 
 ProxyCode="$($CALL_TC -j decode stateinit --tvc ${DSCs_DIR}/DePoolProxy.tvc | jq -r '.code')"
