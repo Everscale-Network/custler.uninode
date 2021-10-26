@@ -190,7 +190,7 @@ function Determine_Current_Network() {
 function echoerr() { printf "\e[31;1m%s\e[0m\n" "$*" >&2; }
 # =====================================================
 function DispEnvInfo() {
-    echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $([ $FORCE_USE_DAPP ] && echo "DApp" || echo "console")"
+    echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $(if $FORCE_USE_DAPP;then echo "DApp"; else  echo "console"; fi )"
 }
 # =====================================================
 function hex2dec() {
