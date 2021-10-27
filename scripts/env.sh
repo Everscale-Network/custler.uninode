@@ -19,12 +19,12 @@
 ##################################################################################################################
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
-export NODE_SRC_TOP_DIR=$(cd "${SCRIPT_DIR}/../" && pwd -P)
+export NODE_TOP_DIR=$(cd "${SCRIPT_DIR}/../" && pwd -P)
 
 OS_SYSTEM=`uname -s`
 #=====================================================
 # All nets configs folder
-export CONFIGS_DIR=${NODE_SRC_TOP_DIR}/configs
+export CONFIGS_DIR=${NODE_TOP_DIR}/configs
 
 #=====================================================
 # Network related variables
@@ -145,14 +145,14 @@ export Surf_GIT_Commit="multisig-surf-v2"
 
 #=====================================================
 # Source code folders
-export TON_SRC_DIR="${NODE_SRC_TOP_DIR}/cnode"
+export TON_SRC_DIR="${NODE_TOP_DIR}/cnode"
 export TON_BUILD_DIR="${TON_SRC_DIR}/build"
-export TONOS_CLI_SRC_DIR="${NODE_SRC_TOP_DIR}/tonos-cli"
+export TONOS_CLI_SRC_DIR="${NODE_TOP_DIR}/tonos-cli"
 export UTILS_DIR="${TON_BUILD_DIR}/utils"
-export RNODE_SRC_DIR="${NODE_SRC_TOP_DIR}/rnode"
-export RCONS_SRC_DIR="${NODE_SRC_TOP_DIR}/rcons"
-export TVM_LINKER_SRC_DIR="${NODE_SRC_TOP_DIR}/TVM_Linker"
-export SOLC_SRC_DIR="${NODE_SRC_TOP_DIR}/SolC"
+export RNODE_SRC_DIR="${NODE_TOP_DIR}/rnode"
+export RCONS_SRC_DIR="${NODE_TOP_DIR}/rcons"
+export TVM_LINKER_SRC_DIR="${NODE_TOP_DIR}/TVM_Linker"
+export SOLC_SRC_DIR="${NODE_TOP_DIR}/SolC"
 
 #=====================================================
 # Work folders for db, keys and conf
@@ -182,7 +182,7 @@ export CRYPTO_DIR=$TON_SRC_DIR/crypto
 
 #=====================================================
 # Smart contracts paths
-export ContractsDIR="${NODE_SRC_TOP_DIR}/ton-labs-contracts"
+export ContractsDIR="${NODE_TOP_DIR}/ton-labs-contracts"
 
 export DSCs_DIR="${ContractsDIR}/solidity/depool"
 [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && export DSCs_DIR="${CONFIGS_DIR}/depool_RFLD"

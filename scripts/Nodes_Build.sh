@@ -241,10 +241,10 @@ if $CPP_NODE_BUILD;then
 
     #=====================================================
     echo "---INFO: build utils (convert_address)..."
-    cd "${NODE_SRC_TOP_DIR}/utils/convert_address"
+    cd "${NODE_TOP_DIR}/utils/convert_address"
     cargo update
     cargo build --release
-    cp "${NODE_SRC_TOP_DIR}/utils/convert_address/target/release/convert_address" "$NODE_BIN_DIR/"
+    cp "${NODE_TOP_DIR}/utils/convert_address/target/release/convert_address" "$NODE_BIN_DIR/"
     echo "---INFO: build utils (convert_address)... DONE"
 fi
 #=====================================================
@@ -362,11 +362,11 @@ echo
 echo '################################################'
 echo "---INFO: download contracts ... "
 rm -rf "${ContractsDIR}"
-rm -rf "${NODE_SRC_TOP_DIR}/Surf-contracts"
+rm -rf "${NODE_TOP_DIR}/Surf-contracts"
 git clone ${CONTRACTS_GIT_REPO} "${ContractsDIR}"
 cd "${ContractsDIR}"
 git checkout $CONTRACTS_GIT_COMMIT 
-cd ${NODE_SRC_TOP_DIR}
+cd ${NODE_TOP_DIR}
 git clone --single-branch --branch ${Surf_GIT_Commit} ${CONTRACTS_GIT_REPO} "${ContractsDIR}/Surf-contracts"
 
 curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
