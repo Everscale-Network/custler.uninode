@@ -42,7 +42,6 @@ case "$NODE_TYPE" in
             exit 1
         fi
         ;;
-    
     CPP)
         if [[ -z $TON_LOG_DIR ]];then
             echo "###-ERROR: 'TON_LOG_DIR' variable cannot be empty! Edit env.sh to set the variable."
@@ -53,7 +52,6 @@ case "$NODE_TYPE" in
             exit 1
         fi
         ;;
-    
     *)
         echo "###-ERROR: Unknown node type! Set NODE_TYPE= to 'RUST' or 'CPP' in env.sh"
         exit 1
@@ -74,13 +72,6 @@ fi
 #============================================
 # Update networks global configs from github
 ./nets_config_update.sh
-
-#============================================
-# Get external IP address
-NODE_IP_ADDR=""
-until [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -eq 3 ]]; do
-    NODE_IP_ADDR="$(curl -4 icanhazip.com)"
-done
 
 #============================================
 # Info 

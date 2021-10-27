@@ -89,16 +89,16 @@ export  RST_NET_ID="228F05E8BCB11DEF"
 export HOSTNAME=$(hostname -s)
 export VALIDATOR_NAME="${HOSTNAME%%.*}"
 
-if [[ "$OS_SYSTEM" == "Linux" ]];then
-    NODE_IP_ADDR="$(ip a|grep -w inet| grep global | awk '{print $2}' | cut -d "/" -f 1)"
-else
-    NODE_IP_ADDR="$(ifconfig -u |grep -w inet|grep -v '127.0.0.1'|head -1|awk '{print $2}')"
-fi
+# if [[ "$OS_SYSTEM" == "Linux" ]];then
+#     NODE_IP_ADDR="$(ip a|grep -w inet| grep global | awk '{print $2}' | cut -d "/" -f 1)"
+# else
+#     NODE_IP_ADDR="$(ifconfig -u |grep -w inet|grep -v '127.0.0.1'|head -1|awk '{print $2}')"
+# fi
 # NODE_IP_ADDR=""
 # until [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -eq 3 ]]; do
 #     NODE_IP_ADDR="$(curl -4 icanhazip.com)"
 # done
-export NODE_IP_ADDR
+export NODE_IP_ADDR="0.0.0.0"
 
 export ServiceName="tonnode"
 export ADNL_PORT="30303"

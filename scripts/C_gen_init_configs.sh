@@ -26,13 +26,6 @@ echo
 echo "################################# CPP node confugure script ###################################"
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
 
-#============================================
-# Get external IP address
-NODE_IP_ADDR=""
-until [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -eq 3 ]]; do
-    NODE_IP_ADDR="$(curl -sS ipv4bot.whatismyipaddress.com)"
-done
-
 #===========================================
 echo "---INFO: generate initial ${TON_WORK_DIR}/db/config.json..."
 "${TON_BUILD_DIR}/validator-engine/validator-engine" -C "${TON_WORK_DIR}/etc/ton-global.config.json" --db "${TON_WORK_DIR}/db" --ip "${NODE_IP_ADDR}:${ADNL_PORT}"

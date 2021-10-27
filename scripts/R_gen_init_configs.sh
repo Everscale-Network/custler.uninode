@@ -37,13 +37,6 @@ else
     SETUP_GROUP="$(id -gn)"
 fi
 
-#============================================
-# Get external IP address
-NODE_IP_ADDR=""
-until [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -eq 3 ]]; do
-    NODE_IP_ADDR="$(curl -sS ipv4bot.whatismyipaddress.com)"
-done
-
 #===========================================
 # Configs source files
 DFLT_CFG_FILE="${CONFIGS_DIR}/rnode/default_config.json"
