@@ -28,7 +28,7 @@ git submodule foreach 'git submodule update  --recursive'
 cargo update
 cargo build --release
 
-find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $HOME/bin/ \;
+find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} ${NODE_BIN_DIR}/ \;
 
 echo
 BUILD_END_TIME=$(date +%s)

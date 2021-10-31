@@ -94,14 +94,14 @@ export VALIDATOR_NAME="${HOSTNAME%%.*}"
 # else
 #     NODE_IP_ADDR="$(ifconfig -u |grep -w inet|grep -v '127.0.0.1'|head -1|awk '{print $2}')"
 # fi
-# NODE_IP_ADDR=""
-# until [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -eq 3 ]]; do
-#     NODE_IP_ADDR="$(curl -4 icanhazip.com)"
-# done
-export NODE_IP_ADDR="0.0.0.0"
+NODE_IP_ADDR=""
+until [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -eq 3 ]]; do
+    NODE_IP_ADDR="$(curl -4 icanhazip.com 2>/dev/null)"
+done
+export NODE_IP_ADDR
 
 export ServiceName="tonnode"
-export ADNL_PORT="30303"
+export ADNL_PORT="48888"
 export NODE_ADDRESS="${NODE_IP_ADDR}:${ADNL_PORT}"
 export LITESERVER_IP="127.0.0.1"
 export LITESERVER_PORT="3031"
@@ -122,6 +122,10 @@ export CNODE_GIT_COMMIT="mainnet_patch"
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
+if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] || [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
+    export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
+    export RNODE_GIT_COMMIT="1-nil-dependencies"
+fi
 
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
 export RCONS_GIT_COMMIT="master"

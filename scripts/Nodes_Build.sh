@@ -33,7 +33,7 @@ source "${SCRIPT_DIR}/env.sh"
 echo
 echo "################################### FreeTON nodes build script #####################################"
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
-echo -e "$(DispEnvInfo)"
+echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $(if $FORCE_USE_DAPP;then echo "DApp"; else  echo "console"; fi )"
 
 BackUP_Time="$(date  +'%F_%T'|tr ':' '-')"
 
@@ -98,16 +98,18 @@ case "$OS_SYSTEM" in
         $PKG_MNGR upgrade -y
         FEXEC_FLG="-perm +111"
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_freebsd_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
-        #	libmicrohttpd \ 
-        #   does not build with libmicrohttpd-0.9.71
-        #   build & install libmicrohttpd-0.9.70
-        mkdir -p $HOME/src
-        cd $HOME/src
-#        sudo pkg remove -y libmicrohttpd | cat
-        fetch https://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.70.tar.gz
-        tar xf libmicrohttpd-0.9.70.tar.gz
-        cd libmicrohttpd-0.9.70
-        ./configure && make && sudo make install
+        if ${CPP_NODE_BUILD};then
+            #	libmicrohttpd \ 
+            #   does not build with libmicrohttpd-0.9.71
+            #   build & install libmicrohttpd-0.9.70
+            mkdir -p $HOME/src
+            cd $HOME/src
+            # sudo pkg remove -y libmicrohttpd | cat
+            fetch https://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.70.tar.gz
+            tar xf libmicrohttpd-0.9.70.tar.gz
+            cd libmicrohttpd-0.9.70
+            ./configure && make && sudo make install
+            fi
         ;;
 
     CentOS)
@@ -118,11 +120,13 @@ case "$OS_SYSTEM" in
         $PKG_MNGR group install -y "Development Tools"
         $PKG_MNGR config-manager --set-enabled powertools 
         $PKG_MNGR --enablerepo=extras install -y epel-release
-        $PKG_MNGR remove -y boost
-        $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
-        $PKG_MNGR install -y gcc-toolset-10-toolchain
-        source /opt/rh/gcc-toolset-10/enable
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        if ${CPP_NODE_BUILD};then
+            $PKG_MNGR remove -y boost
+            $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
+            $PKG_MNGR install -y gcc-toolset-10-toolchain
+            source /opt/rh/gcc-toolset-10/enable
+        fi
         ;;
 
     Oracle)
@@ -133,11 +137,13 @@ case "$OS_SYSTEM" in
         $PKG_MNGR group install -y "Development Tools"
         $PKG_MNGR config-manager --set-enabled ol8_codeready_builder
         $PKG_MNGR install -y oracle-epel-release-el8
-        $PKG_MNGR remove -y boost
-        $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
-        $PKG_MNGR install -y gcc-toolset-10-toolchain
-        source /opt/rh/gcc-toolset-10/enable
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        if ${CPP_NODE_BUILD};then
+            $PKG_MNGR remove -y boost
+            $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
+            $PKG_MNGR install -y gcc-toolset-10-toolchain
+            source /opt/rh/gcc-toolset-10/enable
+        fi
         ;;
 
     Ubuntu)
@@ -146,11 +152,13 @@ case "$OS_SYSTEM" in
         PKG_MNGR=$PKG_MNGR_Ubuntu
         $PKG_MNGR install -y software-properties-common
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa
-        $PKG_MNGR remove -y libboost-all-dev|cat
-        $PKG_MNGR update && $PKG_MNGR upgrade -y 
-        $PKG_MNGR install -y g++-10
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 90 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        if ${CPP_NODE_BUILD};then
+            $PKG_MNGR remove -y libboost-all-dev|cat
+            $PKG_MNGR update && $PKG_MNGR upgrade -y 
+            $PKG_MNGR install -y g++-10
+            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 90 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
+        fi
         ;;
 
     *)
@@ -170,7 +178,7 @@ $PKG_MNGR install -y $PKGs_SET
 
 #=====================================================
 # Install BOOST for C++ node
-if [[ "$NODE_TYPE" == "CPP" ]]; then
+if ${CPP_NODE_BUILD}; then
     echo
     echo '################################################'
     echo '---INFO: Install BOOST from source'
@@ -207,7 +215,7 @@ source $HOME/.cargo/env
 cargo install cargo-binutils
 #=====================================================
 # Build C++ node
-if $CPP_NODE_BUILD;then
+if ${CPP_NODE_BUILD};then
     echo
     echo '################################################'
     echo "---INFO: Build C++ node ..."
@@ -249,7 +257,7 @@ if $CPP_NODE_BUILD;then
 fi
 #=====================================================
 # Build rust node
-if $RUST_NODE_BUILD;then
+if ${RUST_NODE_BUILD};then
     echo
     echo '################################################'
     echo "---INFO: build RUST NODE ..."
@@ -277,13 +285,13 @@ if $RUST_NODE_BUILD;then
     cargo update
 
     # --features "compression,sha2-native,external_db,metrics"
-    if $DAPP_NODE_BUILD;then
+    if ${DAPP_NODE_BUILD};then
         RNODE_FEATURES="compression,sha2-native,external_db,metrics"
         [[ "$NODE_TYPE" == "CPP" ]] && RNODE_FEATURES="sha2-native,external_db,metrics"
     else
         RNODE_FEATURES="compression,sha2-native"
     fi
-    echo "---INFO: RNODE build flags: $RNODE_FEATURES "
+    echo -e "${BoldText}${BlueBack}---INFO: RNODE build flags: ${RNODE_FEATURES} ${NormText}"
 
     RUSTFLAGS="-C target-cpu=native" cargo build --release --features "${RNODE_FEATURES}"
 

@@ -22,7 +22,7 @@ git submodule foreach 'git submodule update  --recursive'
 
 cargo update
 cargo build --release
-cp -f "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "$HOME/bin/"
+cp -f "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "${NODE_BIN_DIR}/"
 
 echo
 $HOME/bin/tonos-cli version

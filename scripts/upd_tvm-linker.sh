@@ -25,7 +25,7 @@ git submodule foreach 'git submodule update  --recursive'
 cd "${TVM_LINKER_SRC_DIR}/tvm_linker"
 cargo update
 cargo build --release
-cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" $HOME/bin/
+cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" ${NODE_BIN_DIR}/
 
 echo
 $HOME/bin/tvm_linker --version

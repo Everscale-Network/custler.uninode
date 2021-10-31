@@ -19,6 +19,7 @@
 ##################################################################################################################
 #
 #========= Functions list ===========
+# DispEnvInfo()
 # Determine_Current_Network()
 # echoerr()
 # hex2dec()
@@ -1271,7 +1272,7 @@ function Send_MSIG_Trans_Confirm() {
         exit 1
     fi
     if $FORCE_USE_DAPP ;then
-        if [[ -e $($CALL_TC sendfile confirm-msg.boc| grep -i 'success') ]]; then
+        if [[ -e $($CALL_TC sendfile confirm-msg.boc| grep -i 'Succeded') ]]; then
             echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Send message for confirmation FAILED!!!"
             exit 1
         fi
@@ -1318,7 +1319,7 @@ function Send_File_To_BC() {
     [[ ! -f $BOC_File ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): File to send not found!!!"
 
     if $FORCE_USE_DAPP ;then
-        if [[ -n $($CALL_TC sendfile "$BOC_File"| grep -i 'success') ]]; then
+        if [[ -n $($CALL_TC sendfile "$BOC_File"| grep -i 'Succeded') ]]; then
             Result="success"
             sleep $LC_Send_MSG_Timeout
         fi
