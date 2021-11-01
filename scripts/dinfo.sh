@@ -407,6 +407,9 @@ do
     Next_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r "[.stakes[]]|.[2]")
     NOS_Info=$(printf "%'9.2f" "$(echo $((Next_Ord_Stake)) / 1000000000 | jq -nf /dev/stdin)")
 
+    Vesting_Stake=$(echo "$Current_Participant_Info" | jq -r '[.vestings[]][0].remainingAmount')
+    VOS_Info=$(printf "%'9.2f" "$(echo $((Vesting_Stake *2)) / 1000000000 | jq -nf /dev/stdin)")
+
     Reward=$(echo "$Current_Participant_Info" | jq -r ".reward")
     RWRD_Info=$(printf "%'8.2f" "$(echo $((Reward)) / 1000000000 | jq -nf /dev/stdin)")
 
@@ -425,7 +428,7 @@ do
     fi
 
     #--------------------------------------------
-    echo -e "$(printf '%4d' $(($i + 1))) $Curr_Part_Addr Reward: $RWRD_Info ; Stakes(${REINV_Info}): $POS_Info / $COS_Info / $NOS_Info   $Wtdr_Val_Info"
+    echo -e "$(printf '%4d' $(($i + 1))) $Curr_Part_Addr Reward: $RWRD_Info ; Stakes(${REINV_Info}): $POS_Info / $COS_Info / $NOS_Info   $Wtdr_Val_Info Vesting: $VOS_Info"
     #--------------------------------------------
 done
 
