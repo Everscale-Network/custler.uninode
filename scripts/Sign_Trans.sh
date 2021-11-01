@@ -154,7 +154,7 @@ echo "******************************"
 # Assume that transaction was made and already signed by custodian with pubkey index # 0x0
 # other custodians has keys in files 
 Confirmed_Flag=false
-for (( i=2; i <= ${Confirms_QTY}; i++ ))
+for (( i=$((Conf_Recv_QTY + 1)); i <= ${Confirms_QTY}; i++ ))
 do
     Signed_Flag=false
     for (( Attempts_to_send=1;  Attempts_to_send <= ${SEND_ATTEMPTS};  Attempts_to_send++ ))
