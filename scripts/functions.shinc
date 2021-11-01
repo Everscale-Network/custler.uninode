@@ -476,8 +476,8 @@ function Get_Account_Info() {
         return
     fi
     if $FORCE_USE_DAPP ;then
-        local ACCOUNT_INFO=`$CALL_TC -j account ${ACCOUNT}` 2>&1
-        if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
+        local ACCOUNT_INFO=`$CALL_TC -j account ${ACCOUNT} 2>&1 | jq` 
+        if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep '{}')" ]];then
             echo "None 0 0"
             return
         fi
