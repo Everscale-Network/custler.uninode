@@ -4,7 +4,7 @@
 #### - Support both Rust and C++ nodes
 #### - Support both DePool and msig validations  
 #### - Support both fift and solidity electors
-#### - Run on Ubuntu 20.04, CentOS 8.2, FreeBSD 12.2/13 (for Linux - latest kernel preferable)
+#### - Works on Ubuntu 20.04, CentOS 8.3, Oracle Linux 8.4, FreeBSD 13 (for Linux - latest kernel preferable)
 
 ## 0. System settings
 Login as root and do
@@ -32,8 +32,9 @@ cp -r /root/.ssh /home/svt/
 chown -R svt:svt /home/svt/.ssh
 ```
 Setup your host name, timezone and firewall, update your system core and packs. 
+Remember to open UDP port number defined in **ADNL_PORT** variable in 'env.sh' in your firewall. 
 
-If you have separate disk for database, prepare it and mount to **/var/ton-work** (default). You can change it in `env.sh`
+If you have separate disk for database, prepare it and mount to **/var/ton-work** (default). You can change it in `env.sh` in **TON_WORK_DIR** variable.
 
 **NB!! Double check if time sync is enabled.**
 
@@ -41,54 +42,53 @@ If you have separate disk for database, prepare it and mount to **/var/ton-work*
 First of all you have to set the follow environment variables for certain network at the beginning of **$HOME/custler.uninode/scripts/env.sh**: 
 
 ```bash
-export NETWORK_TYPE="fld.ton.dev"   # can be main.* / net.* / fld.* / rustnet.*
-export STAKE_MODE="depool"              # can be 'msig' or 'depool'
-export MAX_FACTOR=3
+export NETWORK_TYPE="rfld.ton.dev"      # can be main.* / net.* / fld.* / rustnet.* / rfld.*
+export NODE_TYPE="RUST"                 # Can be CPP / RUST. Also defines network to build DApp fullnode with or w/o compression
+export NODE_WC=0                        # Node WorkChain (for rust network)
 
-export MSIG_FIX_STAKE=45000             # fixed stake for 'msig' mode (tokens). if 0 - use whole stake
-export VAL_ACC_INIT_BAL=95000           # Initial balance on validator account for full balance staking (if MSIG_FIX_STAKE=0)
-export VAL_ACC_RESERVED=50              # Reserved amount staying on msig account in full staking mode
+export FORCE_USE_DAPP=false             # set `true` For offnode works or to use DApp Server instead of use node's console to operate
+export STAKE_MODE="msig"                # can be 'msig' or 'depool'
+export MAX_FACTOR=3                     
+...
+export ADNL_PORT="48888"                # Open this UDP port in firewall
 
-export TIK_REPLANISH_AMOUNT=5           # If Tik acc balance less 2 tokens, It will be auto topup with this amount
-
-export LC_Send_MSG_Timeout=20           # time after Lite-Client send message to BC in seconds 
 ```
 
 ## 2. Build nodes 
 To build node run **./Nodes_Build.sh** from $HOME/custler.uninode/scripts/ folder. 
 This script will build all binaries needed and has 3 options:  
 ```bash
-./Nodes_Build.sh        # build both C++ and Rust nodes
-./Nodes_Build.sh rust   # build Rust node and tools
-./Nodes_Build.sh cpp    # build C++ node and tools
+./Nodes_Build.sh        # build both C++ and Rust nodes and all utilites
+./Nodes_Build.sh rust   # build Rust node and tools and all it utilites
+./Nodes_Build.sh cpp    # build C++ node and tools and all utilites
 ```  
-This script also build **tonos-cli**, **tvm_linker**, **solc (Solidity compiler)** from the respective repositories , from master branch. You can set commit number in "# GIT addresses & commits " section in 'env.sh'
+This script also build node, node utilites, tonos-cli,  from the respective repositories from branches defined in `env.sh`. You can set repo & commit number in "# GIT addresses & commits " section in 'env.sh'
 
-After success build all executable files will be placed to $HOME/bin directory
+After successful build, all executable files will be placed to bin directory defined in **NODE_BIN_DIR** variable in 'env.sh'
+The script also download smartcontracts and place it to folder defined in **ContractsDIR** variable in 'env.sh'. 
 
 ## 3. Setup node and accounts
 All you needs to setup your node - run **./Setup.sh** script from $HOME/custler.uninode/scripts/ folder. This script has no options and does the follow:
 * remove old databases and logs if any
 * create all needed dirs
-* set proper url in tonos-cli config file
+* set proper url and endpoints in tonos-cli config file
 * setup logrotate service
 * setup new keys for node
-* setup service **tonnode** to run node as service
-* generates 3 accounts and place files to $HOME/ton-keys
+* setup service **tonnode** to run node as service (you can change name in env.sh)
+* generates 3 accounts and place files to $HOME/ton-keys (you can change it in env.sh)
 
-Setup.sh generates 3 accounts file sets:  
-* depool account files in **`$HOME/DPKeys`**
-* validator msig (SafeCode) account files in **`$HOME/MSKeys_${HOSTNAME}`** with 3 custodians 
+Setup.sh generates 3 accounts files sets:  
+* depool account files in **`$HOME/DPKeys_${HOSTNAME}`**
+* validator msig (SafeCode) account files in **`$HOME/MSKeys_${HOSTNAME}`** with **3** custodians 
 * Tik (SafeCode) account files in **`$HOME/MSKeys_Tik`** - Safe msig with 1 custodian for tik-tok depool
-* finally, script place files to **`$HOME/ton-keys/`**` if it hasn't same files already
+* finally, script place all files to **`$HOME/ton-keys/`**` if it hasn't same files already
 
 If you have not any accounts before, you can use just generated accounts. If you already has your accounts files in **`$HOME/ton-keys/`**` it will NOT be replaced. 
 
 ## 4. Start node and check syncronization  
   
 After Setup script successfully finished, you can start node by starting it service:
-* **service tonnode start** for FreeBSD
-* **sudo service tonnode start** for Linux (CentOS / Ubuntu)
+* **sudo service tonnode start** 
 
 Then you can check node syncronizanion with the blockchain: 
 ```bash
@@ -98,12 +98,18 @@ This script looped and will show you sync status every 1 min by default. It has 
 ```bash
 ./check_node_sync_status.sh 10      # show info every 10 secs
 ```
-NB! On first start sync can start after some time, up to 30-60 mins
+NB! On first start sync can start after some time, up to 30-60 mins, and can take a time depends of your server speed (mainly disk speed) and netkeyblock from which it is start syncing.
 
 ## 5. Deploy accounts
 
-### 5.1 Get test tokens in FLD network  
-In FLD network where is free giver called **"Marvin"**. You can ask him for test 100K tokens once for each account. For example, for you validator msig (**`${KEYS_DIR}/${DST_NAME}.addr`**) you can use script **`Get_tokens_from_Marvin.sh`**
+### 5.1 Get test tokens in RFLD and FLD network  
+In FLD network where is free giver called **"Marvin"**. You can ask him for test 100K tokens once for Validator account. For example, for you validator msig (**`${KEYS_DIR}/${VALIDATOR_NAME}.addr`**) you can use script **`Get_tokens_from_Marvin.sh`**. You will receive 100K tokens to your account.
+Also you can use tonos-cli:
+```bash
+. ./env.sh
+DST_ACCOUNT="your acc HEX addr"
+$CALL_TC call "$Marvin_Addr" grant "{\"addr\":\"$DST_ACCOUNT\"}" --abi "${Marvin_ABI}"
+```
 
 ### 5.2 Deploy validator msig with few custodians  
 
@@ -116,12 +122,13 @@ MS-Wallet_deploy.sh $VALIDATOR_NAME Safe 3 2
 ### 5.3 Setup and deploy DePool smartcontract
 
 #### 5.3.1 Setup DePool parametrs
-First of all we to have set DePool parametrs at the beginnig of deploy script **`DP5_depool_deploy.sh`**  
+First of all we to have set DePool parametrs for depool deploy script **`DP5_depool_deploy.sh`**  in **env.sh** in section **`# Depool deploy defaults`**
 ```bash
-ValidatorAssuranceT=10000      # Assurance in tokens
-MinStakeT=10                    # Min DePool assepted stake in tokens
-ParticipantRewardFraction=95    # In % participant share from reward
-BalanceThresholdT=20 
+export ValidatorAssuranceT=10000        # Assurance in tokens
+export MinStakeT=10                     # Min DePool assepted stake in tokens
+export ParticipantRewardFraction=95     # In % participant share from reward
+export BalanceThresholdT=20             # Min depool self balance to operate
+export TIK_REPLANISH_AMOUNT=10          # If Tik acc balance less 2 tokens, It will be auto topup with this amount
 ```
 These parametrs cannot be changed after deploy the DePool.
 
@@ -136,7 +143,7 @@ To send initial balance to DePool account use script **`transfer_amount.sh`**
 where:
 * **`$VALIDATOR_NAME`** - file name of `${VALIDATOR_NAME}.addr` file with address of your msig
 * **`depool`** - file name of `depool.addr` file with address of your DePool
-* **50** - initial balance for deploy depool
+* **50** - initial balance for deploy depool and it's proxies contracts
 * **new** - set transaction flag **`bounce`** to false to tranfer tokens to undeployed address
 
 next we have to sign the transaction by script **`Sign_Trans.sh`**
@@ -146,7 +153,7 @@ next we have to sign the transaction by script **`Sign_Trans.sh`**
 #### 5.3.3 Depoloy DePool contract
 Now you can deploy the DePool contract by 
 ```bash
-./DP4_depool_deploy.sh
+./DP5_depool_deploy.sh
 ```
 
 ### 5.4 Deploy Tik account
@@ -185,18 +192,22 @@ $CALL_TC depool --addr $(cat ${KEYS_DIR}/depool.addr) withdraw on --wallet $(cat
 ```
 
 ## 7. Validations
-### 7.1 "Tik" DePool
+### 7.1 Prepare for elections
 After a few minutes from elections start, we have to prepare the DePool by **`prepare_elections.sh`** script  
 ```bash
 ./prepare_elections.sh
 ```
 In case of depool validation mode, this script checks balance of Tik account and topup it if it less 2 tokens. Then it send tik-tok transaction from Tik to DePool.
 
+In case of MSIG validation the scriprt check for stake to return in elector and send request to return it if any.
+
 ### 7.2 Send stake to elector
 ```bash
 ./take_part_in_elections.sh
 ```
-This script prepare all nesessary steps to prepare bid transaction for election and call **`Sign_Trans.sh`** to sign and send message to DePool with keys for validating
+This script prepare all nesessary steps to prepare bid transaction for election and call **`Sign_Trans.sh`** to sign and send message to DePool with new keys for validating.
+
+In case of MSIG validation the script send transaction with stake and keys to elector directly.
 
 ### 7.3 Check your participation in election
 To check your participation status in currrent election use **`part_check.sh`**
