@@ -55,10 +55,10 @@ export RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev"
 
 #=====================================================
 # Depool deploy defaults
-export ValidatorAssuranceT=10000
-export MinStakeT=10
-export ParticipantRewardFraction=95
-export BalanceThresholdT=20
+export ValidatorAssuranceT=10000        # Assurance in tokens
+export MinStakeT=10                     # Min DePool assepted stake in tokens
+export ParticipantRewardFraction=95     # In % participant share from reward
+export BalanceThresholdT=20             # Min depool self balance to operate
 export TIK_REPLANISH_AMOUNT=10          # If Tik acc balance less 2 tokens, It will be auto topup with this amount
 
 #=====================================================
@@ -199,8 +199,10 @@ export SafeSCs_DIR="${ContractsDIR}/solidity/safemultisig"
 export SafeC_Wallet_ABI="${ContractsDIR}/solidity/safemultisig/SafeMultisigWallet.abi.json"
 export SetSCs_DIR="${ContractsDIR}/solidity/setcodemultisig"
 export SetC_Wallet_ABI="${ContractsDIR}/solidity/setcodemultisig/SetcodeMultisigWallet.abi.json"
-export SURF_ABI="${ContractsDIR}/Surf-contracts/solidity/setcodemultisig/SetcodeMultisigWallet.abi.json"
-export SURF_TVC="${ContractsDIR}/Surf-contracts/solidity/setcodemultisig/SetcodeMultisigWallet2.tvc"
+# export SURF_ABI="${ContractsDIR}/Surf-contracts/solidity/setcodemultisig/SetcodeMultisigWallet.abi.json"
+# export SURF_TVC="${ContractsDIR}/Surf-contracts/solidity/setcodemultisig/SetcodeMultisigWallet2.tvc"
+export SURF_ABI="$NODE_SRC_TOP_DIR/Surf-contracts/solidity/surfmultisig/SurfMultisigWallet.abi.json"
+export SURF_TVC="$NODE_SRC_TOP_DIR/Surf-contracts/solidity/surfmultisig/SurfMultisigWallet.tvc"
 
 export Marvin_ABI="${CONFIGS_DIR}/Marvin.abi.json"
 export Elector_ABI="${CONFIGS_DIR}/Elector.abi.json"
