@@ -13,7 +13,7 @@ else
     service tonnode stop
 fi
 
-cp -f ${RNODE_SRC_DIR}/target/release/ton_node $HOME/bin/rnode
+cp -f ${RNODE_SRC_DIR}/target/release/ton_node ${NODE_BIN_DIR}/rnode
 
 # ./setup_as_service.sh
 

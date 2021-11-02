@@ -161,6 +161,7 @@ export SOLC_SRC_DIR="${NODE_TOP_DIR}/SolC"
 #=====================================================
 # Work folders for db, keys and conf
 export NODE_BIN_DIR=$HOME/bin
+
 #WRK_DIR=/dev/shm   # ramdisk in linux only for fast initial sync
 WRK_DIR=/var
 

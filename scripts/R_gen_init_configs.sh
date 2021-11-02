@@ -70,7 +70,7 @@ echo " ..DONE"
 #===========================================
 # Set rnode console keys
 echo -n "---INFO: Prepare console_client_keys..."
-$HOME/bin/keygen > ${R_CFG_DIR}/${HOSTNAME}_console_client_keys.json
+${NODE_BIN_DIR}/keygen > ${R_CFG_DIR}/${HOSTNAME}_console_client_keys.json
 jq -c '.public' ${R_CFG_DIR}/${HOSTNAME}_console_client_keys.json > ${R_CFG_DIR}/console_client_public.json
 echo " ..DONE"
 

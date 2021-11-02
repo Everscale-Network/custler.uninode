@@ -25,7 +25,7 @@ cargo build --release
 cp -f "${TONOS_CLI_SRC_DIR}/target/release/tonos-cli" "${NODE_BIN_DIR}/"
 
 echo
-$HOME/bin/tonos-cli version
+${NODE_BIN_DIR}/tonos-cli version
 echo
 BUILD_END_TIME=$(date +%s)
 Build_mins=$(( (BUILD_END_TIME - BUILD_STRT_TIME)/60 ))

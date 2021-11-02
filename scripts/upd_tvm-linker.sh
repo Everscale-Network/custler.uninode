@@ -28,7 +28,7 @@ cargo build --release
 cp -f "${TVM_LINKER_SRC_DIR}/tvm_linker/target/release/tvm_linker" ${NODE_BIN_DIR}/
 
 echo
-$HOME/bin/tvm_linker --version
+${NODE_BIN_DIR}/tvm_linker --version
 echo
 BUILD_END_TIME=$(date +%s)
 Build_mins=$(( (BUILD_END_TIME - BUILD_STRT_TIME)/60 ))
@@ -38,12 +38,3 @@ echo "Builds took $Build_mins min $Build_secs secs"
 echo "================================================================================================"
 
 exit 0
-
-{
-  "name": "getDePoolBalance",
-  "inputs": [
-  ],
-  "outputs": [
-    {"name":"value0","type":"int256"}
-]
-},
