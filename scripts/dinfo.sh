@@ -357,13 +357,13 @@ do
     Curr_Part_Addr="$(echo "$Participants_List"| jq -r ".participants|.[$i]")"
     Current_Participant_Info="$(Get_DP_Part_Info $Depool_addr $Curr_Part_Addr)"
 
-    Prev_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r "[.stakes[]]|.[0]")
+    Prev_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r ".stakes.\"$Prev_DP_Round_ID\"")
     POS_Info=$(printf "%'9.2f" "$(echo $((Prev_Ord_Stake)) / 1000000000 | jq -nf /dev/stdin)")
     
-    Curr_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r "[.stakes[]]|.[1]")
+    Curr_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r ".stakes.\"$Curr_DP_Round_ID\"")
     COS_Info=$(printf "%'9.2f" "$(echo $((Curr_Ord_Stake)) / 1000000000 | jq -nf /dev/stdin)")
     
-    Next_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r "[.stakes[]]|.[2]")
+    Next_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r ".stakes.\"$Next_DP_Round_ID\"")
     NOS_Info=$(printf "%'9.2f" "$(echo $((Next_Ord_Stake)) / 1000000000 | jq -nf /dev/stdin)")
     
     Reward=$(echo "$Current_Participant_Info"| jq -r ".reward")
@@ -398,13 +398,13 @@ do
     Curr_Part_Addr="$(echo "$Participants_List"| jq -r ".participants|.[$i]")"
     Current_Participant_Info="$(Get_DP_Part_Info $Depool_addr $Curr_Part_Addr)"
 
-    Prev_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r "[.stakes[]]|.[0]")
+    Prev_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r ".stakes.\"$Prev_DP_Round_ID\"")
     POS_Info=$(printf "%'9.2f" "$(echo $((Prev_Ord_Stake)) / 1000000000 | jq -nf /dev/stdin)")
     
-    Curr_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r "[.stakes[]]|.[1]")
+    Curr_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r ".stakes.\"$Curr_DP_Round_ID\"")
     COS_Info=$(printf "%'9.2f" "$(echo $((Curr_Ord_Stake)) / 1000000000 | jq -nf /dev/stdin)")
     
-    Next_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r "[.stakes[]]|.[2]")
+    Next_Ord_Stake=$(echo "$Current_Participant_Info" | jq -r ".stakes.\"$Next_DP_Round_ID\"")
     NOS_Info=$(printf "%'9.2f" "$(echo $((Next_Ord_Stake)) / 1000000000 | jq -nf /dev/stdin)")
 
     Vesting_Stake=$(echo "$Current_Participant_Info" | jq -r '[.vestings[]][0].remainingAmount')
