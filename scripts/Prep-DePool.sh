@@ -36,6 +36,9 @@ exit 1
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
+##############
+Depool_WC=0
+##############
 
 OS_SYSTEM=`uname`
 if [[ "$OS_SYSTEM" == "Linux" ]];then
@@ -100,7 +103,6 @@ if [[ -z $key_public ]] || [[ -z $key_secret ]];then
 fi
 echo "Key pair file saved to ${KEY_FILES_DIR}/depool.keys.json"
 
-Depool_WC=$NODE_WC
 Validator_addr=`cat ${KEYS_DIR}/${HOSTNAME}.addr`
 [[ -z $Validator_addr ]] && echo "###-ERROR(line $LINENO): Validator address not found in ${KEYS_DIR}/${HOSTNAME}.addr" && exit 1
 Validator_WC=${Validator_addr%%:*}

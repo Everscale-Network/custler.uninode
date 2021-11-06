@@ -40,6 +40,10 @@ exit 1
 
 [[ $# -lt 3 ]] && show_usage
 
+SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
+source "${SCRIPT_DIR}/env.sh"
+source "${SCRIPT_DIR}/functions.shinc"
+
 CodeOfWallet=$2
 if [[ ! $CodeOfWallet == "Safe" ]] && [[ ! $CodeOfWallet == "SetCode" ]];then
     echo "###-ERROR(line $LINENO): Wrong code of wallet. Choose 'Safe' or 'SetCode'"
@@ -52,16 +56,12 @@ if [[ $CUSTODIANS -lt 1 ]] || [[ $CUSTODIANS -gt 32 ]];then
     show_usage
     exit 1
 fi
-WorkChain=${4:=$NODE_WC}
-if [[ "$WorkChain" != "-1" ]] && [[ "$WorkChain" != "$NODE_WC" ]];then
-    echo "###-ERROR(line $LINENO): Wrong workchain. Choose '0' or '-1'"
-    show_usage
-    exit 1
-fi
-
-SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
-source "${SCRIPT_DIR}/env.sh"
-source "${SCRIPT_DIR}/functions.shinc"
+WorkChain=${4:-0}
+# if [[ "$WorkChain" != "-1" ]] && [[ "$WorkChain" != "0" ]];then
+#     echo "###-ERROR(line $LINENO): Wrong workchain. Choose '0' or '-1'"
+#     show_usage
+#     exit 1
+# fi
 
 WAL_NAME=$1
 KEY_FILES_DIR="$HOME/MSKeys_${WAL_NAME}"
