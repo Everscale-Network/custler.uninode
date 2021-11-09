@@ -116,7 +116,7 @@ export RUST_VERSION="1.55.0"
 export BOOST_VERSION="1.76.0"
 export MIN_TC_VERSION="0.22.12"
 
-export CNODE_GIT_REPO="https://github.com/FreeTON-Network/FreeTON-Node.git"
+export CNODE_GIT_REPO="https://github.com/Everscale-Network/Everscale-Node.git"
 export CNODE_GIT_COMMIT="mainnet"
 [[ "$NETWORK_TYPE" == "fld.ton.dev" ]] && export CNODE_GIT_COMMIT="GROTH16"
 
