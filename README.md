@@ -103,7 +103,10 @@ NB! On first start sync can start after some time, up to 30-60 mins, and can tak
 ## 5. Deploy accounts
 
 ### 5.1 Get test tokens in RFLD and FLD network  
-In FLD network where is free giver called **"Marvin"**. You can ask him for test 100K tokens once for Validator account. For example, for you validator msig (**`${KEYS_DIR}/${VALIDATOR_NAME}.addr`**) you can use script **`Get_tokens_from_Marvin.sh`**. You will receive 100K tokens to your account.
+In FLD & RFLD networks where is free giver called **"Marvin"**. It has address  
+**`0:deda155da7c518f57cb664be70b9042ed54a92542769735dfb73d3eef85acdaf`**
+
+You can ask him for test 100K tokens once for Validator account. For example, for you validator msig (**`${KEYS_DIR}/${VALIDATOR_NAME}.addr`**) you can use script **`Get_tokens_from_Marvin.sh`**. You will receive 100K tokens to your account.
 Also you can use tonos-cli:
 ```bash
 . ./env.sh
