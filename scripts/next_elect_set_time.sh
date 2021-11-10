@@ -106,7 +106,7 @@ else
             if [[ "$election_id" == "0" ]];then 
                 CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | grep -i "cur_validators"  | awk -F ":" '{print $3}'|awk '{print $1}'`	    # utime_until
                 if [[ -z "$NEXT_VAL_EXIST" ]];then
-                    CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | grep -i "next_validators"  | awk -F ":" '{print $3}'|awk '{print $1}'`	# utime_until
+                    CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | grep -i "next_validators"  | awk -F ":" '{print $3}'|awk '{print $1}'`	# next utime_since = curr utime_until
                 fi
             fi
             declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | grep -i "ConfigParam(15)" | awk -F ":" '{print $2}' |awk '{print $1}'`	# validators_elected_for
