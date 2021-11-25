@@ -122,10 +122,10 @@ export CNODE_GIT_COMMIT="mainnet"
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
-if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] || [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
-    export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
-    export RNODE_GIT_COMMIT="1-nil-dependencies"
-fi
+# if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] || [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
+#     export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
+#     export RNODE_GIT_COMMIT="1-nil-dependencies"
+# fi
 
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
 export RCONS_GIT_COMMIT="master"
