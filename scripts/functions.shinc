@@ -79,7 +79,7 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $MainNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"                          # can be 'solidity' or 'fift'
+        export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     net)
         export DApp_URL=${DevNet_DApp_URL}
@@ -87,7 +87,7 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $DevNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"                          # can be 'solidity' or 'fift'
+        export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     fld)
         export DApp_URL=${FLD_DApp_URL}
@@ -95,7 +95,7 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $FLD_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"                          # can be 'solidity' or 'fift'
+        export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     rfld)
         export DApp_URL=${RFLD_DApp_URL}
@@ -103,7 +103,7 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $RFLD_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=RUST}"               # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="fift"                          # can be 'solidity' or 'fift'
+        export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     rustnet)
         export DApp_URL=${RustNet_DApp_URL}
@@ -111,7 +111,7 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=RUST}"               # can be 'RUST' or 'CPP'
-        export ELECTOR_TYPE="solidity"                      # can be 'solidity' or 'fift'
+        export ELECTOR_TYPE="${ELECTOR_TYPE:=solidity}"                      # can be 'solidity' or 'fift'
         ;;
     *)
         echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"

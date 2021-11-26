@@ -30,6 +30,7 @@ export CONFIGS_DIR=${NODE_TOP_DIR}/configs
 # Network related variables
 export NETWORK_TYPE="rfld.ton.dev"      # can be main.* / net.* / fld.* / rustnet.* / rfld.*
 export NODE_TYPE="RUST"                 # Can be CPP / RUST. Also defines network to build DApp fullnode with or w/o compression
+export ELECTOR_TYPE="fift"
 export NODE_WC=0                        # Node WorkChain (for rust network)
 
 export FORCE_USE_DAPP=false             # For offnode works or to use DApp Server instead of use node's console to operate
@@ -112,7 +113,7 @@ export C_ENGINE_ADDITIONAL_PARAMS=""
 
 #=====================================================
 # GIT addresses & commits
-export RUST_VERSION="1.55.0"
+export RUST_VERSION="1.56.1"
 export BOOST_VERSION="1.76.0"
 export MIN_TC_VERSION="0.22.12"
 
