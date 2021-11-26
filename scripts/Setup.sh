@@ -179,13 +179,15 @@ echo " ..DONE"
 # set log rotate
 # NB! - should be log '>>' in run.sh or 'append' in service. In other case copytrancate will not work
 ./setup_logrotate.sh
-
+[[ $? ]] && exit 1
 #===========================================
 # Generate initial configs
 if [[ "$NODE_TYPE" == "RUST"  ]]; then
     ./R_gen_init_configs.sh
+    [[ $? ]] && exit 1
 else
     ./C_gen_init_configs.sh
+    [[ $? ]] && exit 1
 fi
 
 #===========================================

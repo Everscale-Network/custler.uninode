@@ -262,6 +262,9 @@ if ${RUST_NODE_BUILD};then
     echo '################################################'
     echo "---INFO: build RUST NODE ..."
 
+    echo -e "${BoldText}${BlueBack}---INFO: RNODE git repo:   ${RNODE_GIT_REPO} ${NormText}"
+    echo -e "${BoldText}${BlueBack}---INFO: RNODE git commit: ${RNODE_GIT_COMMIT} ${NormText}"
+
     [[ -d ${RNODE_SRC_DIR} ]] && rm -rf "${RNODE_SRC_DIR}"
     # git clone --recurse-submodules "${RNODE_GIT_REPO}" $RNODE_SRC_DIR
     git clone "${RNODE_GIT_REPO}" "${RNODE_SRC_DIR}"
@@ -289,10 +292,10 @@ if ${RUST_NODE_BUILD};then
         RNODE_FEATURES="compression,sha2-native,external_db,metrics"
         [[ "$NODE_TYPE" == "CPP" ]] && RNODE_FEATURES="sha2-native,external_db,metrics"
     else
-        RNODE_FEATURES="compression,sha2-native"
+        RNODE_FEATURES="sha2-native"
+        [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && RNODE_FEATURES="compression,sha2-native"
     fi
     echo -e "${BoldText}${BlueBack}---INFO: RNODE build flags: ${RNODE_FEATURES} ${NormText}"
-
     RUSTFLAGS="-C target-cpu=native" cargo build --release --features "${RNODE_FEATURES}"
 
     # cp $NODE_BIN_DIR/rnode $NODE_BIN_DIR/rnode_${BackUP_Time}|cat
