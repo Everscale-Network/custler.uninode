@@ -26,6 +26,7 @@ else
     [[ -z $acc_fmt ]] && ACCOUNT=`cat "${KEYS_DIR}/${ACCOUNT}.addr"`
 fi
 echo "Account: $ACCOUNT"
+acc_wc=${ACCOUNT%%:*}
 if [[ "${NODE_WC}" != "${acc_wc}" ]] && [[ "${acc_wc}" != "-1" ]];then
     echo -e "${BoldText}${YellowBack}WARNING: You are ask account info from a other workchain than the node is. Result may be wrong!${NormText}"
 fi
