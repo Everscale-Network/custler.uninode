@@ -483,7 +483,7 @@ function Get_Account_Info() {
         fi
         local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r '.balance'`
         local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r '.last_paid'`
-        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r  '.acc_type'`
+        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r '.acc_type'`
     else
         case "${NODE_TYPE}" in
             RUST)
@@ -495,8 +495,8 @@ function Get_Account_Info() {
                         return
                     fi
                 else
-                    local ACCOUNT_INFO=`$CALL_TC -j account ${ACCOUNT}` 2>&1
-                    if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'Account not found')" ]];then
+                    local ACCOUNT_INFO=`$CALL_TC -j account ${ACCOUNT} 2>&1 | jq ''`
+                    if [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i '{}')" ]];then
                         echo "None 0 0"
                         return
                     fi
@@ -517,6 +517,7 @@ function Get_Account_Info() {
                 local STATUS=`echo "$ACCOUNT_INFO" | grep 'state:'|tr -d ')'|tr -d '('|cut -d ':' -f 2`
                 [[ "${STATUS}" == "account_uninit" ]] && STATUS="Uninit"
                 [[ "${STATUS}" == "account_active" ]] && STATUS="Active"
+                [[ ! -z "$(echo ${ACCOUNT_INFO} | grep -i 'account_frozen')" ]] && STATUS="Frozen"
                 ;;
             *)
                 echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
