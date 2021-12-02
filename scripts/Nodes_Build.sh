@@ -158,6 +158,13 @@ case "$OS_SYSTEM" in
             $PKG_MNGR update && $PKG_MNGR upgrade -y 
             $PKG_MNGR install -y g++-10
             sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 90 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
+            mkdir -p $HOME/src
+            cd $HOME/src
+            # sudo pkg remove -y libmicrohttpd | cat
+            wget https://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.70.tar.gz
+            tar xf libmicrohttpd-0.9.70.tar.gz
+            cd libmicrohttpd-0.9.70
+            ./configure && make && sudo make install
         fi
         ;;
 

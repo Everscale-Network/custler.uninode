@@ -98,6 +98,12 @@ export VALIDATOR_NAME="${HOSTNAME%%.*}"
 NODE_IP_ADDR=""
 until [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -eq 3 ]]; do
     NODE_IP_ADDR="$(curl -4 icanhazip.com 2>/dev/null)"
+    if [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -ne 3 ]];then
+        NODE_IP_ADDR="$(curl ipinfo.io/ip 2>/dev/null)"
+        if [[ "$(echo "${NODE_IP_ADDR}" | grep "\." -o | wc -l)" -ne 3 ]];then
+            NODE_IP_ADDR="$(curl api.ipify.org 2>/dev/null)"
+        fi
+    fi
 done
 export NODE_IP_ADDR
 
