@@ -556,7 +556,7 @@ else
     echo "INFO:      Election ID: $elections_id" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     echo "Elections ID in DePool: $Curr_DP_Elec_ID" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     date +"INFO: %F %T %Z DePool is set for current elections." | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-    echo "INFO $elections_id" > "${prepElections}"
+    echo "INFO ELECTION $elections_id FROM DePOOL $Curr_DP_Elec_ID" > "${prepElections}"
 fi
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
