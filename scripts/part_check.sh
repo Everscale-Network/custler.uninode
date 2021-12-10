@@ -127,7 +127,14 @@ TON_LIVE_URL=""
 echo "-----------------------------------------------------------------------------------------------------"
 echo $elections_id > ${ELECTIONS_WORK_DIR}/curent_elections_id.txt
 # for icinga
-echo "INFO ELECTION ID ${elections_id} ; DEPOOL ADDRESS $Depool_addr ; VALIDATOR ADDRESS $Validator_addr ; STAKE $Your_Stake ; ADNL ${ADNL_KEY} ; KEY IN ELECTOR $You_PubKey" > "${nodeStats}"
+echo "INFO
+ELECTION ID ${elections_id} ;
+DEPOOL ADDRESS $Depool_addr ;
+VALIDATOR ADDRESS $Validator_addr ;
+STAKE $Your_Stake ;
+ADNL ${ADNL_KEY} ;
+KEY IN ELECTOR $You_PubKey ;
+" > "${nodeStats}"
 
 # ==========================================
 # Delete files older 7 days in elections log dirs
