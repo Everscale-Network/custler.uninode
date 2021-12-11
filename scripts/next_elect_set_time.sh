@@ -219,8 +219,12 @@ sudo crontab -l -u $SCRPT_USER | tail -n 8
 
 #=================================================
 # for icinga
-echo "# prepare , participation , next elections" > "${nextElections}"
-echo "INFO ELECTIONS $NXT_ELECT_1 $NXT_ELECT_2 $NXT_ELECT_3" >> "${nextElections}"
+echo "# prepare , participation , next elections ( minute hour ) - for crontab" > "${nextElections}"
+echo "INFO ELECTIONS
+$NXT_ELECT_1
+$NXT_ELECT_2
+$NXT_ELECT_3
+" >> "${nextElections}"
 
 echo "-------------------------------------------------------------------"
 

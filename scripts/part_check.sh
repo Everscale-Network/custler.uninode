@@ -27,10 +27,10 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
-#=================================================
-# for icinga
-if [[ -f "${partInElections}" ]]; then echo "" > "${partInElections}"; fi
-if [[ -f "${nodeStats}" ]]; then echo "" > "${nodeStats}"; fi
+# #=================================================
+# # for icinga
+# if [[ -f "${partInElections}" ]]; then echo "" > "${partInElections}"; fi
+# if [[ -f "${nodeStats}" ]]; then echo "" > "${nodeStats}"; fi
 
 #=================================================
 echo
@@ -127,7 +127,14 @@ TON_LIVE_URL=""
 echo "-----------------------------------------------------------------------------------------------------"
 echo $elections_id > ${ELECTIONS_WORK_DIR}/curent_elections_id.txt
 # for icinga
-echo "INFO ELECTION ID ${elections_id} ; DEPOOL ADDRESS $Depool_addr ; VALIDATOR ADDRESS $Validator_addr ; STAKE $Your_Stake ; ADNL ${ADNL_KEY} ; KEY IN ELECTOR $You_PubKey" > "${nodeStats}"
+echo "INFO
+ELECTION ID ${elections_id} ;
+DEPOOL ADDRESS $Depool_addr ;
+VALIDATOR ADDRESS $Validator_addr ;
+STAKE $Your_Stake ;
+ADNL ${ADNL_KEY} ;
+KEY IN ELECTOR $You_PubKey ;
+" > "${nodeStats}"
 
 # ==========================================
 # Delete files older 7 days in elections log dirs
