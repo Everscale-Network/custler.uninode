@@ -290,7 +290,8 @@ function Get_SC_current_state() {
     else
         case "${NODE_TYPE}" in
             RUST)
-                NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+                # NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+                NODE_WC="0"
                 if [[ "${NODE_WC}" == "${acc_wc}" ]] || [[ "${acc_wc}" == "-1" ]];then
                     for (( Try=0; Try <= 5; Try++ ))
                     do
@@ -487,7 +488,8 @@ function Get_Account_Info() {
     else
         case "${NODE_TYPE}" in
             RUST)
-                NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+                #NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
+                NODE_WC="0"
                 if [[ "${NODE_WC}" == "${acc_wc}" ]] || [[ "${acc_wc}" == "-1" ]];then
                     local ACCOUNT_INFO=`$CALL_RC -j -c "getaccount $ACCOUNT"`
                     if [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Nonexist')" ]] || [[ ! -z "$(echo "${ACCOUNT_INFO}" | grep -i 'Error')" ]];then
@@ -848,11 +850,6 @@ function Elector_ADNL_Search() {
                     exit 1
                 fi
                 Elector_Parts_List="$($CALL_TC -j runget --boc ${elector_addr##*:}.boc participant_list_extended)"
-                Elections_Open=`echo $Elector_Parts_List | jq -r '.value0'`
-                if [[ $Elections_Open -eq 0 ]];then
-                    echo "null"
-                    return
-                fi
                 case "${ELECTOR_TYPE}" in
                     fift)
                         local Elector_Parts_List="$($CALL_TC runget --boc ${elector_addr##*:}.boc participant_list_extended | grep -i 'result:' | tr "]]" "\n" | tr '[' '\n' | awk 'NF > 0'| tr '","' ' ')"
