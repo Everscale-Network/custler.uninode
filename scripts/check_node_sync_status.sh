@@ -34,6 +34,9 @@ SLEEP_TIMEOUT=${SLEEP_TIMEOUT:="60"}
 ALARM_TIME_DIFF=$2
 ALARM_TIME_DIFF=${ALARM_TIME_DIFF:=100}
 Current_Net="$(echo "${NODE_TYPE}" | cut -c 1) $(echo "${NETWORK_TYPE%%.*}")"
+RC_OUTPUT=$($CALL_RC -j -c "getstats" 2>&1 | cat)
+NODE_WC="$(echo "${RC_OUTPUT}"| grep 'processed workchain'|awk '{print $3}'|tr -d ',')"
+[[ "${NODE_WC}" == "masterchain" ]] && NODE_WC="-1"
 
 while(true)
 do

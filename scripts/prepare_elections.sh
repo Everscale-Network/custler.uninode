@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-10-19 10:00:00
+# (C) Sergey Tyurin  2021-12-14 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -94,18 +94,7 @@ if [[ "$STAKE_MODE" == "msig" ]];then
     Validator_Acc_Info="$(Get_Account_Info ${Validator_addr})"
     declare -i Validator_Acc_LT=`echo "$Validator_Acc_Info" | awk '{print $3}'`
     Val_Adrr_HEX=${Validator_addr##*:}
-    #=================================================
-    # prepare user signature for boc
-    touch $Val_Adrr_HEX
-    msig_public=`cat ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json | jq -r ".public"`
-    msig_secret=`cat ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json | jq -r ".secret"`
-    if [[ -z $msig_public ]] || [[ -z $msig_secret ]];then
-        echo "###-ERROR(line $LINENO): Can't find validator public and/or secret key!"
-        exit 1
-    fi
-    echo "${msig_secret}${msig_public}" > ${KEYS_DIR}/msig.keys.txt
-    rm -f ${KEYS_DIR}/msig.keys.bin
-    xxd -r -p ${KEYS_DIR}/msig.keys.txt ${KEYS_DIR}/msig.keys.bin
+    
     #=================================================
     # check availabylity to recover amount
 
@@ -166,10 +155,6 @@ if [[ "$STAKE_MODE" == "msig" ]];then
             echo "###-ERROR(line $LINENO): Recover query payload is empty!!"
             exit 1
         fi
-
-        # TVM_OUTPUT=$($CALL_TL message $Val_Adrr_HEX -a $SafeC_Wallet_ABI -m submitTransaction \
-        # -p "{\"dest\":\"$elector_addr\",\"value\":1000000000,\"bounce\":true,\"allBalance\":false,\"payload\":\"$recover_query_payload\"}" -w -1 \
-        # --setkey ${KEYS_DIR}/msig.keys.bin | tee ${ELECTIONS_WORK_DIR}/TVM_linker-recquery.log)
 
         TC_OUTPUT="$($CALL_TC message --raw --output recover-msg.boc \
         --sign ${KEYS_DIR}/${VALIDATOR_NAME}.keys.json \
@@ -467,15 +452,6 @@ if [[ $Depool_Bal -lt $DP_balanceThreshold ]];then
 fi
 
 #=================================================
-# prepare user signature
-Work_Chain=${Tik_addr%%:*}
-tik_acc_addr=${Tik_addr##*:}
-touch $tik_acc_addr
-echo "${tik_secret}${tik_public}" > ${KEYS_DIR}/tik.keys.txt
-rm -f ${KEYS_DIR}/tik.keys.bin
-xxd -r -p ${KEYS_DIR}/tik.keys.txt ${KEYS_DIR}/tik.keys.bin
-
-#=================================================
 # make boc file 
 function Make_BOC_file(){
     TC_OUTPUT="$($CALL_TC message --raw --output tik-msg.boc \
@@ -556,7 +532,7 @@ else
     echo "INFO:      Election ID: $elections_id" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     echo "Elections ID in DePool: $Curr_DP_Elec_ID" | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
     date +"INFO: %F %T %Z DePool is set for current elections." | tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
-    echo "INFO ELECTION $elections_id FROM DePOOL $Curr_DP_Elec_ID" > "${prepElections}"
+    echo "INFO $elections_id" > "${prepElections}"
 fi
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"

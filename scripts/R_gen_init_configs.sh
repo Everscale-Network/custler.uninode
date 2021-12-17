@@ -88,13 +88,13 @@ fi
 
 #===========================================
 # Set workchain for node
-if [[ "$(jq '.workchain' "${R_CFG_DIR}/config.json")" == "null" ]];then
-    echo "{\"workchain\": $NODE_WC}" | jq '. += $inputs[]' --slurpfile inputs "${R_CFG_DIR}/config.json" > "${R_CFG_DIR}/config.json.tmp"
-    mv -f "${R_CFG_DIR}/config.json.tmp" "${R_CFG_DIR}/config.json"
-else
-    jq ".workchain = $NODE_WC" "${R_CFG_DIR}/config.json"  > "${R_CFG_DIR}/config.json.tmp"
-    mv -f "${R_CFG_DIR}/config.json.tmp" "${R_CFG_DIR}/config.json"
-fi
+# if [[ "$(jq '.workchain' "${R_CFG_DIR}/config.json")" == "null" ]];then
+#     echo "{\"workchain\": $NODE_WC}" | jq '. += $inputs[]' --slurpfile inputs "${R_CFG_DIR}/config.json" > "${R_CFG_DIR}/config.json.tmp"
+#     mv -f "${R_CFG_DIR}/config.json.tmp" "${R_CFG_DIR}/config.json"
+# else
+#     jq ".workchain = $NODE_WC" "${R_CFG_DIR}/config.json"  > "${R_CFG_DIR}/config.json.tmp"
+#     mv -f "${R_CFG_DIR}/config.json.tmp" "${R_CFG_DIR}/config.json"
+# fi
 
 #===========================================
 # 
