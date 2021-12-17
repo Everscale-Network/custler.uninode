@@ -52,7 +52,7 @@ export RFLD_DApp_URL="https://rfld.custler.net"
 export RFLD_DApp_List="https://rfld-dapp01.ds1.itgold.io"
 
 export RustNet_DApp_URL="rustnet.ton.dev"
-export RustNet_DApp_List="https://rustnet1.ton.dev,https://rustnet2.ton.dev"
+export RustNet_DApp_List="https://rustnet1.ton.dev"
 
 #=====================================================
 # Depool deploy defaults
@@ -75,7 +75,6 @@ export LC_Send_MSG_Timeout=10           # time after Lite-Client send message to
 #=====================================================
 # FLD & RFLD free giver to grant 100k tokens
 export Marvin_Addr="0:deda155da7c518f57cb664be70b9042ed54a92542769735dfb73d3eef85acdaf" 
-[[ "${NETWORK_TYPE}" == "rfld.ton.dev" ]] && export Marvin_Addr="-1:deda155da7c518f57cb664be70b9042ed54a92542769735dfb73d3eef85acdaf"
 
 #=====================================================
 # Nets zeroblock IDs - first 16 syms of zeroblock hash
