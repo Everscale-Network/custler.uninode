@@ -70,7 +70,7 @@ if $FORCE_USE_DAPP ;then
     declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.utime_until'`	            # utime_until
     if [[ "$election_id" == "0" ]];then 
         CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.utime_since'`	                # utime_until
-        if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != '{}' ]];then
+        if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != 'null' ]];then
             CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq -r '.utime_since'`	            # utime_since
         fi
     fi
