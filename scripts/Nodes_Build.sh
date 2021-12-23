@@ -146,7 +146,7 @@ case "$OS_SYSTEM" in
         fi
         ;;
 
-    Ubuntu)
+    Ubuntu|Debian)
         export ZSTD_LIB_DIR=/usr/lib/x86_64-linux-gnu
         PKGs_SET=$PKGS_Ubuntu
         PKG_MNGR=$PKG_MNGR_Ubuntu
