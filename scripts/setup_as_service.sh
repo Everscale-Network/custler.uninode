@@ -55,7 +55,7 @@ if [[ "$NODE_TYPE" == "RUST"  ]]; then
 # Rust node on Linux ##
 SVC_FILE_CONTENTS=$(cat <<-_ENDCNT_
 [Unit]
-Description=TON Validator RUST Node
+Description=Everscale Validator RUST Node
 After=network.target
 StartLimitIntervalSec=0
 [Service]
@@ -75,7 +75,7 @@ else   # node type select
 # C++ node on Linux
 SVC_FILE_CONTENTS=$(cat <<-_ENDCNT_
 [Unit]
-Description=TON Validator C++ Node
+Description=Everscale Validator C++ Node
 After=network.target
 StartLimitIntervalSec=0
 [Service]
@@ -116,7 +116,7 @@ echo "sudo service ${ServiceName} restart"
 # SERVICE_FILE="/etc/systemd/system/nodewd.service"
 # SVC_FILE_CONTENTS=$(cat <<-_ENDCNT_
 # [Unit]
-# Description=TON Validator watchdog for node
+# Description=Everscale Validator watchdog for node
 # After=network.target
 # StartLimitIntervalSec=0
 # [Service]
@@ -173,7 +173,7 @@ pidfile_child="$NODE_LOGS_ARCH/${name}.pid"
 logfile="$NODE_LOGS_ARCH/${name}.log"
 
 echo "Setup FreeBSD daemon for RNODE"
-sed -i.bak "s%N_SERVICE_DESCRIPTION%Free TON RUST Node Daemon%" ${SCRIPT_DIR}/tmp.txt
+sed -i.bak "s%N_SERVICE_DESCRIPTION%Everscale RUST Node Daemon%" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_USER%${USER}%g" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_NODE_LOGS_ARCH%${NODE_LOGS_ARCH}%g" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_NODE_LOG_FILE%${R_LOG_DIR}/${RNODE_LOG_FILE}%g" ${SCRIPT_DIR}/tmp.txt
@@ -185,7 +185,7 @@ else   #  -------------------- node type select
 # C++ node
 
 echo "Setup FreeBSD daemon for CNODE"
-sed -i.bak "s%N_SERVICE_DESCRIPTION%Free TON C++ Node Daemon%" ${SCRIPT_DIR}/tmp.txt
+sed -i.bak "s%N_SERVICE_DESCRIPTION%Everscale C++ Node Daemon%" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_USER%${USER}%" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_NODE_LOGS_ARCH%${NODE_LOGS_ARCH}%g" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_NODE_LOG_FILE%${TON_LOG_DIR}/${CNODE_LOG_FILE}%g" ${SCRIPT_DIR}/tmp.txt
@@ -212,7 +212,7 @@ echo
 # cp -f ${CONFIGS_DIR}/FB_service.tmplt ${SCRIPT_DIR}/tmp.txt
 # sed -i.bak "s%${ServiceName}%nodewd%g" ${SCRIPT_DIR}/tmp.txt
 # sed -i.bak "s%N_LOG_DIR%${NODE_LOGS_ARCH}%" ${SCRIPT_DIR}/tmp.txt
-# sed -i.bak "s%N_SERVICE_DESCRIPTION%Free TON Node WatchDog Daemon%" ${SCRIPT_DIR}/tmp.txt
+# sed -i.bak "s%N_SERVICE_DESCRIPTION%Everscale Node WatchDog Daemon%" ${SCRIPT_DIR}/tmp.txt
 # sed -i.bak "s%N_USER%${USER}%" ${SCRIPT_DIR}/tmp.txt
 # sed -i.bak "s%N_NODE_LOGS_ARCH%${NODE_LOGS_ARCH}%g" ${SCRIPT_DIR}/tmp.txt
 # sed -i.bak "s%N_NODE_LOG_FILE%${TON_LOG_DIR}/${CNODE_LOG_FILE}%g" ${SCRIPT_DIR}/tmp.txt
