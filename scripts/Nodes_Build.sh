@@ -185,28 +185,28 @@ $PKG_MNGR install -y $PKGs_SET
 
 #=====================================================
 # Install BOOST for C++ node
-if ${CPP_NODE_BUILD}; then
-    echo
-    echo '################################################'
-    echo '---INFO: Install BOOST from source'
-    Installed_BOOST_Ver="$(cat /usr/local/include/boost/version.hpp 2>/dev/null | grep "define BOOST_LIB_VERSION"|awk '{print $3}'|tr -d '"'| awk -F'_' '{printf("%d%s%2d\n", $1,".",$2)}')"
-    Required_BOOST_Ver="$(echo $BOOST_VERSION | awk -F'.' '{printf("%d%s%2d\n", $1,".",$2)}')"
-    if [[ "$Installed_BOOST_Ver" != "$Required_BOOST_Ver" ]];then
-        mkdir -p $HOME/src
-        cd $HOME/src
-        sudo rm -rf $HOME/src/boost* |cat
-        sudo rm -rf /usr/local/include/boost |cat
-        sudo rm -f /usr/local/lib/libboost*  |cat
-        Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
-        wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
-        tar xf boost_${Boost_File_Version}.tar.gz
-        cd $HOME/src/boost_${Boost_File_Version}/
-        ./bootstrap.sh
-        sudo ./b2 install --prefix=/usr/local
-    else
-        echo "---INFO: BOOST Version ${BOOST_VERSION} already installed"
-    fi
-fi
+# if ${CPP_NODE_BUILD}; then
+#     echo
+#     echo '################################################'
+#     echo '---INFO: Install BOOST from source'
+#     Installed_BOOST_Ver="$(cat /usr/local/include/boost/version.hpp 2>/dev/null | grep "define BOOST_LIB_VERSION"|awk '{print $3}'|tr -d '"'| awk -F'_' '{printf("%d%s%2d\n", $1,".",$2)}')"
+#     Required_BOOST_Ver="$(echo $BOOST_VERSION | awk -F'.' '{printf("%d%s%2d\n", $1,".",$2)}')"
+#     if [[ "$Installed_BOOST_Ver" != "$Required_BOOST_Ver" ]];then
+#         mkdir -p $HOME/src
+#         cd $HOME/src
+#         sudo rm -rf $HOME/src/boost* |cat
+#         sudo rm -rf /usr/local/include/boost |cat
+#         sudo rm -f /usr/local/lib/libboost*  |cat
+#         Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
+#         wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
+#         tar xf boost_${Boost_File_Version}.tar.gz
+#         cd $HOME/src/boost_${Boost_File_Version}/
+#         ./bootstrap.sh
+#         sudo ./b2 install --prefix=/usr/local
+#     else
+#         echo "---INFO: BOOST Version ${BOOST_VERSION} already installed"
+#     fi
+# fi
 #=====================================================
 # Install or upgrade RUST
 echo
@@ -252,7 +252,7 @@ if ${CPP_NODE_BUILD};then
     cp -f $TON_BUILD_DIR/lite-client/lite-client $NODE_BIN_DIR/
     cp -f $TON_BUILD_DIR/validator-engine/validator-engine $NODE_BIN_DIR/
     cp -f $TON_BUILD_DIR/validator-engine-console/validator-engine-console $NODE_BIN_DIR/
-    cp -f $TON_BUILD_DIR//crypto/fift $NODE_BIN_DIR/
+    cp -f $TON_BUILD_DIR/crypto/fift $NODE_BIN_DIR/
 
     #=====================================================
     echo "---INFO: build utils (convert_address)..."

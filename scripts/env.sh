@@ -58,7 +58,7 @@ export RustNet_DApp_List="https://rustnet1.ton.dev"
 # Depool deploy defaults
 export ValidatorAssuranceT=10000        # Assurance in tokens
 export MinStakeT=10                     # Min DePool assepted stake in tokens
-export ParticipantRewardFraction=95     # In % participant share from reward
+export ParticipantRewardFraction=85     # In % participant share from reward
 export BalanceThresholdT=20             # Min depool self balance to operate
 export TIK_REPLANISH_AMOUNT=10          # If Tik acc balance less 2 tokens, It will be auto topup with this amount
 
