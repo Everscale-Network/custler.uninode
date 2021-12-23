@@ -54,7 +54,7 @@ case "${@}" in
         DAPP_NODE_BUILD=true
         ;;
     *)
-        CPP_NODE_BUILD=true
+        CPP_NODE_BUILD=false
         RUST_NODE_BUILD=true
         DAPP_NODE_BUILD=false
         ;;
