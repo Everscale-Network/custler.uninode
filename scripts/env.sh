@@ -124,14 +124,17 @@ export MIN_TC_VERSION="0.22.12"
 
 export CNODE_GIT_REPO="https://github.com/Everscale-Network/Everscale-Node.git"
 export CNODE_GIT_COMMIT="mainnet"
-[[ "$NETWORK_TYPE" == "fld.ton.dev" ]] && export CNODE_GIT_COMMIT="GROTH16"
+if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
+    export CNODE_GIT_REPO="https://github.com/NilFoundation/cpp-ton.git"
+    export CNODE_GIT_COMMIT="nil"
+fi
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
-# if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] || [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
-#     export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
-#     export RNODE_GIT_COMMIT="1-nil-dependencies"
-# fi
+if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]];then
+    export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
+    export RNODE_GIT_COMMIT="master"
+fi
 
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
 export RCONS_GIT_COMMIT="master"
