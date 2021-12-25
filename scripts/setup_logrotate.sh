@@ -88,7 +88,7 @@ if [[ "$OS_SYSTEM" == "Linux" ]];then
 #==============================================================================
 # Ubuntu, CentOS & Oracle
     Lunux_Distrib="$(hostnamectl |grep 'Operating System'|awk '{print $3}')"
-    LOGROT_FILE="/etc/logrotate.d/tonnode"
+    LOGROT_FILE="/etc/logrotate.d/${ServiceName}"
     Root_UN="$(id -un root)"
     Root_GN="$(id -gn root)"
     sudo cp -f rot_nodelog.cfg ${LOGROT_FILE}
@@ -122,7 +122,7 @@ _ENDNLR_
 else
 #==============================================================================
 # FreeBSD
-    LOGROT_FILE="/usr/local/etc/logrotate.d/tonnode"
+    LOGROT_FILE="/usr/local/etc/logrotate.d/${ServiceName}"
     Root_UN="$(id -un root)"
     Root_GN="$(id -gn root)"
     sudo cp -f rot_nodelog.cfg ${LOGROT_FILE}

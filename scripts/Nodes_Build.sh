@@ -54,7 +54,7 @@ case "${@}" in
         DAPP_NODE_BUILD=true
         ;;
     *)
-        CPP_NODE_BUILD=true
+        CPP_NODE_BUILD=false
         RUST_NODE_BUILD=true
         DAPP_NODE_BUILD=false
         ;;
@@ -146,7 +146,7 @@ case "$OS_SYSTEM" in
         fi
         ;;
 
-    Ubuntu)
+    Ubuntu|Debian)
         export ZSTD_LIB_DIR=/usr/lib/x86_64-linux-gnu
         PKGs_SET=$PKGS_Ubuntu
         PKG_MNGR=$PKG_MNGR_Ubuntu
