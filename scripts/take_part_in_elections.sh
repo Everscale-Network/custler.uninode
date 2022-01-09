@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-10-19 15:00:00
+# (C) Sergey Tyurin  2022-01-08 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -114,14 +114,24 @@ xxd -r -p ${KEYS_DIR}/msig.keys.txt ${KEYS_DIR}/msig.keys.bin
 
 ##############################################################################
 # Check node sync
-TIME_DIFF=$(Get_TimeDiff)
-if [[ $TIME_DIFF -gt $TIMEDIFF_MAX ]];then
-    echo "###-ERROR(line $LINENO): Your node is not synced. Wait until full sync (<$TIMEDIFF_MAX) Current timediff: $TIME_DIFF"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Your node is not synced. Wait until full sync (<$TIMEDIFF_MAX) Current timediff: $TIME_DIFF" 2>&1 > /dev/null
+# masterchain timediff
+MC_TIME_DIFF=$(Get_TimeDiff|awk '{print $1}')
+if [[ $MC_TIME_DIFF -gt $TIMEDIFF_MAX ]];then
+    echo "###-ERROR(line $LINENO): Your node is not synced with MC. Wait until MC sync (<$TIMEDIFF_MAX) Current MC timediff: $MC_TIME_DIFF"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Your node is not synced. Wait until MC sync (<$TIMEDIFF_MAX) Current MC timediff: $MC_TIME_DIFF" 2>&1 > /dev/null
     exit 1
 fi
-echo "INFO: Current TimeDiff: $TIME_DIFF"
+echo "INFO: Current MC TimeDiff: $MC_TIME_DIFF"
 
+# shards timediff (by worst shard)
+SH_TIME_DIFF=$(Get_TimeDiff|awk '{print $2}')
+if [[ $SH_TIME_DIFF -gt $TIMEDIFF_MAX ]];then
+    echo -e "${YellowBack}${BoldText}###-WARNING(line $LINENO): Your node is not synced with WORKCHAIN. Wait for all shards to sync or your accounts may not be accessible (<$TIMEDIFF_MAX) Current shards (by worst shard) timediff: $SH_TIME_DIFF${NormText}"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Your node is not synced with WORKCHAIN. Wait for all shards to sync or your accounts may not be accessible (<$TIMEDIFF_MAX) Current shards (by worst shard) timediff: $SH_TIME_DIFF" 2>&1 > /dev/null
+    # exit 1
+else
+    echo "INFO: Current WC TimeDiff: $SH_TIME_DIFF"
+fi
 ##############################################################################
 # get elector address
 elector_addr=$(Get_Elector_Address)
@@ -244,7 +254,7 @@ if [[ "$ADNL_Found" != "absent" ]];then
     Your_ADNL=$Next_ADNL_Key
     echo "-!-!-INFO: Your stake: $Your_Stake with ADNL: $(echo "$Next_ADNL_Key" | tr "[:upper:]" "[:lower:]")"
     echo
-    exit 0
+    exit 1
 fi
 
 ########################################################################################

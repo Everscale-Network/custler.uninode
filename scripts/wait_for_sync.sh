@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin 2021-09-20 19:00:00
+# (C) Sergey Tyurin  2022-01-08 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -50,8 +50,10 @@ do
         sleep $SLEEP_TIMEOUT
         continue
     else
-        echo "${Current_Net} Time: $(date +'%F %T %Z') TimeDiff: $TIME_DIFF" | tee -a ${NODE_LOGS_ARCH}/time-diff.log
-        if [[ $TIME_DIFF -le $MAX_TIME_DIFF ]];then
+        MC_TIME_DIFF=$(echo $TIME_DIFF|awk '{print $1}')
+        SH_TIME_DIFF=$(echo $TIME_DIFF|awk '{print $2}')
+        echo "${Current_Net} Time: $(date +'%F %T %Z') TimeDiffs: MC - $MC_TIME_DIFF ; WC - $SH_TIME_DIFF" | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        if [[ $MC_TIME_DIFF -le $MAX_TIME_DIFF ]] && [[ $SH_TIME_DIFF -le $MAX_TIME_DIFF ]];then
             [[ second_sync ]] && exit 0
             second_sync=true
         fi

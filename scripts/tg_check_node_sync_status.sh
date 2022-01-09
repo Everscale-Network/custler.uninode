@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-01-25 15:00:00
+# (C) Sergey Tyurin  2022-01-08 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -48,10 +48,13 @@ do
     if [[ "$TIME_DIFF" == "No TimeDiff Info" ]];then
         echo "${Current_Net} Time: $(date +'%F %T %Z') --- No masterchain blocks received yet." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
     else
+        MC_TIME_DIFF=$(echo $TIME_DIFF|awk '{print $1}')
+        SH_TIME_DIFF=$(echo $TIME_DIFF|awk '{print $2}')
+
         echo "${Current_Net} Time: $(date +'%F %T %Z') TimeDiff: $TIME_DIFF" | tee -a ${NODE_LOGS_ARCH}/time-diff.log
-        if [[ $TIME_DIFF -gt $ALARM_TIME_DIFF ]];then
+        if [[ $MC_TIME_DIFF -gt $ALARM_TIME_DIFF ]] || [[ $SH_TIME_DIFF -gt $ALARM_TIME_DIFF ]];then
         :
-        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "ALARM! NODE out of sync. TimeDiff: $TIME_DIFF" 2>&1 > /dev/null
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "ALARM! NODE out of sync. TimeDiffs: MC - $MC_TIME_DIFF ; WC - $SH_TIME_DIFF" 2>&1 > /dev/null
         fi
     fi
 

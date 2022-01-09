@@ -1,10 +1,30 @@
-## custler.uninode
-
 # Universal scripts set 
 #### - Support both Rust and C++ nodes
 #### - Support both DePool and msig validations  
 #### - Support both fift and solidity electors
 #### - Works on Ubuntu 20.04, CentOS 8.3, Oracle Linux 8.4, FreeBSD 13 (for Linux - latest kernel preferable)
+
+## Table of Contents
+  - [0. System settings](#0-system-settings)
+  - [1. Setting environment](#1-setting-environment)
+  - [2. Build nodes](#2-build-nodes)
+  - [3. Setup node and accounts](#3-setup-node-and-accounts)
+  - [4. Start node and check syncronization](#4-start-node-and-check-syncronization)
+  - [5. Deploy accounts](#5-deploy-accounts)
+    - [5.1 Get test tokens in RFLD and FLD network](#51-get-test-tokens-in-rfld-and-fld-network)
+    - [5.2 Deploy validator msig with few custodians](#52-deploy-validator-msig-with-few-custodians)
+    - [5.3 Setup and deploy DePool smartcontract](#53-setup-and-deploy-depool-smartcontract)
+      - [5.3.1 Setup DePool parametrs](#531-setup-depool-parametrs)
+      - [5.3.2 Send tokens to DePool account](#532-send-tokens-to-depool-account)
+      - [5.3.3 Depoloy DePool contract](#533-depoloy-depool-contract)
+    - [5.4 Deploy Tik account](#54-deploy-tik-account)
+  - [6. Send stake to DePool](#6-send-stake-to-depool)
+  - [7. Validations](#7-validations)
+    - [7.1 Prepare for elections](#71-prepare-for-elections)
+    - [7.2 Send stake to elector](#72-send-stake-to-elector)
+    - [7.3 Check your participation in election](#73-check-your-participation-in-election)
+    - [7.4 Set schedule in crontab](#74-set-schedule-in-crontab)
+  - [8. Alert and Info](#8-alert-and-info)
 
 ## 0. System settings
 Login as root and do
@@ -13,7 +33,7 @@ mkdir -p ~/.ssh
 echo "your ssh-rsa key" >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 ```
-Install **git**, **sudo** and **bash** if it not installed (FreeBSD)
+Install **git**, **curl**, **sudo** and **bash** if it not installed (FreeBSD)
 
 For FreeBSD make a link 
 ```bash  
@@ -249,9 +269,3 @@ After that, if timediff will be more 100 secs or the node goes down you will rec
 
 **`prepare_elections.sh`** and **`take_part_in_elections.sh`** will notify you if they will have some problems
 
-
-
----------------
-Not finished..
-
-... to be continue

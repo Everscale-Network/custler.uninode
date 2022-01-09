@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-12-14 10:00:00
+# (C) Sergey Tyurin  2022-01-08 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -45,14 +45,24 @@ echo
 
 ##############################################################################
 # Check node sync
-TIME_DIFF=$(Get_TimeDiff)
-if [[ $TIME_DIFF -gt $TIMEDIFF_MAX ]];then
-    echo "###-ERROR(line $LINENO): Your node is not synced. Wait until full sync (<$TIMEDIFF_MAX) Current timediff: $TIME_DIFF"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Your node is not synced. Wait until full sync (<$TIMEDIFF_MAX) Current timediff: $TIME_DIFF" 2>&1 > /dev/null
+# masterchain timediff
+MC_TIME_DIFF=$(Get_TimeDiff|awk '{print $1}')
+if [[ $MC_TIME_DIFF -gt $TIMEDIFF_MAX ]];then
+    echo "###-ERROR(line $LINENO): Your node is not synced with MC. Wait until MC sync (<$TIMEDIFF_MAX) Current MC timediff: $MC_TIME_DIFF"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Your node is not synced. Wait until MC sync (<$TIMEDIFF_MAX) Current MC timediff: $MC_TIME_DIFF" 2>&1 > /dev/null
     exit 1
 fi
-echo "INFO: Current TimeDiff: $TIME_DIFF"
+echo "INFO: Current MC TimeDiff: $MC_TIME_DIFF"
 
+# shards timediff (by worst shard)
+SH_TIME_DIFF=$(Get_TimeDiff|awk '{print $2}')
+if [[ $SH_TIME_DIFF -gt $TIMEDIFF_MAX ]];then
+    echo -e "${YellowBack}${BoldText}###-WARNING(line $LINENO): Your node is not synced with WORKCHAIN. Wait for all shards to sync or your accounts may not be accessible (<$TIMEDIFF_MAX) Current shards (by worst shard) timediff: $SH_TIME_DIFF${NormText}"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Your node is not synced with WORKCHAIN. Wait for all shards to sync or your accounts may not be accessible (<$TIMEDIFF_MAX) Current shards (by worst shard) timediff: $SH_TIME_DIFF" 2>&1 > /dev/null
+    # exit 1
+else
+    echo "INFO: Current WC TimeDiff: $SH_TIME_DIFF"
+fi
 #=================================================
 # get elector address
 elector_addr=$(Get_Elector_Address)
@@ -484,7 +494,7 @@ function Send_Tik(){
 
         local Curr_Trans_lt=$(Get_Account_Info ${Depool_addr} | awk '{print $3}')
         if [[ $Curr_Trans_lt == $Last_Trans_lt ]];then
-            echoerr "+++-WARNING(line $LINENO): DePool does not crank up .. Repeat sending.."| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
+            echoerr "+++-WARNING(line $LINENO): DePool does not receve message .. Repeat sending.."| tee -a "${ELECTIONS_WORK_DIR}/${elections_id}.log"
             Attempts_to_send=$((Attempts_to_send - 1))
         else
             break

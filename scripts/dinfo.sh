@@ -2,7 +2,7 @@
 
 DINFO_STRT_TIME=$(date +%s)
 
-# (C) Sergey Tyurin  2021-10-19 15:00:00
+# (C) Sergey Tyurin  2022-01-08 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -88,7 +88,13 @@ chmod +x ${ELECTIONS_WORK_DIR}
 ##############################################################################
 # Check node sync
 TIME_DIFF=$(Get_TimeDiff)
-echo "INFO: Current TimeDiff: $TIME_DIFF"
+MC_TIME_DIFF=$(echo $TIME_DIFF|awk '{print $1}')
+SH_TIME_DIFF=$(echo $TIME_DIFF|awk '{print $2}')
+if [[ $SH_TIME_DIFF -gt $TIMEDIFF_MAX ]];then
+    echo -e "${YellowBack}${BoldText}###-WARNING(line $LINENO): Your node is not synced with WORKCHAIN. Wait for all shards to sync or your accounts may not be accessible (<$TIMEDIFF_MAX) Current shards (by worst shard) timediff: $SH_TIME_DIFF${NormText}"
+    # exit 1
+fi
+echo "INFO: Current TimeDiffs: MC - $MC_TIME_DIFF ; WC - $SH_TIME_DIFF"
 
 ##############################################################################
 # get elector address
