@@ -134,7 +134,7 @@ export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
 if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]];then
     export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
-    export RNODE_GIT_COMMIT="master"
+    export RNODE_GIT_COMMIT="2-groth16-verification-encrypted-input-mode"
 fi
 
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
