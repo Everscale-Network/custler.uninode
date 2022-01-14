@@ -289,13 +289,13 @@ if ${RUST_NODE_BUILD};then
 
     cargo update
 
-    # --features "compression,sha2-native,external_db,metrics"
+    # --features "compression,external_db,metrics"
     if ${DAPP_NODE_BUILD};then
-        RNODE_FEATURES="compression,sha2-native,external_db,metrics"
-        [[ "$NODE_TYPE" == "CPP" ]] && RNODE_FEATURES="sha2-native,external_db,metrics"
+        RNODE_FEATURES="compression,external_db,metrics"
+        [[ "$NODE_TYPE" == "CPP" ]] && RNODE_FEATURES="external_db,metrics"
     else
-        RNODE_FEATURES="sha2-native"
-        [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && RNODE_FEATURES="compression,sha2-native"
+        RNODE_FEATURES=""
+        [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && RNODE_FEATURES="compression"
     fi
     echo -e "${BoldText}${BlueBack}---INFO: RNODE build flags: ${RNODE_FEATURES} ${NormText}"
     RUSTFLAGS="-C target-cpu=native" cargo build --release --features "${RNODE_FEATURES}"
