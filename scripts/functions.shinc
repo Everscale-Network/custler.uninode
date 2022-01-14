@@ -496,9 +496,9 @@ function Get_Account_Info() {
             echo "None 0 0"
             return
         fi
-        local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r '.balance'`
-        local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r '.last_paid'`
-        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r '.acc_type'`
+        local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r ".\"${ACCOUNT}\".balance"`
+        local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r ".\"${ACCOUNT}\".last_paid"`
+        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r ".\"${ACCOUNT}\".acc_type"`
     else
         case "${NODE_TYPE}" in
             RUST)
