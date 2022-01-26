@@ -40,10 +40,10 @@ export MAX_FACTOR=3
 #=====================================================
 # Networks endpoints
 export Main_DApp_URL="https://main.ton.dev"
-export MainNet_DApp_List="https://main2.ton.dev,https://main3.ton.dev,https://main4.ton.dev"
+export MainNet_DApp_List="https://eri01.main.everos.dev,https://gra01.main.everos.dev,https://gra02.main.everos.dev,https://lim01.main.everos.dev,https://rbx01.main.everos.dev,https://main2.ton.dev,https://main3.ton.dev,https://main4.ton.dev"
 
 export DevNet_DApp_URL="https://net.ton.dev"
-export DevNet_DApp_List="https://net1.ton.dev,https://net5.ton.dev"
+export DevNet_DApp_List="https://eri01.net.everos.dev,https://rbx01.net.everos.dev,https://gra01.net.everos.dev,https://net1.ton.dev,https://net5.ton.dev"
 
 export FLD_DApp_URL="https://gql.custler.net"
 export FLD_DApp_List="https://gql.custler.net"

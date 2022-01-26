@@ -48,6 +48,8 @@ loggers:
     level: info
   sync:
     level: info
+  storage:
+    level: info
 
   # adnl messages
   adnl:
@@ -86,5 +88,5 @@ loggers:
   validator_session:
     level: info
 
-  storage:
-    level: info
+  telemetry:
+    level: debug
