@@ -89,4 +89,4 @@ loggers:
     level: info
 
   telemetry:
-    level: debug
+    level: error
