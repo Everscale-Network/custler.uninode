@@ -78,7 +78,7 @@ if [[ "$NODE_TYPE" = "RUST" ]];then
     if [[ ${Curr_RC_Ver_NUM} -ge ${MIN_RC_Ver_NUM#0} ]];then
         echo "Console Version OK"
     else
-        echo -e "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): ${BoldText}${RedBack}RCONSOLE version $Curr_TC_ver is too old! It has to be updated to $MIN_RC_VERSION at least (use upd_rtools.sh)!!!${NormText}"
+        echo -e "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): ${BoldText}${RedBack}RCONSOLE version $Curr_RC_ver is too old! It has to be updated to $MIN_RC_VERSION at least (use upd_rtools.sh)!!!${NormText}"
     fi
 fi
 # =====================================================
