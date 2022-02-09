@@ -80,9 +80,9 @@ if $FORCE_USE_DAPP ;then
 else
     case "$NODE_TYPE" in
         RUST)
-            ELECT_TIME_PAR=$($CALL_RC -j -c "getconfig 15"|sed 's/config param: //')
-            LIST_CURR_VALS=$($CALL_RC -j -c "getconfig 34"|sed 's/config param: //')
-            LIST_NEXT_VALS=$($CALL_RC -j -c "getconfig 36"|sed 's/config param: //')
+            ELECT_TIME_PAR=$($CALL_RC -j -c "getconfig 15")
+            LIST_CURR_VALS=$($CALL_RC -j -c "getconfig 34")
+            LIST_NEXT_VALS=$($CALL_RC -j -c "getconfig 36")
 
             declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.p34.utime_until'`	            # utime_until
             if [[ "$election_id" == "0" ]];then 
@@ -138,13 +138,28 @@ PRV_ELECT_5=$(GET_M_H "$PREV_CHG_TIME")
 NEXT_ELECTION_TIME=$((CURR_VAL_UNTIL + VAL_DUR - STRT_BEFORE + $TIME_SHIFT + DELAY_TIME))
 NEXT_ELECTION_SECOND_TIME=$(($NEXT_ELECTION_TIME + $TIME_SHIFT))
 NEXT_ADNL_TIME=$(($NEXT_ELECTION_SECOND_TIME + $TIME_SHIFT))
-NEXT_BAL_TIME=$(($NEXT_ADNL_TIME + $TIME_SHIFT))
-NEXT_CHG_TIME=$(($NEXT_BAL_TIME + $TIME_SHIFT))
+
+#===================================================
+# Calculate update time based on validator address
+Validator_addr=`cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr`
+declare -i Validator_Upd_Ord=$(( $(hex2dec "$(echo $Validator_addr|cut -c 33,34)") ))
+
+declare -i Upd_Interval=$(( $VAL_DUR / 256 / 60 * 60 ))
+if [[ $Upd_Interval -le 0 ]];then
+    Upd_Interval=$(( $VAL_DUR / 128 / 60 * 60 ))
+    Validator_Upd_Ord=$((  Validator_Upd_Ord / 2 ))
+fi
+NEXT_UPD_TIME=$(($PREV_ADNL_TIME + $Validator_Upd_Ord * $Upd_Interval))
+
+#===================================================
+# 
+
+NEXT_CHG_TIME=$(($NEXT_UPD_TIME + $TIME_SHIFT))
 
 NXT_ELECT_1=$(GET_M_H "$NEXT_ELECTION_TIME")
 NXT_ELECT_2=$(GET_M_H "$NEXT_ELECTION_SECOND_TIME")
 NXT_ELECT_3=$(GET_M_H "$NEXT_ADNL_TIME")
-NXT_ELECT_4=$(GET_M_H "$NEXT_BAL_TIME")
+NXT_ELECT_4=$(GET_M_H "$NEXT_UPD_TIME")
 NXT_ELECT_5=$(GET_M_H "$NEXT_CHG_TIME")
 
 
@@ -192,6 +207,7 @@ HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_4 * * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${TON_LOG_DIR}/validator.log
 # $GPL_TIME_MH * * *    cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst
 _ENDCRN_
 )
@@ -205,6 +221,7 @@ HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
+$NXT_ELECT_4 * * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${TON_LOG_DIR}/validator.log
 # $GPL_TIME_MH * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst"
 _ENDCRN_
 )

@@ -26,6 +26,7 @@ OS_SYSTEM=`uname -s`
 # All nets configs folder
 export CONFIGS_DIR=${NODE_TOP_DIR}/configs
 
+Enable_Autoupdate=true                  # will automatically update scriipts, rnode, rconsole, tonos-cli etc..
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="rfld.ton.dev"      # can be main.* / net.* / fld.* / rustnet.* / rfld.*
@@ -250,11 +251,10 @@ export Tg_Warn_sign=$(echo -e "\U000026A0")
 
 #=================================================
 # var for icinga monitoring
-export prepElections="${TON_LOG_DIR}/prepForElections"
-export partInElections="${TON_LOG_DIR}/partInElections"
-export nextElections="${TON_LOG_DIR}/nextElections"
-export nodeStats="${TON_LOG_DIR}/nodeStats"
-
+export prepElections="${TON_LOG_DIR:-$R_LOG_DIR}/prepForElections"
+export partInElections="${TON_LOG_DIR:-$R_LOG_DIR}/partInElections"
+export nextElections="${TON_LOG_DIR:-$R_LOG_DIR}/nextElections"
+export nodeStats="${TON_LOG_DIR:-$R_LOG_DIR}/nodeStats"
 #=================================================
 # File to keep changes of default variables from this file 
 # to avoid reconfig after "git pull "
