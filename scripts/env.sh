@@ -26,7 +26,8 @@ OS_SYSTEM=`uname -s`
 # All nets configs folder
 export CONFIGS_DIR=${NODE_TOP_DIR}/configs
 
-Enable_Autoupdate=true                  # will automatically update scriipts, rnode, rconsole, tonos-cli etc..
+Enable_Node_Autoupdate=true             # will automatically update rnode, rconsole, tonos-cli etc..
+Enable_Scripts_Autoupdate=false         # Updating scripts. NB! Change it to true if you fully trust me ONLY!!  
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="rfld.ton.dev"      # can be main.* / net.* / fld.* / rustnet.* / rfld.*

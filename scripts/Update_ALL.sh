@@ -80,8 +80,8 @@ else
         cp -f  ${HOME}/Custler_tmp/env.sh ${SCRIPT_DIR}/
         cp -f  ${HOME}/Custler_tmp/TlgChat.json ${SCRIPT_DIR}/
         cp -f  ${HOME}/Custler_tmp/RC_Addr_list.json ${SCRIPT_DIR}/
-
         #=======================================
+
         cat ${SCRIPT_DIR}/Update_Info.txt
         echo
         echo "---INFO: SCRIPTS updated. Files env.sh TlgChat.json RC_Addr_list.json keeped."
