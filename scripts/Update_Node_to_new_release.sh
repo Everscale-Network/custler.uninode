@@ -45,7 +45,7 @@ if [[ -z $Node_remote_commit ]];then
 fi
 
 if [[ "$Node_local_commit" == "$Node_remote_commit" ]];then
-    echo "---INFO: Node is up to date"
+    echo "---INFO: The Node is up to date"
     exit 0
 fi
 
