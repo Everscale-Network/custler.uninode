@@ -30,6 +30,44 @@ echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 
+exitVar=0
+
+shopt -s nocasematch
+if [[ ! -z ${Enable_Node_Autoupdate} || -n ${Enable_Node_Autoupdate} ]]
+then
+    if [[ ${Enable_Node_Autoupdate} != "true" ]]
+    then
+        exitVar=1
+    fi
+fi
+shopt -u nocasematch
+
+shopt -s nocasematch
+if [[ ! -z ${Enable_Scripts_Autoupdate} || -n ${Enable_Scripts_Autoupdate} ]]
+then
+    if [[ ${Enable_Scripts_Autoupdate} != "true" ]]
+    then
+        exitVar=2
+    fi
+fi
+shopt -u nocasematch
+
+if [[ $exitVar -eq 1 ]]
+then
+    echo "+++INFO: $(basename "$0") Variable Enable_Node_Autoupdate not set to true in env.sh"
+    echo "+++INFO: Will not update node"
+    echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+    echo "================================================================================================"
+    exit 1
+elif [[ $exitVar -eq 2 ]]
+then
+    echo "+++INFO: $(basename "$0") Variable Enable_Scripts_Autoupdate not set to true in env.sh"
+    echo "+++INFO: Will not update scripts"
+    echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+    echo "================================================================================================"
+    exit 1
+fi
+
 #===========================================================
 # Get scripts update info
 Custler_Scripts_local_commit="$(git --git-dir="${SCRIPT_DIR}/../.git" rev-parse HEAD 2>/dev/null)"
@@ -94,10 +132,8 @@ else
 fi
 
 #===========================================================
-# Update NODE 
-if $Enable_Node_Autoupdate;then
-    ${SCRIPT_DIR}/Update_Node_to_new_release.sh
-fi
+# Update NODE
+${SCRIPT_DIR}/Update_Node_to_new_release.sh
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"
