@@ -64,29 +64,6 @@ then
 fi
 shopt -u nocasematch
 
-if [[ $exitVar -eq 1 ]]
-then
-    echo "+++INFO: $(basename "$0") Variable Enable_Node_Autoupdate not set to true in env.sh"
-    echo "+++INFO: Will not update node"
-    echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
-    echo "================================================================================================"
-    exit 1
-elif [[ $exitVar -eq 2 ]]
-then
-    echo "+++INFO: $(basename "$0") Variable Enable_Scripts_Autoupdate not set to true in env.sh"
-    echo "+++INFO: Will not update scripts"
-    echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
-    echo "================================================================================================"
-    exit 1
-elif [[ $exitVar -eq 3 ]]
-then
-    echo "+++INFO: $(basename "$0") Variable newReleaseSndMsg not set to true in env.sh"
-    echo "+++INFO: Will not send notifications abiout new scripts release"
-    echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
-    echo "================================================================================================"
-    exit 1
-fi
-
 #===========================================================
 # Get scripts update info
 Custler_Scripts_local_commit="$(git --git-dir="${SCRIPT_DIR}/../.git" rev-parse HEAD 2>/dev/null)"
@@ -126,8 +103,9 @@ then
     else
         if $Enable_Scripts_Autoupdate ;then
             echo "---INFO: SCRIPTS going to update from $Custler_Scripts_local_commit to new commit $Custler_Scripts_remote_commit"
-            "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Warn_sign INFO: SCRIPTS going to update from $Custler_Scripts_local_commit to new commit $Custler_Scripts_remote_commit" 2>&1 > /dev/null
-
+            if [[ $myNewReleaseSndMsg -eq 1 ]]; then
+                "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Warn_sign INFO: SCRIPTS going to update from $Custler_Scripts_local_commit to new commit $Custler_Scripts_remote_commit" 2>&1 > /dev/null
+            fi
             Remote_Repo_URL="$(git remote show origin | grep 'Fetch URL' | awk '{print $3}')"
             echo "---INFO: Update scripts from repo $Remote_Repo_URL"
 
@@ -148,11 +126,15 @@ then
             cat ${SCRIPT_DIR}/Update_Info.txt
             echo
             echo "---INFO: SCRIPTS updated. Files env.sh TlgChat.json RC_Addr_list.json keeped."
-            "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark $(cat ${SCRIPT_DIR}/Update_Info.txt)" 2>&1 > /dev/null
-            "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: SCRIPTS updated. Files env.sh TlgChat.json RC_Addr_list.json keeped." 2>&1 > /dev/null
+            if [[ $myNewReleaseSndMsg -eq 1 ]]; then
+                "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark $(cat ${SCRIPT_DIR}/Update_Info.txt)" 2>&1 > /dev/null
+                "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: SCRIPTS updated. Files env.sh TlgChat.json RC_Addr_list.json keeped." 2>&1 > /dev/null
+            fi
         else
             echo '---WARN: Scripts repo was updated. Please check it and update by hand. If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"'
-            "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Warn_sign"+'WARN: Scripts repo was updated. Please check it and update. If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"' 2>&1 > /dev/null
+            if [[ $myNewReleaseSndMsg -eq 1 ]]; then
+                "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Warn_sign"+'WARN: Scripts repo was updated. Please check it and update. If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"' 2>&1 > /dev/null
+            fi
         fi
     fi
 fi
