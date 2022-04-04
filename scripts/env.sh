@@ -26,6 +26,11 @@ OS_SYSTEM=`uname -s`
 # All nets configs folder
 export CONFIGS_DIR=${NODE_TOP_DIR}/configs
 
+# SECURITY messages
+# if you use only Custler's scripts and nothing more, set it true for messages about new releases!
+newReleaseSndMsg=true
+
+# SECURITY updates
 Enable_Node_Autoupdate=true             # will automatically update rnode, rconsole, tonos-cli etc..
 Enable_Scripts_Autoupdate=false         # Updating scripts. NB! Change it to true if you fully trust me ONLY!!  
 #=====================================================
