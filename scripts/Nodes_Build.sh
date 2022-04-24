@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eE
 
-# (C) Sergey Tyurin  2021-10-19 10:00:00
+# (C) Sergey Tyurin  2022-04-22 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -383,6 +383,24 @@ cd ${NODE_TOP_DIR}
 git clone --single-branch --branch ${Surf_GIT_Commit} ${CONTRACTS_GIT_REPO} "${ContractsDIR}/Surf-contracts"
 
 curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
+
+#=====================================================
+# Check reboot required after update
+case "$OS_SYSTEM" in
+    FreeBSD)
+        ;;
+    Oracle|CentOS)
+            needs-restarting -r
+        ;;
+    Ubuntu|Debian)
+        if [ -f /var/run/reboot-required ]; then
+            echo 'reboot required'
+            cat /var/run/reboot-required.pkgs
+        fi
+        ;;
+    *)
+        ;;
+esac
 
 echo 
 echo '################################################'

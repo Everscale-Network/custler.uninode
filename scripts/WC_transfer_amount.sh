@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-08-14 10:00:00
+# (C) Sergey Tyurin  2022-04-22 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -129,7 +129,7 @@ if [[ "$SRC_STATUS" == "Uninit" ]];then
 fi
 
 # Check SRC acc Keys
-Calc_Addr=$($CALL_TC genaddr $Wallet_Code $Wallet_ABI --setkey $SRC_KEY_FILE --wc "$SRC_WC" | grep "Raw address:" | awk '{print $3}')
+Calc_Addr=$($CALL_TC genaddr $Wallet_Code --abi $Wallet_ABI --setkey $SRC_KEY_FILE --wc "$SRC_WC" | grep "Raw address:" | awk '{print $3}')
 if [[ ! "$SRC_ACCOUNT" == "$Calc_Addr" ]];then
     echo "###-ERROR(line $LINENO): Given SRC account address and calculated address is different. Wrong keys. Can't continue. "
     echo "Given addr: $SRC_ACCOUNT"

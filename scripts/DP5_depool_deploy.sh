@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eE
 
-# (C) Sergey Tyurin  2021-10-19 10:00:00
+# (C) Sergey Tyurin  2022-04-22 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -164,7 +164,7 @@ fi
 
 #===========================================================
 # Check DePool Address
-DP_ADDR_from_Keys=$($CALL_TC genaddr ${DSCs_DIR}/DePool.tvc ${DSCs_DIR}/DePool.abi.json --setkey $Depoo_Keys --wc "$Depool_WC" | grep "Raw address:" | awk '{print $3}')
+DP_ADDR_from_Keys=$($CALL_TC genaddr ${DSCs_DIR}/DePool.tvc --abi ${DSCs_DIR}/DePool.abi.json --setkey $Depoo_Keys --wc "$Depool_WC" | grep "Raw address:" | awk '{print $3}')
 if [[ ! "$Depool_addr" == "$DP_ADDR_from_Keys" ]];then
     echo "###-ERROR(line $LINENO): Given DePool Address and calculated address is different. Possible you prepared it for another contract. "
     echo "Given addr: $Depool_addr"

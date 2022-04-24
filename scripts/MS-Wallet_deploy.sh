@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin 2021-10-19 19:00:00
+# (C) Sergey Tyurin  2022-04-22 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -160,7 +160,7 @@ echo
 
 #===========================================================
 # Check Wallet Address
-ADDR_from_Keys=$($CALL_TC genaddr $Wallet_Code $Wallet_ABI --setkey ${KEY_FILES_DIR}/${WAL_NAME}_1.keys.json --wc "$Work_Chain" | grep "Raw address:" | awk '{print $3}')
+ADDR_from_Keys=$($CALL_TC genaddr $Wallet_Code --abi $Wallet_ABI --setkey ${KEY_FILES_DIR}/${WAL_NAME}_1.keys.json --wc "$Work_Chain" | grep "Raw address:" | awk '{print $3}')
 if [[ ! "$WALL_ADDR" == "$ADDR_from_Keys" ]];then
     echo "###-ERROR(line $LINENO): Given Wallet Address and calculated address is different. Possible you prepared it for another contract type or keys. "
     echo "Given addr: $WALL_ADDR"

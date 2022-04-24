@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2020-10-19 10:00:00
+# (C) Sergey Tyurin  2022-02-11 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -34,6 +34,7 @@ SETUP_GROUP="$(id -gn)"
 # NB! - should be log '>>'  in run.sh or 'append' in service
 CPP_NODE_LOG_FILE_NAME="${TON_LOG_DIR}/${CNODE_LOG_FILE}"
 RUST_NODE_LOG_FILE_NAME="${R_LOG_DIR}/${RNODE_LOG_FILE}"
+VALIDATOR_LOG_FILE_NAME="${TON_LOG_DIR}/validator.log"
 
 NODES_LOG_ROT=$(cat <<-_ENDNLR_
 $CPP_NODE_LOG_FILE_NAME {
@@ -51,7 +52,7 @@ $CPP_NODE_LOG_FILE_NAME {
     nocompress
     postrotate
       LFLZ="\$(ls ${CPP_NODE_LOG_FILE_NAME}-20*  2>/dev/null)"
-      [ ! -z \${LFLZ} ] && 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFLZ##*/}.7z" "\${LFLZ}" &>/dev/null
+      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
       find ${NODE_LOGS_ARCH}/${CNODE_LOG_FILE}* -mtime +${NODE_LOGs_ARCH_KEEP_DAYS} -delete
     endscript
 }
@@ -71,13 +72,34 @@ $RUST_NODE_LOG_FILE_NAME {
     nocompress
     postrotate
       LFLZ="\$(ls ${RUST_NODE_LOG_FILE_NAME}-20*  2>/dev/null)"
-      [ ! -z \${LFLZ} ] && 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFLZ##*/}.7z" "\${LFLZ}" &>/dev/null
+      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
       find ${NODE_LOGS_ARCH}/${RNODE_LOG_FILE}* -mtime +${NODE_LOGs_ARCH_KEEP_DAYS} -delete
       LFLZ="\$(ls ${RNODE_LOG_FILE%%.*}_*  2>/dev/null)"
-      [ ! -z \${LFLZ} ] && 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFLZ##*/}.7z" "\${LFLZ}" &>/dev/null
+      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
       find ${NODE_LOGS_ARCH}/${RNODE_LOG_FILE}* -mtime +${NODE_LOGs_ARCH_KEEP_DAYS} -delete
     endscript
 }
+
+$VALIDATOR_LOG_FILE_NAME {
+    su $SETUP_USER $SETUP_GROUP
+    weekly
+    copytruncate
+    dateext
+    dateyesterday
+    missingok
+    rotate 2
+    maxage 3
+    maxsize 5G
+    sharedscripts
+    notifempty
+    nocompress
+    postrotate
+      LFLZ="\$(ls ${VALIDATOR_LOG_FILE_NAME}-20*  2>/dev/null)"
+      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
+      find ${NODE_LOGS_ARCH}/validator.log* -mtime +30 -delete
+    endscript
+}
+
 _ENDNLR_
 )
 

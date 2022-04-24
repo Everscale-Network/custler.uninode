@@ -1,1 +1,1 @@
----WARN: Security update!! Made separate variables for update the node and scripts by the user choice. Setted SCRIPTS AUTOUPDATE to FALSE. If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"
+---WARN: Compatibility tonos-cli update! Now tonos-cli needs "--abi" key before abi with genaddr command. 

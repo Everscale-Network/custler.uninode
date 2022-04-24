@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-10-19 10:00:00
+# (C) Sergey Tyurin  2022-04-22 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -111,7 +111,7 @@ if [[ "$Depool_WC" != "$Validator_WC" ]];then
 fi
 #=======================================================================================
 # generate depool address
-DepoolAddress=`$CALL_TC genaddr $Depool_Code $Depool_ABI \
+DepoolAddress=`$CALL_TC genaddr $Depool_Code --abi $Depool_ABI \
 		--setkey "${KEY_FILES_DIR}/depool.keys.json" --wc "$Depool_WC" \
 		| tee  ${KEY_FILES_DIR}/depool_addr-card.txt \
 		| grep "Raw address:" | awk '{print $3}' \
