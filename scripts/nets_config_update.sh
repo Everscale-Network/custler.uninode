@@ -36,7 +36,7 @@ curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
 MAIN_GLB_URL="https://raw.githubusercontent.com/tonlabs/main.ton.dev/master/configs/ton-global.config.json"
 NET_GLB_URL="https://raw.githubusercontent.com/tonlabs/net.ton.dev/master/configs/ton-global.config.json"
-FLD_GLB_URL="https://raw.githubusercontent.com/FreeTON-Network/fld.ton.dev/main/configs/fld.ton.dev/ton-global.config.json"
+FLD_GLB_URL="https://raw.githubusercontent.com/Everscale-Network/custler.uninode/main/configs/fld.ton.dev/ton-global.config.json"
 RFLD_GLB_URL="https://raw.githubusercontent.com/FreeTON-Network/custler.uninode/main/configs/rfld.ton.dev/ton-global.config.json"
 RST_GLB_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/configs/ton-global.config.json"
 

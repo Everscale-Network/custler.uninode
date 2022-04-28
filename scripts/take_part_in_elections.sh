@@ -364,6 +364,7 @@ if [[ "$STAKE_MODE" == "msig" ]];then
     Stake_DST_Addr=$elector_addr
     MSIG_FIX_STAKE=$((MSIG_FIX_STAKE))
     Validator_Acc_Balance=`echo "$Validator_Acc_Info" | awk '{print $2}'`
+    Validator_Acc_Balance=$(( Validator_Acc_Balance / 1000000000 ))
     if [[ $MSIG_FIX_STAKE -gt 0 ]];then     # ================================== Fixed stake
         if [[ $Validator_Acc_Balance -gt $MSIG_FIX_STAKE ]];then
             NANOSTAKE=$((MSIG_FIX_STAKE * 1000000000))
