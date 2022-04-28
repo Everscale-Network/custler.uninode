@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-01-08 19:00:00
+# (C) Sergey Tyurin  2022-04-22 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -125,10 +125,10 @@ export C_ENGINE_ADDITIONAL_PARAMS=""
 
 #=====================================================
 # GIT addresses & commits
-export RUST_VERSION="1.58.0"
+export RUST_VERSION="1.58.1"
 export BOOST_VERSION="1.76.0"
-export MIN_TC_VERSION="0.24.11"
-export MIN_RC_VERSION="0.1.255"
+export MIN_TC_VERSION="0.24.60"
+export MIN_RC_VERSION="0.1.261"
 
 export CNODE_GIT_REPO="https://github.com/Everscale-Network/Everscale-Node.git"
 export CNODE_GIT_COMMIT="mainnet"

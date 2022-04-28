@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-02-08 19:00:00
+# (C) Sergey Tyurin  2022-04-28 19:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -141,6 +141,29 @@ fi
 #===========================================================
 # Update NODE
 ${SCRIPT_DIR}/Update_Node_to_new_release.sh
+
+#################################################################
+# NB!! This section shoul be run once only with rnode commit 5494f43cf80e071f6e10257ef4901568d10b2385 only
+Node_local_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
+if [[ ! -f ${SCRIPT_DIR}/rnode_commit_5494f43_DB_Restored ]] && [[ ${Node_local_commit} == "5494f43cf80e071f6e10257ef4901568d10b2385" ]];then
+    echo "${Tg_Warn_sign}---WARN: Node going to RESTORE DataBase. It is once for commit 5494f43. Approx ONE hour the node will looks like DOWN and UNSYNCED!"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "${Tg_Warn_sign}---WARN: Node going to RESTORE DataBase. It is once for commit 5494f43. Approx ONE hour the node will looks like DOWN and UNSYNCED!" 2>&1 > /dev/null
+    
+    #===============================
+    sudo service ${ServiceName} stop
+    jq ".restore_db = true" ${R_CFG_DIR}/config.json > ${R_CFG_DIR}/config.json.tmp
+    mv -f ${R_CFG_DIR}/config.json.tmp ${R_CFG_DIR}/config.json
+    sudo service ${ServiceName} start
+    ${SCRIPT_DIR}/wait_for_sync.sh
+    jq ".restore_db = false" ${R_CFG_DIR}/config.json > ${R_CFG_DIR}/config.json.tmp
+    mv -f ${R_CFG_DIR}/config.json.tmp ${R_CFG_DIR}/config.json
+    #===============================
+    touch ${SCRIPT_DIR}/rnode_commit_5494f43_DB_Restored
+    
+    echo "${Tg_Warn_sign}---INFO: DB restored. Node should be SYNCED!"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "${Tg_Warn_sign}---INFO: DB restored. Node should be SYNCED!" 2>&1 > /dev/null
+fi
+#################################################################
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"
