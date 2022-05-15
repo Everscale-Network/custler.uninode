@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-01-08 19:00:00
+# (C) Sergey Tyurin  2022-05-15 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -88,40 +88,40 @@ case "$NetName" in
     main)
         export DApp_URL=${Main_DApp_URL}
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $MainNet_DApp_List &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $MainNet_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     net)
         export DApp_URL=${DevNet_DApp_URL}
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $DevNet_DApp_List &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $DevNet_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     fld)
         export DApp_URL=${FLD_DApp_URL}
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $FLD_DApp_List &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $FLD_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=CPP}"                # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     rfld)
         export DApp_URL=${RFLD_DApp_URL}
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $RFLD_DApp_List &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $RFLD_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=RUST}"               # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     rustnet)
         export DApp_URL=${RustNet_DApp_URL}
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config endpoint add $DApp_URL $RustNet_DApp_List &>/dev/null
-        $NODE_BIN_DIR/tonos-cli config --url $DApp_URL &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $RustNet_DApp_List &>/dev/null
+        $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
         export NODE_TYPE="${NODE_TYPE:=RUST}"               # can be 'RUST' or 'CPP'
         export ELECTOR_TYPE="${ELECTOR_TYPE:=solidity}"                      # can be 'solidity' or 'fift'
         ;;

@@ -98,7 +98,7 @@ do
     echo "PubKey${i}: $PubKey"
     
     # generate pub/sec keypair file
-    $CALL_TC getkeypair "${KEY_FILES_DIR}/${WAL_NAME}_${i}.keys.json" "$SeedPhrase" &> /dev/null
+    $CALL_TC getkeypair -o "${KEY_FILES_DIR}/${WAL_NAME}_${i}.keys.json" -p "$SeedPhrase" &> /dev/null
 done
 
 cp -f "${KEY_FILES_DIR}/${WAL_NAME}_1.keys.json" "${KEY_FILES_DIR}/${WAL_NAME}.keys.json"

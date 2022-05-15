@@ -295,7 +295,8 @@ if ${RUST_NODE_BUILD};then
         [[ "$NODE_TYPE" == "CPP" ]] && RNODE_FEATURES="external_db,metrics"
     else
         RNODE_FEATURES=""
-        [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && RNODE_FEATURES="compression"
+        [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && RNODE_FEATURES=""
+        # "compression"
     fi
     echo -e "${BoldText}${BlueBack}---INFO: RNODE build flags: ${RNODE_FEATURES} ${NormText}"
     RUSTFLAGS="-C target-cpu=native" cargo build --release --features "${RNODE_FEATURES}"

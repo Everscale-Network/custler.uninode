@@ -93,7 +93,7 @@ echo "Public Key saved to ${KEY_FILES_DIR}/depool_pub.txt"
 
 #----------------------------------------------------------    
 # generate pub/sec keypair file
-$CALL_TC getkeypair "${KEY_FILES_DIR}/depool.keys.json" "$SeedPhrase" &> /dev/null
+$CALL_TC getkeypair -o "${KEY_FILES_DIR}/depool.keys.json" -p "$SeedPhrase" &> /dev/null
 
 key_public=`cat ${KEY_FILES_DIR}/depool.keys.json | jq ".public" | tr -d '"'`
 key_secret=`cat ${KEY_FILES_DIR}/depool.keys.json | jq ".secret" | tr -d '"'`

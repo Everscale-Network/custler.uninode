@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-02-08 19:00:00
+# (C) Sergey Tyurin  2022-05-15 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -91,7 +91,9 @@ fi
 #===========================================================
 # Check and show the Node version
 EverNode_Version="$(${NODE_BIN_DIR}/rnode -V | grep -i 'version' | awk '{print $4}')"
-echo "INFO: Node updated. Service restarted. Current node version: $EverNode_Version"
-"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current node version: $EverNode_Version" 2>&1 > /dev/null
+Console_Version="$(${NODE_BIN_DIR}/console -V | awk '{print $2}')"
+TonosCLI_Version="$(${NODE_BIN_DIR}/tonos-cli -V | grep -i 'tonos_cli' | awk '{print $2}')"
+echo "INFO: Node updated. Service restarted. Current version: node - ${EverNode_Version}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
+"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current version: node - ${EverNode_Version}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
 
 exit 0

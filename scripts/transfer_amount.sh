@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eE
 
-# (C) Sergey Tyurin  2022-04-22 10:00:00
+# (C) Sergey Tyurin  2022-05-15 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -63,7 +63,7 @@ TRANSF_AMOUNT="$3"
 NEW_ACC=$4
 [[ -z $TRANSF_AMOUNT ]] && tr_usage
 
-NANO_AMOUNT=`$CALL_TC -j convert tokens $TRANSF_AMOUNT | jq -r '.value'`
+declare -i NANO_AMOUNT=`$CALL_TC -j convert tokens $TRANSF_AMOUNT | jq -r '.value'`
 # if [[ $NANO_AMOUNT -lt 100000000 ]];then
 #     echo "###-ERROR(line $LINENO): Can't transfer too small amount of nanotokens! (${NANO_AMOUNT})nt"
 #     exit 1
@@ -109,7 +109,7 @@ fi
 echo "Check SRC $SRC_NAME account.."
 ACCOUNT_INFO="$(Get_Account_Info $SRC_ACCOUNT)"
 SRC_STATUS=`echo $ACCOUNT_INFO |awk '{print $1}'`
-SRC_AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
+declare -i SRC_AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
 SRC_TIME=`echo "$ACCOUNT_INFO" | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $3)}'`
 SRC_Time_Unix=`echo $ACCOUNT_INFO |awk '{print $3}'`
 
@@ -142,7 +142,7 @@ SRC_Conf_QTY=$(echo $Custodians|awk '{print $2}')
 #================================================================
 echo "Check DST $DST_NAME account.."
 ACCOUNT_INFO="$(Get_Account_Info $DST_ACCOUNT)"
-DST_AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
+declare -i DST_AMOUNT=`echo "$ACCOUNT_INFO" |awk '{print $2}'`
 DST_TIME=`echo "$ACCOUNT_INFO" | gawk '{ print strftime("%Y-%m-%d %H:%M:%S", $3)}'`
 DST_STATUS=`echo $ACCOUNT_INFO |awk '{print $1}'`
 if [[ ! "$DST_STATUS" == "Active" ]] && [[ -z $NEW_ACC ]];then
@@ -151,23 +151,6 @@ if [[ ! "$DST_STATUS" == "Active" ]] && [[ -z $NEW_ACC ]];then
     tr_usage
     exit 1
 fi
-
-#================================================================
-# Make BOC file to send
-TA_BOC_File="${KEYS_DIR}/Transfer_Amount.boc"
-rm -f "${TA_BOC_File}" &>/dev/null
-TC_OUTPUT="$($CALL_TC message --raw --output ${TA_BOC_File} \
---sign "${SRC_KEY_FILE}" \
---abi "${Wallet_ABI}" \
-${SRC_ACCOUNT} submitTransaction \
-"{\"dest\":\"${DST_ACCOUNT}\",\"value\":${NANO_AMOUNT},\"bounce\":$BOUNCE,\"allBalance\":false,\"payload\":\"\"}" \
---lifetime 600 | grep -i 'Message saved to file')"
-
-if [[ -z $TC_OUTPUT ]];then
-    echo "###-ERROR(line $LINENO): Failed to make BOC file ${TA_BOC_File}. Can't continue."
-    exit 1
-fi
-echo "INFO: Message BOC file created: ${TA_BOC_File}"
 
 #================================================================
 Trans_List="$(Get_MSIG_Trans_List ${SRC_ACCOUNT})"
@@ -188,6 +171,13 @@ echo "Last operation time: $DST_TIME"
 echo
 echo "Transferring $TRANSF_AMOUNT ($NANO_AMOUNT) from ${SRC_NAME} to ${DST_NAME} ..." 
 
+if [[ $SRC_AMOUNT -le $NANO_AMOUNT ]];then
+    echo
+    echo "###-ERROR(line $LINENO): You cannot transfer more than you have. Sorry.."
+    echo
+    exit 1
+fi
+
 read -p "### CHECK INFO TWICE!!! Is this a right tranfer?  (y/n)? " </dev/tty answer
 case ${answer:0:1} in
     y|Y )
@@ -199,8 +189,24 @@ case ${answer:0:1} in
     ;;
 esac
 
-# ==========================================================================
+#================================================================
+# Make BOC file to send
+TA_BOC_File="${KEYS_DIR}/Transfer_Amount.boc"
+rm -f "${TA_BOC_File}" &>/dev/null
+TC_OUTPUT="$($CALL_TC message --raw --output ${TA_BOC_File} \
+--sign "${SRC_KEY_FILE}" \
+--abi "${Wallet_ABI}" \
+${SRC_ACCOUNT} submitTransaction \
+"{\"dest\":\"${DST_ACCOUNT}\",\"value\":${NANO_AMOUNT},\"bounce\":$BOUNCE,\"allBalance\":false,\"payload\":\"\"}" \
+--lifetime 600 | grep -i 'Message saved to file')"
 
+if [[ -z $TC_OUTPUT ]];then
+    echo "###-ERROR(line $LINENO): Failed to make BOC file ${TA_BOC_File}. Can't continue."
+    exit 1
+fi
+echo "INFO: Message BOC file created: ${TA_BOC_File}"
+
+# ==========================================================================
 for (( i=1; i<=${SEND_ATTEMPTS}; i++ )); do
     echo -n "INFO: submitTransaction attempt #${i}..."
     result=`Send_File_To_BC "${TA_BOC_File}"`

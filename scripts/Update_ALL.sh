@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-04-28 19:00:00
+# (C) Sergey Tyurin  2022-05-15 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -110,6 +110,7 @@ then
             echo "---INFO: Update scripts from repo $Remote_Repo_URL"
 
             #=======================================
+            # Save env.sh TlgChat.json RC_Addr_list.json before update
             mkdir -p ${HOME}/Custler_tmp
             cp -f ${SCRIPT_DIR}/env.sh ${HOME}/Custler_tmp/
             cp -f ${SCRIPT_DIR}/TlgChat.json ${HOME}/Custler_tmp/
@@ -118,10 +119,28 @@ then
             git reset --hard
             git pull --ff-only
 
+            # Restore env.sh TlgChat.json RC_Addr_list.json before update
             cp -f  ${HOME}/Custler_tmp/env.sh ${SCRIPT_DIR}/
             cp -f  ${HOME}/Custler_tmp/TlgChat.json ${SCRIPT_DIR}/
             cp -f  ${HOME}/Custler_tmp/RC_Addr_list.json ${SCRIPT_DIR}/
             #=======================================
+
+            #################################################################
+            # This section update env.sh to satisfy new changes in scripts
+            
+            # set new mainnet endpoints
+            sed -i.bak 's/^export MainNet_DApp_List=.*/export MainNet_DApp_List="https://eri01.main.everos.dev,https://gra01.main.everos.dev,https://gra02.main.everos.dev,https://lim01.main.everos.dev,https://rbx01.main.everos.dev"/' ${SCRIPT_DIR}/env.sh
+            
+            # set new devnet endpoints
+            sed -i.bak 's/^export DevNet_DApp_List=.*/export DevNet_DApp_List="https://eri01.net.everos.dev,https://rbx01.net.everos.dev,https://gra01.net.everos.dev"/' ${SCRIPT_DIR}/env.sh
+            
+            # set new tonos-cli min version
+            sed -i.bak 's/^export MIN_TC_VERSION=.*/export MIN_TC_VERSION="0.26.7"/' ${SCRIPT_DIR}/env.sh
+            
+            # set new tonos-cli min version
+            sed -i.bak 's/^export MIN_RC_VERSION=.*/export MIN_RC_VERSION="0.1.262"/' ${SCRIPT_DIR}/env.sh
+
+            #################################################################
 
             cat ${SCRIPT_DIR}/Update_Info.txt
             echo

@@ -1,1 +1,1 @@
----WARN: This node version shall be deployed with mandatory DB restoration to fix previously happened data errors inside DB. 
+---WARN: Compatibility tonos-cli update! Updated endpoints. Now tonos-cli needs "--abi" key before abi with genaddr command and keys -o & -p for getkeypair command.
