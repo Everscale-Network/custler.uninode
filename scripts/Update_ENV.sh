@@ -47,7 +47,7 @@ sed -i.bak 's/^export MIN_RC_VERSION=.*/export MIN_RC_VERSION="0.1.262"/' ${SCRI
 
 # Installing new node version with block version 24. Making DB restore once again.
 echo "+++ Set NODE actual commit to 8135f586aa1a536393496c21cb1acba510c3f9a9"
-sed -i.bak 's/^export RNODE_GIT_COMMIT=.*/export RNODE_GIT_COMMIT="8135f586aa1a536393496c21cb1acba510c3f9a9"/' ${SCRIPT_DIR}/env.sh
+sed -i.bak 's/^export RNODE_GIT_COMMIT=.*/export RNODE_GIT_COMMIT="master"/' ${SCRIPT_DIR}/env.sh
 #################################################################
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"

@@ -145,7 +145,7 @@ ${SCRIPT_DIR}/Update_Node_to_new_release.sh
 # Deprecated - 5494f43cf80e071f6e10257ef4901568d10b2385 only
 
 Node_local_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
-if [[ ! -f ${SCRIPT_DIR}/rnode_commit_8135f58_DB_Restored ]] && [[ ${Node_local_commit} == "8135f586aa1a536393496c21cb1acba510c3f9a9" ]];then
+if [[ ! -f ${SCRIPT_DIR}/rnode_commit_8135f58_DB_Restored ]] && [[ ${Node_local_commit} == "XX8135f586aa1a536393496c21cb1acba510c3f9a9" ]];then
     echo "---WARN: Node going to RESTORE DataBase. It is once for commit 8135f58. Approx ONE hour the node will looks like DOWN and UNSYNCED!"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "${Tg_Warn_sign}---WARN: Node going to RESTORE DataBase. It is once for commit 8135f58. Approx ONE hour the node will looks like DOWN and UNSYNCED!" 2>&1 > /dev/null
     

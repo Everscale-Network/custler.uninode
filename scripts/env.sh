@@ -138,7 +138,7 @@ if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
 fi
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
-export RNODE_GIT_COMMIT="8135f586aa1a536393496c21cb1acba510c3f9a9"
+export RNODE_GIT_COMMIT="master"
 if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]];then
     export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
     export RNODE_GIT_COMMIT="master"
