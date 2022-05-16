@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-15 10:00:00
+# (C) Sergey Tyurin  2022-05-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -18,22 +18,21 @@
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
 
+echo
+echo "################################### Update RNODE Script ########################################"
+echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
+
+./Update_ENV.sh
+
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
-
-################################################################################################
-# NB! This update script will work correctly only if RNODE_GIT_COMMIT="master" in env.sh  ! ! !
-# In other case, you have to update node manually ! ! !
-################################################################################################
-
-if [[ "$RNODE_GIT_COMMIT" != "master" ]];then
-    echo "###-ERROR(line $LINENO): RNODE_GIT_COMMIT != master . You have to check & update node manually!"
-fi
 
 #===========================================================
 # Check github for new node release
 Node_local_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
 Node_remote_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" ls-remote 2>/dev/null | grep 'HEAD'|awk '{print $1}')"
+# if settled certain commit (not master) in env.sh 
+[[ "${RNODE_GIT_COMMIT}" != "master" ]] && Node_remote_commit="${RNODE_GIT_COMMIT}"
 
 if [[ -z $Node_local_commit ]];then
     echo "###-ERROR(line $LINENO): Cannot get LOCAL node commit!"
@@ -45,7 +44,9 @@ if [[ -z $Node_remote_commit ]];then
 fi
 
 if [[ "$Node_local_commit" == "$Node_remote_commit" ]];then
-    echo "---INFO: The Node is up to date"
+    echo "---INFO: The Node seems is up to date, but possible you have to update scripts..."
+    echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+    echo "================================================================================================"
     exit 0
 fi
 
@@ -79,6 +80,10 @@ if [[ $? -gt 0 ]];then
 fi
 
 #===========================================================
+#  Update network global config
+${SCRIPT_DIR}/nets_config_update.sh
+
+#===========================================================
 # Restart service
 sudo service tonnode restart
 
@@ -95,5 +100,8 @@ Console_Version="$(${NODE_BIN_DIR}/console -V | awk '{print $2}')"
 TonosCLI_Version="$(${NODE_BIN_DIR}/tonos-cli -V | grep -i 'tonos_cli' | awk '{print $2}')"
 echo "INFO: Node updated. Service restarted. Current version: node - ${EverNode_Version}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
 "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current version: node - ${EverNode_Version}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
+
+echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+echo "================================================================================================"
 
 exit 0

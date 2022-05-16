@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-15 10:00:00
+# (C) Sergey Tyurin  2022-05-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -17,11 +17,6 @@
 # may be republished without author(s) express written permission. 
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
-
-################################################################################################
-# NB! This update script will work correctly only if RNODE_GIT_COMMIT="master" in env.sh  ! ! !
-# In other case, you have to update node manually ! ! !
-################################################################################################
 
 echo
 echo "#################################### Full update Script ########################################"
@@ -85,13 +80,9 @@ then
     echo '---WARN: Set Enable_Node_Autoupdate to true in env.sh for automatically security updates!! If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"'
     if [[ $myNewReleaseSndMsg -eq 1 ]]
     then
-        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Warn_sign"+'WARN: Security info! **NEW** release arrived! But Enable_Node_Autoupdate setted to false and you should upgrade node manually as fast as you can! If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"' 2>&1 > /dev/null
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Warn_sign"+'WARN: Security info! **NEW** release arrived! But Enable_Node_Autoupdate settled to false and you should upgrade node manually as fast as you can! If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"' 2>&1 > /dev/null
     fi
 fi
-# Update env.sh for new security update
-# ok, here we use force to set autoupdate, strannen'ko =)
-# sed -i.bak 's/Enable_Autoupdate=.*/Enable_Node_Autoupdate=true             # will automatically update rnode, rconsole, tonos-cli etc../' "${SCRIPT_DIR}/env.sh"
-# sed -i.bak '/Enable_Node_Autoupdate/a Enable_Scripts_Autoupdate=false      # Updating scripts. NB! Change it to true if you fully trust me ONLY!!' "${SCRIPT_DIR}/env.sh"
 ###############################################################
 
 #===========================================================
@@ -126,20 +117,8 @@ then
             #=======================================
 
             #################################################################
-            # This section update env.sh to satisfy new changes in scripts
-            
-            # set new mainnet endpoints
-            sed -i.bak 's/^export MainNet_DApp_List=.*/export MainNet_DApp_List="https://eri01.main.everos.dev,https://gra01.main.everos.dev,https://gra02.main.everos.dev,https://lim01.main.everos.dev,https://rbx01.main.everos.dev"/' ${SCRIPT_DIR}/env.sh
-            
-            # set new devnet endpoints
-            sed -i.bak 's/^export DevNet_DApp_List=.*/export DevNet_DApp_List="https://eri01.net.everos.dev,https://rbx01.net.everos.dev,https://gra01.net.everos.dev"/' ${SCRIPT_DIR}/env.sh
-            
-            # set new tonos-cli min version
-            sed -i.bak 's/^export MIN_TC_VERSION=.*/export MIN_TC_VERSION="0.26.7"/' ${SCRIPT_DIR}/env.sh
-            
-            # set new tonos-cli min version
-            sed -i.bak 's/^export MIN_RC_VERSION=.*/export MIN_RC_VERSION="0.1.262"/' ${SCRIPT_DIR}/env.sh
-
+            # update env.sh to satisfy new changes in scripts
+            ${SCRIPT_DIR}/Update_ENV.sh
             #################################################################
 
             cat ${SCRIPT_DIR}/Update_Info.txt
@@ -162,11 +141,13 @@ fi
 ${SCRIPT_DIR}/Update_Node_to_new_release.sh
 
 #################################################################
-# NB!! This section shoul be run once only with rnode commit 5494f43cf80e071f6e10257ef4901568d10b2385 only
+# NB!! This section shoul be run once only with rnode commit 8135f586aa1a536393496c21cb1acba510c3f9a9
+# Deprecated - 5494f43cf80e071f6e10257ef4901568d10b2385 only
+
 Node_local_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
-if [[ ! -f ${SCRIPT_DIR}/rnode_commit_5494f43_DB_Restored ]] && [[ ${Node_local_commit} == "5494f43cf80e071f6e10257ef4901568d10b2385" ]];then
-    echo "${Tg_Warn_sign}---WARN: Node going to RESTORE DataBase. It is once for commit 5494f43. Approx ONE hour the node will looks like DOWN and UNSYNCED!"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "${Tg_Warn_sign}---WARN: Node going to RESTORE DataBase. It is once for commit 5494f43. Approx ONE hour the node will looks like DOWN and UNSYNCED!" 2>&1 > /dev/null
+if [[ ! -f ${SCRIPT_DIR}/rnode_commit_8135f58_DB_Restored ]] && [[ ${Node_local_commit} == "8135f586aa1a536393496c21cb1acba510c3f9a9" ]];then
+    echo "---WARN: Node going to RESTORE DataBase. It is once for commit 8135f58. Approx ONE hour the node will looks like DOWN and UNSYNCED!"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "${Tg_Warn_sign}---WARN: Node going to RESTORE DataBase. It is once for commit 8135f58. Approx ONE hour the node will looks like DOWN and UNSYNCED!" 2>&1 > /dev/null
     
     #===============================
     sudo service ${ServiceName} stop
@@ -177,9 +158,9 @@ if [[ ! -f ${SCRIPT_DIR}/rnode_commit_5494f43_DB_Restored ]] && [[ ${Node_local_
     jq ".restore_db = false" ${R_CFG_DIR}/config.json > ${R_CFG_DIR}/config.json.tmp
     mv -f ${R_CFG_DIR}/config.json.tmp ${R_CFG_DIR}/config.json
     #===============================
-    touch ${SCRIPT_DIR}/rnode_commit_5494f43_DB_Restored
+    touch ${SCRIPT_DIR}/rnode_commit_8135f58_DB_Restored
     
-    echo "${Tg_Warn_sign}---INFO: DB restored. Node should be SYNCED!"
+    echo "---INFO: DB restored. Node should be SYNCED!"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "${Tg_Warn_sign}---INFO: DB restored. Node should be SYNCED!" 2>&1 > /dev/null
 fi
 #################################################################

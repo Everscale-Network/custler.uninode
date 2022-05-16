@@ -72,8 +72,7 @@ do
     fi
 done
 
-ParentScript="$(tr -d '\0' < /proc/"$PPID"/cmdline)"
-ParentScript=${ParentScript##*/}
+ParentScript="$(ps -o command= $PPID |awk -F'/' '{print $2}')"
 if [[ "${ParentScript}" != "Setup.sh" ]];then
     case "${NODE_TYPE}" in
         RUST)

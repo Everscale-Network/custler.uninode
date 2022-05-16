@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-15 10:00:00
+# (C) Sergey Tyurin  2022-05-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -36,9 +36,9 @@ Enable_Scripts_Autoupdate=false         # Updating scripts. NB! Change it to tru
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="main.ton.dev"      # can be main.* / net.* / fld.* / rfld.* / rustnet.*
-export NODE_TYPE="RUST"                 # Can be CPP / RUST.
+export NODE_TYPE="RUST"                 # Can be CPP / RUST. 
 export ELECTOR_TYPE="fift"
-export NODE_WC=0                        # Node WorkChain
+export NODE_WC=0                        # Node WorkChain 
 
 export FORCE_USE_DAPP=false             # For offnode works or to use DApp Server instead of use node's console to operate
 export STAKE_MODE="depool"              # can be 'msig' or 'depool'
@@ -134,11 +134,11 @@ export CNODE_GIT_REPO="https://github.com/Everscale-Network/Everscale-Node.git"
 export CNODE_GIT_COMMIT="mainnet"
 if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
     export CNODE_GIT_REPO="https://github.com/NilFoundation/cpp-ton.git"
-    export CNODE_GIT_COMMIT="master"
+    export CNODE_GIT_COMMIT="nil"
 fi
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
-export RNODE_GIT_COMMIT="master"
+export RNODE_GIT_COMMIT="8135f586aa1a536393496c21cb1acba510c3f9a9"
 if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]];then
     export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
     export RNODE_GIT_COMMIT="master"
