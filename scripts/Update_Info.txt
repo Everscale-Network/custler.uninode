@@ -1,1 +1,1 @@
----WARN: Installing new node version with block version 24. Making DB restore once again.
+---WARN: Installing new node version with block version 26. DB restore not needed.
