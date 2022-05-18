@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-16 13:00:00
+# (C) Sergey Tyurin  2022-05-18 18:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -64,6 +64,8 @@ if [[ $V1 =~ ^[[:digit:]]+$ ]] && [[ $V2 =~ ^[[:digit:]]+$ ]] && [[ $V3 =~ ^[[:d
         source "${SCRIPT_DIR}/env.sh"
     fi
 fi
+
+RNODE_FEATURES=""
 #===========================================================
 # Update Node, node console, tonos-cli and contracts
 
@@ -74,6 +76,14 @@ ${SCRIPT_DIR}/Nodes_Build.sh rust
 if [[ $? -gt 0 ]];then
     echo "###-ERROR(line $LINENO): Build update filed!"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Node update filed!! Check '/var/ton-work/validator.log' for details." 2>&1 > /dev/null
+    exit 1
+fi
+
+Node_local_repo_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
+Node_commit_from_bin="$(rnode -V | grep 'TON NODE git commit' | awk '{print $5}')"
+if [[ "${Node_local_repo_commit}" != "${Node_commit_from_bin}" ]];then
+    echo "###-ERROR(line $LINENO): Build update filed! Repo commit (${Node_local_repo_commit}) not equal commit from binary (${Node_commit_from_bin})."
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Build update filed! Repo commit (${Node_local_repo_commit}) not equal commit from binary ${Node_commit_from_bin}." 2>&1 > /dev/null
     exit 1
 fi
 
@@ -93,11 +103,12 @@ fi
 
 #===========================================================
 # Check and show the Node version
-EverNode_Version="$(${NODE_BIN_DIR}/rnode -V | grep -i 'version' | awk '{print $4}')"
+EverNode_Version="$(${NODE_BIN_DIR}/rnode -V | grep -i 'TON Node, version' | awk '{print $4}')"
+NodeSupBlkVer="$(rnode -V | grep 'Node block version' | awk '{print $4}')"
 Console_Version="$(${NODE_BIN_DIR}/console -V | awk '{print $2}')"
 TonosCLI_Version="$(${NODE_BIN_DIR}/tonos-cli -V | grep -i 'tonos_cli' | awk '{print $2}')"
-echo "INFO: Node updated. Service restarted. Current version: node - ${EverNode_Version}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
-"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current version: node - ${EverNode_Version}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
+echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} SupBlock: ${NodeSupBlkVer} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
+"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"

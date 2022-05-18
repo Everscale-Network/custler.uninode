@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eE
 
-# (C) Sergey Tyurin  2022-04-22 10:00:00
+# (C) Sergey Tyurin  2022-05-18 18:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -285,20 +285,20 @@ if ${RUST_NODE_BUILD};then
 
     sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
     #====== Uncomment to disabe node's logs competely
-    # sed -i.bak 's%log = "0.4"%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
+    # sed -i.bak 's%log = '0.4'%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
     cargo update
 
-    # --features "compression,external_db,metrics"
-    if ${DAPP_NODE_BUILD};then
-        RNODE_FEATURES="compression,external_db,metrics"
-        [[ "$NODE_TYPE" == "CPP" ]] && RNODE_FEATURES="external_db,metrics"
-    else
-        RNODE_FEATURES=""
-        [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && RNODE_FEATURES=""
-        # "compression"
-    fi
-    echo -e "${BoldText}${BlueBack}---INFO: RNODE build flags: ${RNODE_FEATURES} ${NormText}"
+    # node git commit
+    export GC_TON_NODE="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
+    # block version
+    export NODE_BLK_VER=$(cat $RNODE_SRC_DIR/src/validating_utils.rs |grep -A1 'supported_version'|tail -1|tr -d ' ')
+
+    # patch main.rs
+    sed -i.bak -e '/TON NODE git commit:         {}\\n\\/p; s/TON NODE git commit:         {}\\n\\/Node block version:          {}\\n\\/' $RNODE_SRC_DIR/src/main.rs
+    sed -i.bak -e '/std::option_env!("GC_TON_NODE").unwrap_or("Not set"),/p; s/std::option_env!("GC_TON_NODE").unwrap_or("Not set"),/std::option_env!("NODE_BLK_VER").unwrap_or("Not set"),/' $RNODE_SRC_DIR/src/main.rs
+
+    echo -e "${BoldText}${BlueBack}---INFO: RNODE build flags: ${RNODE_FEATURES} commit: ${GC_TON_NODE} Block version: ${NODE_BLK_VER}${NormText}"
     RUSTFLAGS="-C target-cpu=native" cargo build --release --features "${RNODE_FEATURES}"
 
     # cp $NODE_BIN_DIR/rnode $NODE_BIN_DIR/rnode_${BackUP_Time}|cat

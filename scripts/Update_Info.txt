@@ -1,1 +1,1 @@
----WARN: Installing new node version with block version 26. DB restore not needed.
+---WARN: Update Nodes_Build script to include commit and block supported version to print_build_info()
