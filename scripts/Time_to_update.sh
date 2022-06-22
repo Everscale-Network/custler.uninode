@@ -58,8 +58,8 @@ LNI_Info="$($CALL_TC -j run --boc ${LNIC_ADDRESS##*:}.boc --abi ${ABI} node_info
 
 #############################
 # SET TEST VALUES
-LNI_Info="$(echo ${LNI_Info} |jq '.UpdateStartTime = 1655378769 | .UpdateDuration = 684000')"
-DELAY_TIME=300
+#LNI_Info="$(echo ${LNI_Info} |jq '.UpdateStartTime = 1655378769 | .UpdateDuration = 684000')"
+#DELAY_TIME=300
 #############################
 
 echo "${LNI_Info}"
