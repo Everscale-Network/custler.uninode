@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-15 10:00:00
+# (C) Sergey Tyurin  2022-06-10 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -30,6 +30,8 @@
 # Get_TimeDiff() 
 # Get_Elector_Address()
 # Get_Current_Elections_ID()
+# get_LastNodeInfo ()
+# Get_Supported_Blocks_Version()
 # Get_Account_Info()
 # Get_Account_Custodians_Info()
 # P34_ADNL_search()
@@ -50,7 +52,6 @@
 # CNode_Make_Elect_Keys_and_BOC()
 # =====================================================
 ##################################################################################################################
-
 
 # =====================================================
 # Check components installed
@@ -285,7 +286,7 @@ function Get_SC_current_state() {
     # result: file named xxx...xxx.boc
     # return: Output of executing
     local ACCOUNT="$1" 
-    [[ -z $ACCOUNT ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): func Get_SC_current_state: empty address" && exit 1
+    [[ -z $ACCOUNT ]] && echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): func Get_SC_current_state: empty address" && return 1
     # account hex
     local s_acc=${ACCOUNT##*:}
     # account workchain
@@ -336,16 +337,16 @@ function Get_SC_current_state() {
                 ;;
             *)
                 echoerr "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
-                exit 1
+                return 1
                 ;;            
         esac
     fi
     if [[ -z  $result ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get account state $ACCOUNT. Can't continue. Sorry."
         echoerr "${LC_OUTPUT}"
-        exit 1
+    else
+        echo "${result}"
     fi
-    echo "${result}"
 }
 #=================================================
 # Get current Time Diff
@@ -476,6 +477,114 @@ function Get_Current_Elections_ID() {
         esac
     fi
     echo "${elections_id}"
+}
+
+#=================================================
+# Get Last Node Info from Contract
+# Input: none (LNIC_ADDRESS should be defined in env.sh)
+# Return: netBlkVer NodeBlkVer_fromGit NodeBlkVer_from_Bin
+function get_LastNodeInfo {
+    local LNI_JSON="none"
+    if [[ -z "$LNIC_ADDRESS" ]];then
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): LNIC_ADDRESS is empty!"
+        echo "${LNI_JSON}"
+        return 1
+    fi
+
+    if [[ "$(Get_Account_Info "$LNIC_ADDRESS"|awk '{print $1}')" != "Active" ]];then
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): LNIC account not found."
+        echo "${LNI_JSON}"
+        return 1
+    fi
+
+    local OUTPUT="$(Get_SC_current_state "$LNIC_ADDRESS")"
+    if [[ $? -ne 0 ]] || [[ -z  "$(echo $OUTPUT | grep 'written StateInit of account')" ]];then
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get LNIC account state."
+            echo "${LNI_JSON}"
+            return 1
+    fi
+        
+    local ABI="LastNodeInfo.abi.json"
+    local GetABI='{"ABI version":2,"version":"2.2","header":["time","expire"],"functions":[{"name":"getABI","inputs":[],"outputs":[{"name":"ABI_7z_hex","type":"string"}]},{"name":"ABI","inputs":[],"outputs":[{"name":"ABI_7z_hex","type":"string"}]}],"data":[],"events":[],"fields":[{"name":"ABI_7z_hex","type":"string"}]}'
+    echo $GetABI > Get_ABI.json
+    $CALL_TC -j run --boc ${LNIC_ADDRESS##*:}.boc --abi Get_ABI.json ABI {} | jq -r '.ABI_7z_hex' > LNIC_ABI_7z_hex.txt
+    xxd -r -p LNIC_ABI_7z_hex.txt > LNIC_ABI.7z
+    7za x -y LNIC_ABI.7z 2>&1 > /dev/null
+    if [[ ! -e "${ABI}" ]];then
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get LNIC ABI from state."
+        echo "${LNI_JSON}"
+        return 1
+    fi
+
+    LNI_JSON="$($CALL_TC -j run --boc ${LNIC_ADDRESS##*:}.boc --abi ${ABI} node_info {})"
+    rm -f ${LNIC_ADDRESS##*:}.boc Get_ABI.json LNIC_ABI_7z_hex.txt LNIC_ABI.7z LastNodeInfo.abi.json
+
+    local LNI_Info="$(echo "$LNI_JSON"|jq -r '.node_info' 2>/dev/null)"
+    if [[ -z "$LNI_Info" ]] || [[ "$LNI_Info" == "null" ]];then
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Last node info from contract is empty."
+        echo "${LNI_JSON}"
+        return 1
+    fi
+    echo "$LNI_Info"
+    return 0
+}
+
+#=================================================
+# Get supported blocks versions from node and network
+# Input: 
+# Return: netBlkVer NodeBlkVer_fromGit NodeBlkVer_from_Bin
+function Get_Supported_Blocks_Version() {
+    local -i Net_Min_Sup_Blk=0
+    local -i NodeGit_Sup_Blk=0
+    local -i NodeBin_Sup_Blk=0
+    # get net supported_block
+    if $FORCE_USE_DAPP ;then
+        Net_Min_Sup_Blk=`$CALL_TC -j getconfig 8 | jq -r '.version'`
+    else
+        case "${NODE_TYPE}" in
+            RUST)
+                Net_Min_Sup_Blk=`$CALL_RC -jc 'getconfig 8'|jq '.p8.version'`
+                ;;
+            CPP)
+                Net_Min_Sup_Blk=`$CALL_LC -rc "getconfig 8" -rc "quit" 2>/dev/null |grep 'capabilities version:'|awk '{print $2}'|awk -F':' '{print $2}'`
+                ;;
+            *)
+                echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+                exit 1
+                ;;            
+        esac
+    fi
+    if [[ $Net_Min_Sup_Blk -le 0 ]];then
+        echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get network supported block version!!!"
+        return 1
+    fi
+    # get Git supported_block
+    case "${NODE_TYPE}" in
+        RUST)
+            NodeGit_Sup_Blk=`cat ${RNODE_SRC_DIR}/src/validating_utils.rs 2>/dev/null|grep -A1 'supported_version'|tail -1|tr -d ' '`
+            ;;
+        CPP)
+            NodeGit_Sup_Blk=`cat ${TON_SRC_DIR}/tdutils/td/utils/common.h 2>/dev/null|grep 'BLK_SUPPORTED_VER'|awk '{print $5}'|tr -d ';'`
+            ;;
+        *)
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+            exit 1
+            ;;            
+    esac
+    # get supported_block from binary
+    case "${NODE_TYPE}" in
+        RUST)
+            NodeBin_Sup_Blk=`. ./env.sh && ${CALL_RN%% *} -V | grep 'Node block version' | awk '{print $4}'`
+            ;;
+        CPP)
+            NodeBin_Sup_Blk=0
+            ;;
+        *)
+            echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE!!!"
+            exit 1
+            ;;            
+    esac
+    echo "${Net_Min_Sup_Blk} ${NodeGit_Sup_Blk} ${NodeBin_Sup_Blk}"
 }
 #=================================================
 # Get account INFO

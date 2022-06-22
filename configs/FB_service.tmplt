@@ -17,21 +17,49 @@ logfile="N_NODE_LOG_FILE"
 command="N_COMMAND"
 command_args="N_ARGUMENTS"
 
+export STATSD_DOMAIN="127.0.0.1:"
+export STATSD_PORT=9125
+
 start_cmd="tonnode_start"
 stop_cmd="tonnode_stop"
 status_cmd="tonnode_status"
 restart_cmd="tonnode_restart"
 
 tonnode_start() {
-  su ${tonnode_user} -c "/usr/sbin/daemon -P ${pidfile} -p ${pidfile_child} -o ${logfile} -r ${command} ${command_args}"
-  sleep 2
-  tonnode_status
+  rnode_pid=$(pgrep rnode)
+  if [ -z $rnode_pid ];then
+    su ${tonnode_user} -c "/usr/sbin/daemon -P ${pidfile} -p ${pidfile_child} -o ${logfile} -r ${command} ${command_args}"
+    sleep 2
+    tonnode_status
+  else
+    echo "${name} already running at pid $rnode_pid"
+  fi
 }
 
 tonnode_stop() {
   if [ -e "${pidfile}" ]; then
-    echo "killing $(cat ${pidfile})"
+    echo -n "killing $(cat ${pidfile}) "
     kill -s TERM `cat ${pidfile}`
+    for (( Try=0; Try <= 90; Try++ ));do
+      echo -n "."
+      sleep 1
+      [ -z "$(pgrep rnode)" ] && break
+    done
+    if [ -n "$(pgrep rnode)" ];then
+      kill -s KILL $(pgrep rnode)
+      echo -n " still work. Sent KILL signal. "
+    fi
+    for (( Try=0; Try <= 90; Try++ ));do
+      echo -n "-"
+      sleep 1
+      [ -z "$(pgrep rnode)" ] && break
+    done
+    if [ -n "$(pgrep rnode)" ];then
+      echo " still work. Give up.. "
+    else
+      echo -n " done"
+      echo
+    fi
   else
     echo "${name} is not running"
   fi

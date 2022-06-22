@@ -1,1 +1,1 @@
----WARN: Update Nodes_Build script to include commit and block supported version to print_build_info()
+---WARN: Update Scripts to use Node Info Contract for safe nodes update

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-18 18:00:00
+# (C) Sergey Tyurin  2022-06-10 18:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -24,11 +24,14 @@ echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
+source "${SCRIPT_DIR}/functions.shinc"
 
 #===========================================================
 # Check github for new node release
 Node_local_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
 Node_remote_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" ls-remote 2>/dev/null | grep 'HEAD'|awk '{print $1}')"
+Node_bin_commit="$(rnode -V | grep 'NODE git commit' | awk '{print $5}')"
+
 # if settled certain commit (not master) in env.sh 
 [[ "${RNODE_GIT_COMMIT}" != "master" ]] && Node_remote_commit="${RNODE_GIT_COMMIT}"
 
@@ -40,13 +43,70 @@ if [[ -z $Node_remote_commit ]];then
     echo "###-ERROR(line $LINENO): Cannot get REMOTE node commit!"
     exit 1
 fi
+if [[ "$Node_bin_commit" !=  "$Node_local_commit" ]];then
+    "###-WARNING(line $LINENO): Commit from binary file is not equal git dir commit ($RNODE_SRC_DIR)"
+fi
 
+#===========================================================
+# Update FreeBSD daemon script to avoide node service stuck
+if [[ "$OS_SYSTEM" == "FreeBSD" ]];then
+    ${SCRIPT_DIR}/setup_as_service.sh
+fi
+
+#===========================================================
+# check LNIC for new update and times
+LINC_present=false
+Console_commit="$RCONS_GIT_COMMIT"
+LNI_Info="$( get_LastNodeInfo )"
+if [[ $? -ne 0 ]];then
+    echo "###-WARNING(line $LINENO): Last node info from contract is empty."
+else
+    export LINC_present=true
+    Node_commit_dec=$(echo ${LNI_Info} | jq -r '.LastCommit')
+    export Node_remote_commit="$(dec2hex $Node_commit_dec | tr '[:upper:]' '[:lower:]')"
+    LNIC_Console_commit_dec=$(echo ${LNI_Info} | jq -r '.ConsoleCommit')
+    export Console_commit="$(dec2hex $LNIC_Console_commit_dec | tr '[:upper:]' '[:lower:]')"
+    echo "LNIC present. New node commit: $Node_remote_commit, Console commit: $Console_commit"
+fi
+
+#===========================================================
+# Checking node need update
 if [[ "$Node_local_commit" == "$Node_remote_commit" ]];then
     echo "---INFO: The Node seems is up to date, but possible you have to update scripts..."
     echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
     echo "================================================================================================"
     exit 0
 fi
+
+#===========================================================
+# Checking if update is scheduled in LNIC
+# if UpdateDuration == 0 just doing update now
+# if no, check schedule
+if $LINC_present;then
+    declare -i UpdateStartTime=$(echo "$LNI_Info" | jq -r '.UpdateStartTime')
+    declare -i CurrTime=$(date +%s)
+    if [[ $UpdateStartTime -gt $CurrTime ]];then
+        echo "###-ERROR(line $LINENO): Update time is not come yet. Net nodes updates will start from $(TD_unix2human $UpdateStartTime)"
+        echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+        echo "================================================================================================"
+        exit 0
+    fi
+    declare -i UpdateDuration=$(echo "$LNI_Info" | jq -r '.UpdateDuration')
+    Validator_addr=`cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr`
+    declare -i Validator_Upd_Ord=$(( $(hex2dec "$(echo $Validator_addr|cut -c 33,34)") ))
+    declare -i CurrNodeUpdateTime=$((UpdateDuration / 256 * Validator_Upd_Ord + UpdateStartTime))
+    if [[ $CurrNodeUpdateTime -gt $CurrTime ]];then
+        echo "###-ERROR(line $LINENO): Update time for your node is not come yet. Your node update time is $(TD_unix2human $CurrNodeUpdateTime)"
+        echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
+        echo "================================================================================================"
+        exit 0
+    fi
+fi
+
+# set new commits in env.sh for Nodes_Build script
+# sed -i.bak "s/export RNODE_GIT_COMMIT=.*/export RNODE_GIT_COMMIT=$Node_remote_commit/" "${SCRIPT_DIR}/env.sh"
+sed -i.bak "/ton-labs-node.git/,/\"NETWORK_TYPE\" == \"rfld.ton.dev\"/ s/export RNODE_GIT_COMMIT=.*/export RNODE_GIT_COMMIT=\"$Node_remote_commit\"/" "${SCRIPT_DIR}/env.sh"
+sed -i.bak "s/export RCONS_GIT_COMMIT=.*/export RCONS_GIT_COMMIT=$Console_commit/" "${SCRIPT_DIR}/env.sh"
 
 echo "INFO: Node going to update from $Node_local_commit to new commit $Node_remote_commit"
 "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Warn_sign INFO: Node going to update from $Node_local_commit to new commit $Node_remote_commit" 2>&1 > /dev/null
@@ -65,7 +125,8 @@ if [[ $V1 =~ ^[[:digit:]]+$ ]] && [[ $V2 =~ ^[[:digit:]]+$ ]] && [[ $V3 =~ ^[[:d
     fi
 fi
 
-RNODE_FEATURES=""
+# --features "compression,external_db,metrics"
+export RNODE_FEATURES=""
 #===========================================================
 # Update Node, node console, tonos-cli and contracts
 
@@ -109,6 +170,12 @@ Console_Version="$(${NODE_BIN_DIR}/console -V | awk '{print $2}')"
 TonosCLI_Version="$(${NODE_BIN_DIR}/tonos-cli -V | grep -i 'tonos_cli' | awk '{print $2}')"
 echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} SupBlock: ${NodeSupBlkVer} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
 "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
+
+#===========================================================
+#
+${SCRIPT_DIR}/PostUpdate_Actions.sh
+
+#===========================================================
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"

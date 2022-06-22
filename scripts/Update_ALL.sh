@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-16 13:00:00
+# (C) Sergey Tyurin  2022-06-10 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -27,37 +27,23 @@ source "${SCRIPT_DIR}/env.sh"
 
 exitVar=0
 
-shopt -s nocasematch
-if [[ ! -z ${Enable_Node_Autoupdate} || -n ${Enable_Node_Autoupdate} ]]
-then
-    if [[ ${Enable_Node_Autoupdate} != "true" ]]
-    then
-        exitVar=1
-    else
-        myNodeAutoupdate=1
-    fi
+if ${Enable_Node_Autoupdate} ;then
+    myNodeAutoupdate=1
+else
+    exitVar=1
 fi
 
-if [[ ! -z ${Enable_Scripts_Autoupdate} || -n ${Enable_Scripts_Autoupdate} ]]
-then
-    if [[ ${Enable_Scripts_Autoupdate} != "true" ]]
-    then
-        exitVar=2
-    else
-        myScriptsAutoupdate=1
-    fi
+if ${Enable_Scripts_Autoupdate} ;then
+    myScriptsAutoupdate=1
+else
+    exitVar=2
 fi
 
-if [[ ! -z ${newReleaseSndMsg} || -n ${newReleaseSndMsg} ]]
-then
-    if [[ ${newReleaseSndMsg} != "true" ]]
-    then
-        exitVar=3
-    else
-      myNewReleaseSndMsg=1
-    fi
+if ${newReleaseSndMsg} ;then
+    myNewReleaseSndMsg=1
+else
+    exitVar=3
 fi
-shopt -u nocasematch
 
 #===========================================================
 # Get scripts update info
@@ -75,11 +61,10 @@ fi
 
 ###############################################################
 #===========================================================
-if [[ "$Custler_Scripts_local_commit" != "$Custler_Scripts_remote_commit" ]]
+if [[ "$Custler_Scripts_local_commit" != "$Custler_Scripts_remote_commit" ]] && ! $Enable_Scripts_Autoupdate
 then
     echo '---WARN: Set Enable_Node_Autoupdate to true in env.sh for automatically security updates!! If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"'
-    if [[ $myNewReleaseSndMsg -eq 1 ]]
-    then
+    if ${newReleaseSndMsg};then
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Warn_sign"+'WARN: Security info! **NEW** release arrived! But Enable_Node_Autoupdate settled to false and you should upgrade node manually as fast as you can! If you fully trust me, you can enable autoupdate scripts in env.sh by set variable "Enable_Scripts_Autoupdate" to "true"' 2>&1 > /dev/null
     fi
 fi
@@ -87,8 +72,7 @@ fi
 
 #===========================================================
 # Update scripts, if enabled, or send msg re update
-if [[ ${myScriptsAutoupdate} -eq 1 ]]
-then
+if ${Enable_Scripts_Autoupdate};then
     if [[ "$Custler_Scripts_local_commit" == "$Custler_Scripts_remote_commit" ]];then
         echo "---INFO: Scripts is up to date"
     else
@@ -136,13 +120,19 @@ then
         fi
     fi
 fi
-#===========================================================
-# Update NODE
-${SCRIPT_DIR}/Update_Node_to_new_release.sh
 
-#===========================================================
-# 
-${SCRIPT_DIR}/PostUpdate_Actions.sh
+if ${Enable_Node_Autoupdate};then
+    #===========================================================
+    # Update NODE
+    ${SCRIPT_DIR}/Update_Node_to_new_release.sh
+    if [[ $? -gt 0 ]];then
+        echo "###-ERROR(line $LINENO): Node update error!"
+        exit 1
+    fi
+else
+    echo "###-ALARM: Node update is DISABLED. Your node can harm the network."
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ALARM: Node update is DISABLED. Your node can harm the network." 2>&1 > /dev/null 
+fi
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"

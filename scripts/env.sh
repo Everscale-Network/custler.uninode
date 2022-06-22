@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-16 13:00:00
+# (C) Sergey Tyurin  2022-06-10 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -28,14 +28,19 @@ export CONFIGS_DIR=${NODE_TOP_DIR}/configs
 
 # SECURITY messages
 # if you use only Custler's scripts and nothing more, set it true for messages about new releases!
-newReleaseSndMsg=true
+export newReleaseSndMsg=true
 
+#=====================================================
 # SECURITY updates
-Enable_Node_Autoupdate=true             # will automatically update rnode, rconsole, tonos-cli etc..
-Enable_Scripts_Autoupdate=false         # Updating scripts. NB! Change it to true if you fully trust me ONLY!!  
+export Enable_Node_Autoupdate=true             # will automatically update rnode, rconsole, tonos-cli etc..
+export Enable_Scripts_Autoupdate=false         # Updating scripts. NB! Change it to true if you fully trust me ONLY!!
+# Last Node Info Contract for safe node update
+export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe76604323fc347"
+
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="main.ton.dev"      # can be main.* / net.* / fld.* / rfld.* / rustnet.*
+export Node_Blk_Min_Ver=27
 export NODE_TYPE="RUST"                 # Can be CPP / RUST. 
 export ELECTOR_TYPE="fift"
 export NODE_WC=0                        # Node WorkChain 
@@ -130,6 +135,9 @@ export BOOST_VERSION="1.76.0"
 export MIN_TC_VERSION="0.26.7"
 export MIN_RC_VERSION="0.1.262"
 
+# for corect work automatic update 
+# GIT_COMMIT should be "master" or certain commit only
+# not a branch name!
 export CNODE_GIT_REPO="https://github.com/Everscale-Network/Everscale-Node.git"
 export CNODE_GIT_COMMIT="mainnet"
 if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then

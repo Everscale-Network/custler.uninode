@@ -199,7 +199,7 @@ fi   # -------------------- node type select
 sudo mv -f ${SCRIPT_DIR}/tmp.txt ${SERVICE_FILE}
 sudo chown root:wheel ${SERVICE_FILE}
 sudo chmod 755 ${SERVICE_FILE}
-[[ -z "$(cat /etc/rc.conf | grep '${ServiceName}_enable')" ]] && sudo sh -c "echo ' ' >> /etc/rc.conf; echo '${ServiceName}_enable="YES"' >> /etc/rc.conf"
+[[ -z "$(cat /etc/rc.conf | grep "${ServiceName}_enable")" ]] && sudo sh -c "echo ' ' >> /etc/rc.conf; echo '${ServiceName}_enable="YES"' >> /etc/rc.conf"
 ls -al ${SERVICE_FILE}
 
 echo -e "To start node service run ${BoldText}${GreeBack}'service ${ServiceName} start'${NormText}"

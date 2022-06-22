@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-16 13:00:00
+# (C) Sergey Tyurin  2022-06-10 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -18,7 +18,6 @@
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
 
-
 echo
 echo "################################## Update env.sh Script ########################################"
 echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
@@ -28,26 +27,17 @@ source "${SCRIPT_DIR}/env.sh"
 
 #################################################################
 # This section update env.sh to satisfy new changes in scripts
-
-# set new mainnet endpoints
-echo "+++ Set mainnet endpoints"
-sed -i.bak 's|^export MainNet_DApp_List=.*|export MainNet_DApp_List="https://eri01.main.everos.dev,https://gra01.main.everos.dev,https://gra02.main.everos.dev,https://lim01.main.everos.dev,https://rbx01.main.everos.dev"|' ${SCRIPT_DIR}/env.sh
-
-# set new devnet endpoints
-echo "+++ Set devnet endpoints"
-sed -i.bak 's|^export DevNet_DApp_List=.*|export DevNet_DApp_List="https://eri01.net.everos.dev,https://rbx01.net.everos.dev,https://gra01.net.everos.dev"|' ${SCRIPT_DIR}/env.sh
-
-# set new tonos-cli min version
-echo "+++ Set tonos min version to 0.26.7"
-sed -i.bak 's/^export MIN_TC_VERSION=.*/export MIN_TC_VERSION="0.26.7"/' ${SCRIPT_DIR}/env.sh
-
-# set new tonos-cli min version
-echo "+++ Set consol min version to 0.1.262"
-sed -i.bak 's/^export MIN_RC_VERSION=.*/export MIN_RC_VERSION="0.1.262"/' ${SCRIPT_DIR}/env.sh
-
-# Installing new node version with block version 24. Making DB restore once again.
-echo "+++ Set NODE actual commit to 8135f586aa1a536393496c21cb1acba510c3f9a9"
-sed -i.bak 's/^export RNODE_GIT_COMMIT=.*/export RNODE_GIT_COMMIT="master"/' ${SCRIPT_DIR}/env.sh
+# Add LINC address to env.sh if not present
+if [[ -z "${LNIC_ADDRESS}" ]];then
+    echo "+++ Add LNIC address"
+    if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export Enable_Node_Autoupdate')" ]];then
+        sed -i.bak '/Enable_Scripts_Autoupdate=/p; s/Enable_Scripts_Autoupdate=.*/export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe76604323fc347"/' ${SCRIPT_DIR}/env.sh
+        sed -i.bak '/Enable_Scripts_Autoupdate=/p; s/Enable_Scripts_Autoupdate=.*/# Last Node Info Contract for safe node update/' ${SCRIPT_DIR}/env.sh
+    else
+        sed -i.bak '/export Enable_Scripts_Autoupdate=/p; s/export Enable_Scripts_Autoupdate=.*/export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe76604323fc347"/' ${SCRIPT_DIR}/env.sh
+        sed -i.bak '/export Enable_Scripts_Autoupdate=/p; s/export Enable_Scripts_Autoupdate=.*/# Last Node Info Contract for safe node update/' ${SCRIPT_DIR}/env.sh
+    fi
+fi
 #################################################################
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"

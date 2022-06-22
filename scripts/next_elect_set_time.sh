@@ -52,6 +52,15 @@ function GET_M_H() {
         echo "$(date -r $ival +'%M %H')"
     fi
 }
+function GET_M_H_D() {
+    OS_SYSTEM=`uname -s`
+    ival="${1}"
+    if [[ "$OS_SYSTEM" == "Linux" ]];then
+        echo "$(date  +'%M %H %d' -d @$ival)"
+    else
+        echo "$(date -r $ival +'%M %H %d')"
+    fi
+}
 
 #######################################################################################################
 #===================================================
@@ -143,7 +152,6 @@ NEXT_ADNL_TIME=$(($NEXT_ELECTION_SECOND_TIME + $TIME_SHIFT))
 # Calculate update time based on validator address
 Validator_addr=`cat ${KEYS_DIR}/${VALIDATOR_NAME}.addr`
 declare -i Validator_Upd_Ord=$(( $(hex2dec "$(echo $Validator_addr|cut -c 33,34)") ))
-
 declare -i Upd_Interval=$(( $VAL_DUR / 256 / 60 * 60 ))
 if [[ $Upd_Interval -le 0 ]];then
     Upd_Interval=$(( $VAL_DUR / 128 / 60 * 60 ))
@@ -159,17 +167,71 @@ NEXT_CHG_TIME=$(($NEXT_UPD_TIME + $TIME_SHIFT))
 NXT_ELECT_1=$(GET_M_H "$NEXT_ELECTION_TIME")
 NXT_ELECT_2=$(GET_M_H "$NEXT_ELECTION_SECOND_TIME")
 NXT_ELECT_3=$(GET_M_H "$NEXT_ADNL_TIME")
-NXT_ELECT_4=$(GET_M_H "$NEXT_UPD_TIME")
+NODE_UPDATE_TIME="$(GET_M_H "$NEXT_UPD_TIME") *"
 NXT_ELECT_5=$(GET_M_H "$NEXT_CHG_TIME")
-
-
 GET_PART_LIST_TIME=$((election_id - EEND_BEFORE))
 GPL_TIME_MH=$(GET_M_H "$GET_PART_LIST_TIME")
 
+################################################################################################
+# {
+#     "NodeVersion": "000050015",
+#     "PrevNodeVersion": "000050013",
+#     "LastCommit": "0xa0bc069b0459b50e4be7ed7d07c0aef0380ec2f7",
+#     "PrevCommit": "0xcc96e3938763e640cca86c62a4e66167581ec4f3",
+#     "SupportedBlock": 27,
+#     "PrevSupportedBlock": 26,
+#     "UpdateByCron": true,
+#     "UpdateStartTime": 0,
+#     "UpdateDuration": 0,
+#     "MinCLIversion": "000026012",
+#     "DisableOldNodeValidate": false
+# }
+UpdateByCron=true
+LINC_present=false
+LNI_Info="$( get_LastNodeInfo )"
+if [[ $? -ne 0 ]];then
+    echo "###-WARNING(line $LINENO): Last node info from contract is empty."
+else
+    export LINC_present=true
+    declare -i UpdateStartTime=$(echo "$LNI_Info" | jq -r '.UpdateStartTime')
+    declare -i UpdateDuration=$(echo "$LNI_Info" | jq -r '.UpdateDuration')
+    UpdateByCron=$(echo "$LNI_Info" | jq -r '.UpdateByCron')
+fi
+
+# declare -i Curr_Node_Ver=$($CALL_RC -jc 'getstats' |jq -r '.node_version'| awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
+
+if $LINC_present && [[ $UpdateStartTime -gt 0 ]] && [[ $UpdateDuration -gt 0 ]];then
+    #=================================================
+    # Calculate time to update
+    declare -i UpdateStartTime=$(echo "$LNI_Info" | jq -r '.UpdateStartTime')
+    declare -i UpdateDuration=$(echo "$LNI_Info" | jq -r '.UpdateDuration')
+    
+    declare -i UpdTimeShift=$(( UpdateDuration / 256 * Validator_Upd_Ord))
+    declare -i CurrNodeUpdTime=$(( UpdTimeShift + UpdateStartTime))
+    
+    #--------------------------------------------------
+    Prep_Elect_Time=$((CURR_VAL_UNTIL - STRT_BEFORE + DELAY_TIME))
+    #--------------------------------------------------
+    
+    ElectionsSkip=$(( (CurrNodeUpdTime - Prep_Elect_Time) / VAL_DUR ))
+    NearElectionsID=$((Prep_Elect_Time + (ElectionsSkip * VAL_DUR) ))
+    NextElectionsID=$((Prep_Elect_Time + ((ElectionsSkip + 1) * VAL_DUR) ))
+    TimeRest=$(( CurrNodeUpdTime - NearElectionsID ))
+    
+    [[ $TimeRest -lt 1800 ]] && CurrNodeUpdTime=$(( CurrNodeUpdTime + (1800 - TimeRest) ))
+    [[ $TimeRest -gt $((VAL_DUR - 1800)) ]] && CurrNodeUpdTime=$(( CurrNodeUpdTime - (1800 - (VAL_DUR - TimeRest) ) ))
+    # String for cron
+    NODE_UPDATE_TIME="$(GET_M_H_D $CurrNodeUpdTime)"
+    declare -i CurrTime=$(date +%s)
+    [[ $CurrTime -gt $(( CurrNodeUpdTime + VAL_DUR )) ]] && NODE_UPDATE_TIME="$(GET_M_H "$NEXT_UPD_TIME") *"
+fi
+
+if ! $UpdateByCron;then
+    NODE_UPDATE_TIME="# $NODE_UPDATE_TIME"
+fi
+
+################################################################################################
 #===================================================
-
-CURRENT_CHG_TIME=`crontab -l |tail -n 1 | awk '{print $1 " " $2}'`
-
 GET_F_T(){
     OS_SYSTEM=`uname`
     ival="${1}"
@@ -179,6 +241,7 @@ GET_F_T(){
         echo "$(date -r $ival +'%Y-%m-%d %H:%M:%S')"
     fi
 }
+#===================================================
 
 Curr_Elect_Time=$((CURR_VAL_UNTIL - STRT_BEFORE))
 Next_Elect_Time=$((CURR_VAL_UNTIL + VAL_DUR - STRT_BEFORE))
@@ -187,15 +250,7 @@ echo "Current elections time start: $Curr_Elect_Time / $(GET_F_T "$Curr_Elect_Ti
 echo "Next elections time start: $Next_Elect_Time / $(GET_F_T "$Next_Elect_Time")"
 echo "-------------------------------------------------------------------"
 
-# if [[ ! -z $NEXT_VAL__EXIST ]] && [[ "$election_id" == "0" ]];then
-#   NXT_ELECT_1=$PRV_ELECT_1
-#   NXT_ELECT_2=$PRV_ELECT_2
-#   NXT_ELECT_3=$PRV_ELECT_3
-#   NXT_ELECT_4=$PRV_ELECT_4
-# fi
-
-# sudo crontab -u $SCRPT_USER -r
-
+#===================================================
 OS_SYSTEM=`uname -s`
 FB_CT_HEADER=""
 if [[ "$OS_SYSTEM" == "FreeBSD" ]];then
@@ -207,7 +262,7 @@ HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
-$NXT_ELECT_4 * * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${TON_LOG_DIR}/validator.log
+$NODE_UPDATE_TIME * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${TON_LOG_DIR}/validator.log
 # $GPL_TIME_MH * * *    cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst
 _ENDCRN_
 )
@@ -221,12 +276,13 @@ HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
-$NXT_ELECT_4 * * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${TON_LOG_DIR}/validator.log
+$NODE_UPDATE_TIME * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${TON_LOG_DIR}/validator.log
 # $GPL_TIME_MH * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst"
 _ENDCRN_
 )
 
 fi
+#===================================================
 
 [[ "$1" == "show" ]] && echo "$CRONT_JOBS"&& exit 0
 
