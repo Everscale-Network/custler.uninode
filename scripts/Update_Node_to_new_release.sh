@@ -173,7 +173,7 @@ echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverN
 
 #===========================================================
 #
-${SCRIPT_DIR}/PostUpdate_Actions.sh
+${SCRIPT_DIR}/DB_Repair_Actions.sh
 
 #===========================================================
 
