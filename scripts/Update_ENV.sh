@@ -38,6 +38,7 @@ if [[ -z "${LNIC_ADDRESS}" ]];then
         sed -i.bak '/export Enable_Scripts_Autoupdate=/p; s/export Enable_Scripts_Autoupdate=.*/# Last Node Info Contract for safe node update/' ${SCRIPT_DIR}/env.sh
     fi
 fi
+sed -i.bak "s/export RUST_VERSION=.*/export RUST_VERSION=\"1.61.0\"/" "${SCRIPT_DIR}/env.sh"
 #################################################################
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"

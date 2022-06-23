@@ -113,17 +113,17 @@ echo "INFO: Node going to update from $Node_local_commit to new commit $Node_rem
 
 #===========================================================
 # Get recommended Rust version from node repo
-Node_Build_Rust_Version="$(curl https://raw.githubusercontent.com/tonlabs/ton-labs-node/master/recomended_rust 2>/dev/null)"
-V1=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $1}')
-V2=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $2}')
-V3=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $3}')
-if [[ $V1 =~ ^[[:digit:]]+$ ]] && [[ $V2 =~ ^[[:digit:]]+$ ]] && [[ $V3 =~ ^[[:digit:]]+$ ]];then
-    declare -i Rust_Version_NUM=$(echo "$Node_Build_Rust_Version" | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
-    if [[ $Rust_Version_NUM -ne 0 ]];then
-        sed -i.bak "s/export RUST_VERSION=.*/export RUST_VERSION=$Node_Build_Rust_Version/" "${SCRIPT_DIR}/env.sh"
-        source "${SCRIPT_DIR}/env.sh"
-    fi
-fi
+# Node_Build_Rust_Version="$(curl https://raw.githubusercontent.com/tonlabs/ton-labs-node/master/recomended_rust 2>/dev/null)"
+# V1=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $1}')
+# V2=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $2}')
+# V3=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $3}')
+# if [[ $V1 =~ ^[[:digit:]]+$ ]] && [[ $V2 =~ ^[[:digit:]]+$ ]] && [[ $V3 =~ ^[[:digit:]]+$ ]];then
+#     declare -i Rust_Version_NUM=$(echo "$Node_Build_Rust_Version" | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
+#     if [[ $Rust_Version_NUM -ne 0 ]];then
+#         sed -i.bak "s/export RUST_VERSION=.*/export RUST_VERSION=$Node_Build_Rust_Version/" "${SCRIPT_DIR}/env.sh"
+#         source "${SCRIPT_DIR}/env.sh"
+#     fi
+# fi
 
 # --features "compression,external_db,metrics"
 export RNODE_FEATURES=""

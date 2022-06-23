@@ -40,7 +40,7 @@ export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe766043
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="main.ton.dev"      # can be main.* / net.* / fld.* / rfld.* / rustnet.*
-export Node_Blk_Min_Ver=27
+export Node_Blk_Min_Ver=30
 export NODE_TYPE="RUST"                 # Can be CPP / RUST. 
 export ELECTOR_TYPE="fift"
 export NODE_WC=0                        # Node WorkChain 
@@ -130,7 +130,7 @@ export C_ENGINE_ADDITIONAL_PARAMS=""
 
 #=====================================================
 # GIT addresses & commits
-export RUST_VERSION="1.60.0"
+export RUST_VERSION="1.61.0"
 export BOOST_VERSION="1.76.0"
 export MIN_TC_VERSION="0.26.7"
 export MIN_RC_VERSION="0.1.262"
