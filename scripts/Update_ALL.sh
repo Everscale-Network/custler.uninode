@@ -134,6 +134,10 @@ else
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ALARM: Node update is DISABLED. Your node can harm the network." 2>&1 > /dev/null 
 fi
 
+######################
+${SCRIPT_DIR}/PostUpdate_Actions.sh
+######################
+
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"
 
