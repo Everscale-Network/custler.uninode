@@ -147,10 +147,10 @@ fi
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
-if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]];then
-    export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
-    export RNODE_GIT_COMMIT="master"
-fi
+# if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]];then
+#     export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
+#     export RNODE_GIT_COMMIT="master"
+# fi
 
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
 export RCONS_GIT_COMMIT="master"
@@ -215,7 +215,7 @@ export CRYPTO_DIR=$TON_SRC_DIR/crypto
 export ContractsDIR="${NODE_TOP_DIR}/ton-labs-contracts"
 
 export DSCs_DIR="${ContractsDIR}/solidity/depool"
-[[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && export DSCs_DIR="${CONFIGS_DIR}/depool_RFLD"
+# [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]] && export DSCs_DIR="${CONFIGS_DIR}/depool_RFLD"
 export DePool_ABI="$DSCs_DIR/DePool.abi.json"
 
 export FSCs_DIR="${CRYPTO_DIR}/smartcont"

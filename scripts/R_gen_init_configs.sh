@@ -79,7 +79,7 @@ echo " ..DONE"
 echo -n "---INFO: Genegate Rnode config.json..."
 $CALL_RN --ckey "$(cat "${R_CFG_DIR}/console_client_public.json")" &>/dev/null &
 sleep 10
-pkill rnode &>/dev/null
+pkill -9 rnode &>/dev/null
 
 if [ ! -f "${R_CFG_DIR}/config.json" ]; then
     echo "###-ERROR: ${R_CFG_DIR}/config.json does not created!"

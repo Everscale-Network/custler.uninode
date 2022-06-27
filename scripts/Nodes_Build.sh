@@ -127,6 +127,7 @@ case "$OS_SYSTEM" in
             $PKG_MNGR install -y gcc-toolset-10-toolchain
             source /opt/rh/gcc-toolset-10/enable
         fi
+        sudo systemctl daemon-reload
         ;;
 
     Oracle)
@@ -144,6 +145,23 @@ case "$OS_SYSTEM" in
             $PKG_MNGR install -y gcc-toolset-10-toolchain
             source /opt/rh/gcc-toolset-10/enable
         fi
+        sudo systemctl daemon-reload
+        ;;
+
+    Fedora)
+        export ZSTD_LIB_DIR=/usr/lib64
+        PKGs_SET=$PKGS_CentOS
+        PKG_MNGR=$PKG_MNGR_CentOS
+        $PKG_MNGR -y update --allowerasing
+        $PKG_MNGR group install -y "Development Tools"
+        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        if ${CPP_NODE_BUILD};then
+            $PKG_MNGR remove -y boost
+            $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
+            $PKG_MNGR install -y gcc-toolset-10-toolchain
+            source /opt/rh/gcc-toolset-10/enable
+        fi
+        sudo systemctl daemon-reload
         ;;
 
     Ubuntu|Debian)
@@ -166,6 +184,7 @@ case "$OS_SYSTEM" in
             cd libmicrohttpd-0.9.70
             ./configure && make && sudo make install
         fi
+        sudo systemctl daemon-reload
         ;;
 
     *)
@@ -263,6 +282,7 @@ if ${CPP_NODE_BUILD};then
     echo "---INFO: build utils (convert_address)... DONE"
 fi
 #=====================================================
+######################################################
 # Build rust node
 if ${RUST_NODE_BUILD};then
     echo
