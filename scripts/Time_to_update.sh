@@ -82,10 +82,8 @@ echo "Git master branch blocks: $(echo $Supp_Blocks|awk '{print $3}')"
 echo "-------------------------------------------------------------------------------------------"
 #=================================================
 # Node info from contract
-LNIC_commit_dec=$(echo ${LNI_Info} | jq -r '.LastCommit')
-LNIC_commit="$(dec2hex $LNIC_commit_dec | tr '[:upper:]' '[:lower:]')"
-LNIC_Console_commit_dec=$(echo ${LNI_Info} | jq -r '.ConsoleCommit')
-LNIC_Console_commit="$(dec2hex $LNIC_Console_commit_dec | tr '[:upper:]' '[:lower:]')"
+LNIC_commit=$(echo ${LNI_Info} | jq -r '.LastCommit')
+LNIC_Console_commit=$(echo ${LNI_Info} | jq -r '.ConsoleCommit')
 
 echo "Node LNIC commit:          $LNIC_commit"
 echo "LNIC supported blocks:    $(echo ${LNI_Info}|jq -r '.SupportedBlock')"
