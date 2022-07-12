@@ -30,7 +30,7 @@ echo
 #===========================================
 # Stop rnode service
 echo -n "---INFO: Stopping rnode service ..."
-sudo service tonnode stop
+sudo service $ServiceName stop
 sleep 5
 echo " ..DONE"
 
@@ -58,7 +58,7 @@ echo " ..DONE"
 #===========================================
 # Start rnode service
 echo -n "---INFO: Starting rnode service ..."
-sudo service tonnode start
+sudo service $ServiceName start
 sleep 5
 echo " ..DONE"
 

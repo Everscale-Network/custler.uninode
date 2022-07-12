@@ -488,20 +488,20 @@ function get_LastNodeInfo {
     if [[ -z "$LNIC_ADDRESS" ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): LNIC_ADDRESS is empty!"
         echo "${LNI_JSON}"
-        return 1
+        return
     fi
 
     if [[ "$(Get_Account_Info "$LNIC_ADDRESS"|awk '{print $1}')" != "Active" ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): LNIC account not found."
         echo "${LNI_JSON}"
-        return 1
+        return
     fi
 
     local OUTPUT="$(Get_SC_current_state "$LNIC_ADDRESS")"
     if [[ $? -ne 0 ]] || [[ -z  "$(echo $OUTPUT | grep 'written StateInit of account')" ]];then
             echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get LNIC account state."
             echo "${LNI_JSON}"
-            return 1
+            return
     fi
         
     local ABI="LastNodeInfo.abi.json"
@@ -509,11 +509,11 @@ function get_LastNodeInfo {
     echo $GetABI > Get_ABI.json
     $CALL_TC -j run --boc ${LNIC_ADDRESS##*:}.boc --abi Get_ABI.json ABI {} | jq -r '.ABI_7z_hex' > LNIC_ABI_7z_hex.txt
     xxd -r -p LNIC_ABI_7z_hex.txt > LNIC_ABI.7z
-    7za x -y LNIC_ABI.7z 2>&1 > /dev/null
+    7z x -y LNIC_ABI.7z 2>&1 > /dev/null
     if [[ ! -e "${ABI}" ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Cannot get LNIC ABI from state."
         echo "${LNI_JSON}"
-        return 1
+        return
     fi
 
     LNI_JSON="$($CALL_TC -j run --boc ${LNIC_ADDRESS##*:}.boc --abi ${ABI} node_info {})"
@@ -523,10 +523,10 @@ function get_LastNodeInfo {
     if [[ -z "$LNI_Info" ]] || [[ "$LNI_Info" == "null" ]];then
         echoerr "###-ERROR(${FUNCNAME[0]} line $LINENO): Last node info from contract is empty."
         echo "${LNI_JSON}"
-        return 1
+        return
     fi
     echo "$LNI_Info"
-    return 0
+    return
 }
 
 #=================================================

@@ -83,6 +83,8 @@ while true; do
     SafeC_Hash="80d6c47c4a25543c9b397b71716f3fae1e2c5d247174c52e2c19bd896442b105"
     Proxy_Hash="c05938cde3cee21141caacc9e88d3b8f2a4a4bc3968cb3d455d83cd0498d4375"
     DepoolHash="14e20e304f53e6da152eb95fffc993dbd28245a775d847eed043f7c78a503885"
+    Proxy_V2_hash="481d7f583b458a1672ee602f66e8aa8d2f99d3cd9ece2eaa20e25c7ddf4c7f4a"
+    Depool_V2_hash="a46c6872712ec49e481a7f3fc1f42469d8bd6ef3fae906aa5b9927e5a3fb3b6b"
 
     Validators_List=$(cat ${ELECTIONS_HISTORY_DIR}/${Last_elections}_Validators_List.json|jq)
     Val_MSIG_List=$Validators_List
@@ -98,14 +100,14 @@ while true; do
             Val_MSIG_List=$(echo ${Val_MSIG_List}|jq ".\"${hex_val_addr}\".MSIG = \"${Curr_Val_Addr}\" | .\"${hex_val_addr}\".depool = \"0\" | .\"${hex_val_addr}\".proxy0 = \"0\" | .\"${hex_val_addr}\".proxy1 = \"0\"")
             continue
         fi
-        if [[ "$Curr_Val_Addr_Hash" == "$Proxy_Hash" ]];then
+        if [[ "$Curr_Val_Addr_Hash" == "$Proxy_Hash" ]] || [[ "$Curr_Val_Addr_Hash" == "$Proxy_V2_hash" ]];then
             CounterParty_List=`curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {counterparties(account: \"'${Curr_Val_Addr}'\") {counterparty}}"}' 2>/dev/null | jq -r '.data.counterparties'`
             CounterParty_QTY=$(echo $CounterParty_List | jq 'length')
             for (( cpi=0; cpi < CounterParty_QTY; cpi++ ));do
                 echo -n "."
                 curr_acc_addr=$(echo $CounterParty_List|jq -r ".[$cpi].counterparty")
                 curr_acc_hash=`curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {accounts(filter:{id: {eq: \"'${curr_acc_addr}'\"}}) {code_hash}}"}' 2>/dev/null |jq -r '.data.accounts | .[].code_hash'`
-                if [[ "$curr_acc_hash" == "$DepoolHash" ]];then
+                if [[ "$curr_acc_hash" == "$DepoolHash" ]] || [[ "$curr_acc_hash" == "$Depool_V2_hash" ]];then
                     #===========================
                     # Get depool info
                     Curr_Depool_Addr=$curr_acc_addr

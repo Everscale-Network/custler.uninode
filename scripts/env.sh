@@ -60,8 +60,8 @@ export DevNet_DApp_List="https://eri01.net.everos.dev,https://rbx01.net.everos.d
 export FLD_DApp_URL="https://gql.custler.net"
 export FLD_DApp_List="https://gql.custler.net"
 
-export RFLD_DApp_URL="https://rfld.custler.net"
-export RFLD_DApp_List="https://rfld-dapp01.ds1.itgold.io"
+export RFLD_DApp_URL="https://rfld-dapp.itgold.io"
+export RFLD_DApp_List="https://rfld-dapp.itgold.io"
 
 export RustNet_DApp_URL="https://rustnet.ton.dev"
 export RustNet_DApp_List="https://rustnet1.ton.dev"
@@ -133,7 +133,7 @@ export C_ENGINE_ADDITIONAL_PARAMS=""
 export RUST_VERSION="1.61.0"
 export BOOST_VERSION="1.76.0"
 export MIN_TC_VERSION="0.26.7"
-export MIN_RC_VERSION="0.1.262"
+export MIN_RC_VERSION="0.1.280"
 
 # for corect work automatic update 
 # GIT_COMMIT should be "master" or certain commit only
@@ -147,10 +147,10 @@ fi
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
-# if [[ "$NETWORK_TYPE" == "rfld.ton.dev" ]];then
-#     export RNODE_GIT_REPO="https://github.com/NilFoundation/rust-ton.git"
-#     export RNODE_GIT_COMMIT="master"
-# fi
+if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
+    export RNODE_GIT_REPO="https://github.com/Custler/evs-rnode.git"
+    export RNODE_GIT_COMMIT="master"
+fi
 
 export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
 export RCONS_GIT_COMMIT="master"

@@ -172,25 +172,11 @@ NXT_ELECT_5=$(GET_M_H "$NEXT_CHG_TIME")
 GET_PART_LIST_TIME=$((election_id - EEND_BEFORE))
 GPL_TIME_MH=$(GET_M_H "$GET_PART_LIST_TIME")
 
-################################################################################################
-# {
-#     "NodeVersion": "000050015",
-#     "PrevNodeVersion": "000050013",
-#     "LastCommit": "0xa0bc069b0459b50e4be7ed7d07c0aef0380ec2f7",
-#     "PrevCommit": "0xcc96e3938763e640cca86c62a4e66167581ec4f3",
-#     "SupportedBlock": 27,
-#     "PrevSupportedBlock": 26,
-#     "UpdateByCron": true,
-#     "UpdateStartTime": 0,
-#     "UpdateDuration": 0,
-#     "MinCLIversion": "000026012",
-#     "DisableOldNodeValidate": false
-# }
 UpdateByCron=true
 LINC_present=false
 LNI_Info="$( get_LastNodeInfo )"
-if [[ $? -ne 0 ]];then
-    echo "###-WARNING(line $LINENO): Last node info from contract is empty."
+if [[ "$LNI_Info" ==  "none" ]];then
+    echo "###-WARNING(line $LINENO): Last node info from contract not found."
 else
     export LINC_present=true
     declare -i UpdateStartTime=$(echo "$LNI_Info" | jq -r '.UpdateStartTime')
@@ -198,7 +184,7 @@ else
     UpdateByCron=$(echo "$LNI_Info" | jq -r '.UpdateByCron')
 fi
 
-# declare -i Curr_Node_Ver=$($CALL_RC -jc 'getstats' |jq -r '.node_version'| awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
+declare -i Curr_Node_Ver=$($CALL_RC -jc 'getstats' |jq -r '.node_version'| awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
 
 if $LINC_present && [[ $UpdateStartTime -gt 0 ]] && [[ $UpdateDuration -gt 0 ]];then
     #=================================================

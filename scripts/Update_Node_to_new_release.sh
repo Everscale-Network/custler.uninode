@@ -55,13 +55,13 @@ fi
 
 #===========================================================
 # check LNIC for new update and times
-LINC_present=false
+LNIC_present=false
 Console_commit="$RCONS_GIT_COMMIT"
 LNI_Info="$( get_LastNodeInfo )"
-if [[ $? -ne 0 ]];then
+if [[ "$LNI_Info" ==  "none" ]];then
     echo "###-WARNING(line $LINENO): Last node info from contract is empty."
 else
-    export LINC_present=true
+    export LNIC_present=true
     export Node_remote_commit=$(echo ${LNI_Info} | jq -r '.LastCommit')
     export Console_commit=$(echo ${LNI_Info} | jq -r '.ConsoleCommit')
     echo "LNIC present. New node commit: $Node_remote_commit, Console commit: $Console_commit"
@@ -80,7 +80,7 @@ fi
 # Checking if update is scheduled in LNIC
 # if UpdateDuration == 0 just doing update now
 # if no, check schedule
-if $LINC_present;then
+if $LNIC_present;then
     declare -i UpdateStartTime=$(echo "$LNI_Info" | jq -r '.UpdateStartTime')
     declare -i CurrTime=$(date +%s)
     if [[ $UpdateStartTime -gt $CurrTime ]];then
@@ -111,17 +111,17 @@ echo "INFO: Node going to update from $Node_local_commit to new commit $Node_rem
 
 #===========================================================
 # Get recommended Rust version from node repo
-# Node_Build_Rust_Version="$(curl https://raw.githubusercontent.com/tonlabs/ton-labs-node/master/recomended_rust 2>/dev/null)"
-# V1=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $1}')
-# V2=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $2}')
-# V3=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $3}')
-# if [[ $V1 =~ ^[[:digit:]]+$ ]] && [[ $V2 =~ ^[[:digit:]]+$ ]] && [[ $V3 =~ ^[[:digit:]]+$ ]];then
-#     declare -i Rust_Version_NUM=$(echo "$Node_Build_Rust_Version" | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
-#     if [[ $Rust_Version_NUM -ne 0 ]];then
-#         sed -i.bak "s/export RUST_VERSION=.*/export RUST_VERSION=$Node_Build_Rust_Version/" "${SCRIPT_DIR}/env.sh"
-#         source "${SCRIPT_DIR}/env.sh"
-#     fi
-# fi
+Node_Build_Rust_Version="$(curl https://raw.githubusercontent.com/tonlabs/ton-labs-node/master/recomended_rust 2>/dev/null)"
+V1=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $1}')
+V2=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $2}')
+V3=$(echo $Node_Build_Rust_Version|awk -F'.' '{print $3}')
+if [[ $V1 =~ ^[[:digit:]]+$ ]] && [[ $V2 =~ ^[[:digit:]]+$ ]] && [[ $V3 =~ ^[[:digit:]]+$ ]];then
+    declare -i Rust_Version_NUM=$(echo "$Node_Build_Rust_Version" | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
+    if [[ $Rust_Version_NUM -ne 0 ]];then
+        sed -i.bak "s/export RUST_VERSION=.*/export RUST_VERSION=$Node_Build_Rust_Version/" "${SCRIPT_DIR}/env.sh"
+        source "${SCRIPT_DIR}/env.sh"
+    fi
+fi
 
 # --features "compression,external_db,metrics"
 export RNODE_FEATURES=""
@@ -152,7 +152,7 @@ ${SCRIPT_DIR}/nets_config_update.sh
 
 #===========================================================
 # Restart service
-sudo service tonnode restart
+sudo service $ServiceName restart
 
 if [[ -z "$(pgrep rnode)" ]];then
     echo "###-ERROR(line $LINENO): Node process not started!"
@@ -171,8 +171,8 @@ echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverN
 
 #===========================================================
 #
-${SCRIPT_DIR}/DB_Repair_Actions.sh
-
+# ${SCRIPT_DIR}/DB_Repair_Actions.sh
+#
 #===========================================================
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"

@@ -81,8 +81,10 @@ case "$NetName" in
         CurrProxy_MD5=$DP_PROXY_RUSTCUP_2021_08_05_MD5
         ;;
     rfld)
-        CurrDP_MD5=$DP_RFLD_2021_10_02_MD5
-        CurrProxy_MD5=$DP_PROXY_RFLD_2021_10_02_MD5
+        CurrDP_MD5=$DP_2021_02_01_MD5
+        CurrProxy_MD5=$DP_Proxy_2021_02_01_MD5
+        # CurrDP_MD5=$DP_RFLD_2021_10_02_MD5
+        # CurrProxy_MD5=$DP_PROXY_RFLD_2021_10_02_MD5
         ;;
     *)
         echo "###-WARNING(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE}) DePool's code set to default!"
@@ -106,8 +108,8 @@ fi
 echo 
 echo "================= Deploy DePool contract =========================="
 
-MinStake=`$CALL_TC -j convert tokens ${MinStakeT}|jq -r '.value'`
-ValidatorAssurance=`$CALL_TC -j convert tokens ${ValidatorAssuranceT}|jq -r '.value'`
+MinStake=`echo "${MinStakeT} * 1000000000" | $CALL_BC|cut -d '.' -f 1`
+ValidatorAssurance=`echo "${ValidatorAssuranceT} * 1000000000" | $CALL_BC|cut -d '.' -f 1`
 
 ProxyCode="$($CALL_TC -j decode stateinit --tvc ${DSCs_DIR}/DePoolProxy.tvc | jq -r '.code')"
 [[ -z $ProxyCode ]] && echo "###-ERROR(line $LINENO): DePoolProxy.tvc not found in ${DSCs_DIR}/DePoolProxy.tvc" && exit 1
@@ -137,7 +139,7 @@ Validator_addr=`cat ${KEYS_DIR}/${HOSTNAME}.addr`
 # [[ "${Validator_WC}" == "masterchain" ]] && Validator_WC=$((-1))
 Validator_WC=$NODE_WC
 
-# BalanceThreshold=`$CALL_TC -j convert tokens ${BalanceThresholdT}`
+# BalanceThreshold=`$CALL_TC -j convert tokens ${BalanceThresholdT}` - deprecated
 # echo "BalanceThreshold $BalanceThresholdT in nanoTon:  $BalanceThreshold"
 
 #=================================================

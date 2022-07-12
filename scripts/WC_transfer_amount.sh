@@ -65,8 +65,8 @@ TRANSF_AMOUNT="$3"
 NEW_ACC=$4
 [[ -z $TRANSF_AMOUNT ]] && tr_usage
 
-NANO_AMOUNT=`$CALL_TC -j convert tokens $TRANSF_AMOUNT | jq -r '.value'`
-if [[ $NANO_AMOUNT -lt 100000000 ]];then
+declare -i NANO_AMOUNT=`echo "$TRANSF_AMOUNT * 1000000000" | $CALL_BC|cut -d '.' -f 1`
+if [[ $NANO_AMOUNT -lt 100000 ]];then
     echo "###-ERROR(line $LINENO): Can't transfer too small amount of nanotokens! (${NANO_AMOUNT})nt"
     exit 1
 fi

@@ -27,8 +27,9 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 
 #################################################################
-${SCRIPT_DIR}/next_elect_set_time.sh
+# ${SCRIPT_DIR}/next_elect_set_time.sh
 #################################################################
+echo "Nothing to do."
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"

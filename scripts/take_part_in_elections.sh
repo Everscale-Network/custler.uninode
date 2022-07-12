@@ -97,6 +97,11 @@ echo "INFO: validator account address: $Validator_addr"
 [[ ! -d ${ELECTIONS_WORK_DIR} ]] && mkdir -p ${ELECTIONS_WORK_DIR}
 chmod +x ${ELECTIONS_WORK_DIR}
 Validator_Acc_Info="$(Get_Account_Info ${Validator_addr})"
+Validator_Acc_Status=`echo "$Validator_Acc_Info" | awk '{print $1}'`
+if [[ "$Validator_Acc_Status" != "Active" ]];then
+    echo "###-ERROR(line $LINENO): Validator msig status is NOT 'Active' (not deployed)!"
+    exit 1
+fi
 declare -i Validator_Acc_LT=`echo "$Validator_Acc_Info" | awk '{print $3}'`
 
 ##############################################################################
@@ -294,6 +299,18 @@ else
 # Make query.boc to send to Elector
     case "${NODE_TYPE}" in
         RUST)
+            NetName="${NETWORK_TYPE%%.*}"
+            if [[ "$NetName" == "main" ]];then
+                Blk_vers="$(Get_Supported_Blocks_Version)"
+                declare -i Net_Blk_Ver=`echo $Blk_vers|awk '{print $1}'`
+                declare -i Git_Blk_Ver=`echo $Blk_vers|awk '{print $2}'`
+                declare -i Nod_Blk_Ver=`echo $Blk_vers|awk '{print $3}'`
+                echo "----INFO: Min allowed Block Version: $Node_Blk_Min_Ver. You have NetBV: $Net_Blk_Ver, GitBV: $Git_Blk_Ver, NodeBV: $Nod_Blk_Ver."
+                if [[ $Node_Blk_Min_Ver -gt $Git_Blk_Ver ]] || [[ $Node_Blk_Min_Ver -gt $Nod_Blk_Ver ]];then
+                    echo -e "${BoldText}${RedBack}###-ALARM: Node version is TOO OLD. Your node can harm the network. Update node ASAP! Next update your part in elections will be disabled! ${NormText}"
+                    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ALARM: Node version is TOO OLD. Your node can harm the network. Update node ASAP! Next update your part in elections will be disabled!" 2>&1 > /dev/null
+                fi
+            fi
             if [[ "$STAKE_MODE" == "depool" ]];then
                 cat "${R_CFG_DIR}/console.json" | jq ".wallet_id = \"${DP_Round_Proxy}\"" > console.tmp
                 # cp console.tmp console.${elections_id}
