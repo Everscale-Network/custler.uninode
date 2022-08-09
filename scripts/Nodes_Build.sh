@@ -304,26 +304,26 @@ curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
 #=====================================================
 # Check reboot required after update
-case "$OS_SYSTEM" in
-    FreeBSD)
-        if [[ "$(freebsd-version -k)" != "$(uname -r)" ]]; then
-            echo -e "${RedBack}${BoldText}###-ATTENTION!!! - Reboot required !!${NormText}"
-            echo -e "${RedBack}${BoldText}Kernel was updated but system boot from old${NormText}"
-            echo "Reboot and then run `sudo freebsd-update install` then `sudo pkg update -f && sudo pkg upgrade -y`"
-        fi
-        ;;
-    Oracle|CentOS)
-            needs-restarting -r
-        ;;
-    Ubuntu|Debian)
-        if [ -f /var/run/reboot-required ]; then
-            echo -e "${RedBack}${BoldText}###-ATTENTION!!! - Reboot required !!${NormText}"
-            cat /var/run/reboot-required.pkgs
-        fi
-        ;;
-    *)
-        ;;
-esac
+# case "$OS_SYSTEM" in
+#     FreeBSD)
+#         if [[ "$(freebsd-version -k)" != "$(uname -r)" ]]; then
+#             echo -e "${RedBack}${BoldText}###-ATTENTION!!! - Reboot required !!${NormText}"
+#             echo -e "${RedBack}${BoldText}Kernel was updated but system boot from old${NormText}"
+#             echo "Reboot and then run `sudo freebsd-update install` then `sudo pkg update -f && sudo pkg upgrade -y`"
+#         fi
+#         ;;
+#     Oracle|CentOS)
+#             needs-restarting -r
+#         ;;
+#     Ubuntu|Debian)
+#         if [ -f /var/run/reboot-required ]; then
+#             echo -e "${RedBack}${BoldText}###-ATTENTION!!! - Reboot required !!${NormText}"
+#             cat /var/run/reboot-required.pkgs
+#         fi
+#         ;;
+#     *)
+#         ;;
+# esac
 
 echo 
 echo '################################################'
