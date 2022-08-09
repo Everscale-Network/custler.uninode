@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-10-19 15:00:00
+# (C) Sergey Tyurin  2022-07-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -31,32 +31,14 @@ echo
 
 #============================================
 # Check vars settings. 
-case "$NODE_TYPE" in 
-    RUST)
-        if [[ -z $R_DB_DIR ]];then
-            echo "###-ERROR: 'R_DB_DIR' variable cannot be empty! Edit env.sh to set the variable."
-            exit 1
-        fi
-        if [[ -z $R_LOG_DIR ]];then
-            echo "###-ERROR: 'R_LOG_DIR' variable cannot be empty! Edit env.sh to set the variable."
-            exit 1
-        fi
-        ;;
-    CPP)
-        if [[ -z $TON_LOG_DIR ]];then
-            echo "###-ERROR: 'TON_LOG_DIR' variable cannot be empty! Edit env.sh to set the variable."
-            exit 1
-        fi
-        if [[ -z $TON_WORK_DIR ]];then
-            echo "###-ERROR: 'TON_WORK_DIR' variable cannot be empty! Edit env.sh to set the variable."
-            exit 1
-        fi
-        ;;
-    *)
-        echo "###-ERROR: Unknown node type! Set NODE_TYPE= to 'RUST' or 'CPP' in env.sh"
-        exit 1
-        ;;
-esac
+if [[ -z $R_DB_DIR ]];then
+    echo "###-ERROR: 'R_DB_DIR' variable cannot be empty! Edit env.sh to set the variable."
+    exit 1
+fi
+if [[ -z $R_LOG_DIR ]];then
+    echo "###-ERROR: 'R_LOG_DIR' variable cannot be empty! Edit env.sh to set the variable."
+    exit 1
+fi
 
 #============================================
 # Get OS type
@@ -77,18 +59,12 @@ fi
 # Info 
 echo 
 echo "------------- Node config parameters ------------------"
-echo -e "Node type: ${BoldText}${GreeBack}${NODE_TYPE}${NormText}"
 echo -e "Elector:   ${BoldText}${RedBack}${ELECTOR_TYPE}${NormText}"
 echo -e "Network to connect: ${BoldText}${RedBack}${NETWORK_TYPE}${NormText}"
 echo "Node IP addr: $NODE_IP_ADDR port: $ADNL_PORT"
-if [[ "$NODE_TYPE" == "RUST"  ]]; then
-    echo "Node DataBase dir:    ${R_DB_DIR}"
-    echo "Node Logs dir:        ${R_LOG_DIR}"
-    echo "Node configs dir:     ${R_CFG_DIR}"
-else
-    echo "Node DataBase dir:    ${TON_WORK_DIR}/db"
-    echo "Node Logs dir:        ${TON_LOG_DIR}"
-fi
+echo "Node DataBase dir:    ${R_DB_DIR}"
+echo "Node Logs dir:        ${R_LOG_DIR}"
+echo "Node configs dir:     ${R_CFG_DIR}"
 echo "Node KEYS dir:        ${KEYS_DIR}"
 echo "Node elections dir:   ${ELECTIONS_WORK_DIR}"
 
@@ -115,12 +91,7 @@ trap '' 2
 #######################################################
 #============================================
 # stop node service
-OS_SYSTEM=`uname -s`
-if [[ "$OS_SYSTEM" == "Linux" ]];then
-    sudo service ${ServiceName} stop|cat
-else
-    service ${ServiceName} stop|cat
-fi
+sudo service ${ServiceName} stop|cat
 
 #============================================
 # Remove old folders. We can't delete TON_WORK_DIR if it has been mounted on separate disk
@@ -135,45 +106,19 @@ mkdir -p "$ELECTIONS_WORK_DIR"
 mkdir -p "${NODE_LOGS_ARCH}"
 echo " ..DONE"
 
-if [[ "$NODE_TYPE" == "RUST"  ]]; then
-    echo -n "---INFO: Create Rnode folders..."
-    rm -rf "${RNODE_WORK_DIR}"
-    rm -rf /node_db/*
-    mkdir -p "${R_DB_DIR}"
-    mkdir -p "${R_LOG_DIR}"
-    mkdir -p "${R_CFG_DIR}"
-    echo " ..DONE :"
-    echo "${RNODE_WORK_DIR} :"
-    ls -alhFp ${RNODE_WORK_DIR}
-    echo
-    cp -f "${CONFIGS_DIR}/${NETWORK_TYPE}/ton-global.config.json" "${R_CFG_DIR}/"
-else
-    echo -n "---INFO: Create Cnode folders..."
-    sudo rm -rf "${TON_WORK_DIR}/db"
-    mkdir -p "${TON_WORK_DIR}/etc"
-    mkdir -p "${TON_WORK_DIR}/db"
-    mkdir -p "${TON_LOG_DIR}"
-    echo " ..DONE :"
-    echo "${TON_WORK_DIR} :"
-    ls -alhFp ${TON_WORK_DIR}
-    echo
-    cp -f "${CONFIGS_DIR}/${NETWORK_TYPE}/ton-global.config.json" "${TON_WORK_DIR}/etc/"
-fi
+echo -n "---INFO: Create Rnode folders..."
+rm -rf "${RNODE_WORK_DIR}"
+rm -rf /node_db/*
+mkdir -p "${R_DB_DIR}"
+mkdir -p "${R_LOG_DIR}"
+mkdir -p "${R_CFG_DIR}"
+echo " ..DONE :"
+echo "${RNODE_WORK_DIR} :"
+ls -alhFp ${RNODE_WORK_DIR}
+echo
+cp -f "${CONFIGS_DIR}/${NETWORK_TYPE}/ton-global.config.json" "${R_CFG_DIR}/"
+
 echo " ..DONE"
-#============================================
-# set network for tonos-cli
-# tonos-cli config --url="https://${NETWORK_TYPE}"
-# to be able to use old versions tonos-cli we need two config files
-# special DApp server for FLD network :)
-# echo -n "---INFO: Set network for tonos-cli..."
-# if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
-# #    jq -c ".url = \"https://gql.custler.net\"" tonlabs-cli.conf.json > tonlabs-cli.conf.tmp && mv -f tonlabs-cli.conf.tmp tonlabs-cli.conf.json
-#     jq -c ".url = \"https://gql.custler.net\"" tonos-cli.conf.json > tonos-cli.conf.tmp && mv -f tonos-cli.conf.tmp tonos-cli.conf.json
-# else
-# #    jq -c ".url = \"https://${NETWORK_TYPE}\"" tonlabs-cli.conf.json > tonlabs-cli.conf.tmp && mv -f tonlabs-cli.conf.tmp tonlabs-cli.conf.json
-#     jq -c ".url = \"https://${NETWORK_TYPE}\"" tonos-cli.conf.json > tonos-cli.conf.tmp && mv -f tonos-cli.conf.tmp tonos-cli.conf.json
-# fi
-# echo " ..DONE"
 
 #============================================
 # set log rotate
@@ -182,11 +127,7 @@ echo " ..DONE"
 
 #===========================================
 # Generate initial configs
-if [[ "$NODE_TYPE" == "RUST"  ]]; then
-    ./R_gen_init_configs.sh
-else
-    ./C_gen_init_configs.sh
-fi
+./R_gen_init_configs.sh
 
 #===========================================
 # Setup service for Linux

@@ -1,1 +1,1 @@
----WARN: Update Scripts to use Node Info Contract for safe nodes update
+---WARN: Removed legacy code for C++ node, fixes and improv

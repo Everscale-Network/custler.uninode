@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-06-10 13:00:00
+# (C) Sergey Tyurin  2022-07-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -40,8 +40,7 @@ export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe766043
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="main.ton.dev"      # can be main.* / net.* / fld.* / rfld.* / rustnet.*
-export Node_Blk_Min_Ver=30
-export NODE_TYPE="RUST"                 # Can be CPP / RUST. 
+export Node_Blk_Min_Ver=32
 export ELECTOR_TYPE="fift"
 export NODE_WC=0                        # Node WorkChain 
 
@@ -121,16 +120,11 @@ export NODE_IP_ADDR
 export ServiceName="tonnode"
 export ADNL_PORT="48888"
 export NODE_ADDRESS="${NODE_IP_ADDR}:${ADNL_PORT}"
-export LITESERVER_IP="127.0.0.1"
-export LITESERVER_PORT="3031"
 export RCONSOLE_PORT="5031"
-export VAL_ENGINE_CONSOLE_IP="127.0.0.1"
-export VAL_ENGINE_CONSOLE_PORT="3030"
-export C_ENGINE_ADDITIONAL_PARAMS=""
 
 #=====================================================
 # GIT addresses & commits
-export RUST_VERSION="1.61.0"
+export RUST_VERSION="1.62.1"
 export BOOST_VERSION="1.76.0"
 export MIN_TC_VERSION="0.26.7"
 export MIN_RC_VERSION="0.1.280"
@@ -138,12 +132,6 @@ export MIN_RC_VERSION="0.1.280"
 # for corect work automatic update 
 # GIT_COMMIT should be "master" or certain commit only
 # not a branch name!
-export CNODE_GIT_REPO="https://github.com/Everscale-Network/Everscale-Node.git"
-export CNODE_GIT_COMMIT="mainnet"
-if [[ "$NETWORK_TYPE" == "fld.ton.dev" ]];then
-    export CNODE_GIT_REPO="https://github.com/NilFoundation/cpp-ton.git"
-    export CNODE_GIT_COMMIT="nil"
-fi
 
 export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
 export RNODE_GIT_COMMIT="master"
@@ -174,8 +162,6 @@ export Surf_GIT_Commit="multisig-surf-v2"
 
 #=====================================================
 # Source code folders
-export TON_SRC_DIR="${NODE_TOP_DIR}/cnode"
-export TON_BUILD_DIR="${TON_SRC_DIR}/build"
 export TONOS_CLI_SRC_DIR="${NODE_TOP_DIR}/tonos-cli"
 export UTILS_DIR="${TON_BUILD_DIR}/utils"
 export RNODE_SRC_DIR="${NODE_TOP_DIR}/rnode"
@@ -237,9 +223,6 @@ export Elector_ABI="${CONFIGS_DIR}/Elector.abi.json"
 # Executables
 export CALL_RN="${NODE_BIN_DIR}/rnode --configs ${R_CFG_DIR}"
 export CALL_RC="${NODE_BIN_DIR}/console -C ${R_CFG_DIR}/console.json"
-export CALL_LC="${NODE_BIN_DIR}/lite-client -p ${KEYS_DIR}/liteserver.pub -a ${LITESERVER_IP}:${LITESERVER_PORT} -t 5"
-export CALL_VC="${NODE_BIN_DIR}/validator-engine-console -k ${KEYS_DIR}/client -p ${KEYS_DIR}/server.pub -a ${VAL_ENGINE_CONSOLE_IP}:${VAL_ENGINE_CONSOLE_PORT} -t 5"
-export CALL_VE="${NODE_BIN_DIR}/validator-engine"
 export CALL_TC="${NODE_BIN_DIR}/tonos-cli -c $SCRIPT_DIR/tonos-cli.conf.json"
 export CALL_FIFT="${NODE_BIN_DIR}/fift -I ${FIFT_LIB}:${FSCs_DIR}"
 # export CALL_TL="$NODE_BIN_DIR/tvm_linker"
@@ -249,7 +232,13 @@ if [[ "$OS_SYSTEM" == "Linux" ]];then
 else
     export CALL_BC="bc -l"
 fi
-
+# =====================================================
+# Set binary for 7-zip
+export CALL_7Z="7z"
+Distro_Name="$(cat /etc/os-release | grep 'PRETTY_NAME='|awk -F'[" ]' '{print $2}')"
+if [[ "$Distro_Name" == "CentOS" ]] || [[ "$Distro_Name" == "Fedora" ]] || [[ "$Distro_Name" == "Oracle" ]];then
+    export CALL_7Z="7za"
+fi 
 #=================================================
 # Text modifiers & signs
 export NormText="\e[0m"

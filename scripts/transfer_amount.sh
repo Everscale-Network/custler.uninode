@@ -19,7 +19,9 @@ set -eE
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
  
-echo "################################### Send tokens script ########################################"
+echo
+echo "#################################### Send tokens script ########################################"
+echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
 
 function tr_usage(){
     echo

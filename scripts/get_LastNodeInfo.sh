@@ -52,7 +52,7 @@ echo $GetABI > Get_ABI.json
 
 $CALL_TC -j run --boc ${LNIC_ADDRESS##*:}.boc --abi Get_ABI.json ABI {} | jq -r '.ABI_7z_hex' > LNIC_ABI_7z_hex.txt
 xxd -r -p LNIC_ABI_7z_hex.txt > LNIC_ABI.7z
-7z x -y LNIC_ABI.7z 2>&1 > /dev/null
+$CALL_7Z x -y LNIC_ABI.7z 2>&1 > /dev/null
 
 ABI="LastNodeInfo.abi.json"
 if [[ ! -e "${ABI}" ]];then

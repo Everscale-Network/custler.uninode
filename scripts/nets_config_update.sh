@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-01-08 19:00:00
+# (C) Sergey Tyurin  2022-07-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -74,18 +74,7 @@ done
 
 ParentScript="$(ps -o command= $PPID |awk -F'/' '{print $2}')"
 if [[ "${ParentScript}" != "Setup.sh" ]];then
-    case "${NODE_TYPE}" in
-        RUST)
-            cp -f "${CONFIGS_DIR}/${NETWORK_TYPE}/ton-global.config.json" "${R_CFG_DIR}/"
-            ;;
-        CPP)
-            cp -f "${CONFIGS_DIR}/${NETWORK_TYPE}/ton-global.config.json" "${TON_WORK_DIR}/etc/"
-            ;;
-        *)
-            echoerr "###-ERROR(${FUNCNAME[1]}-${FUNCNAME[0]} line $LINENO): Unknown NODE TYPE: $NODE_TYPE !!!"
-            exit 1
-            ;;            
-    esac
+    cp -f "${CONFIGS_DIR}/${NETWORK_TYPE}/ton-global.config.json" "${R_CFG_DIR}/"
 fi
 
 echo

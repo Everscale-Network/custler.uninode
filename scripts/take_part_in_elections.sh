@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-01-08 19:00:00
+# (C) Sergey Tyurin  2022-07-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -51,19 +51,6 @@ case "$STAKE_MODE" in
         echo "###-ERROR(line $LINENO): Unknown staing mode $STAKE_MODE. Check STAKE_MODE in env.sh "
         ;;
 esac
-case "$NODE_TYPE" in
-    RUST)
-        echo "+++-WARNING(line $LINENO): Node type is set to $NODE_TYPE"
-        ;;
-    CPP)
-        echo "+++-WARNING(line $LINENO): Node type is set to $NODE_TYPE"
-        ;;
-    *)
-        echo "###-ERROR(line $LINENO): Unknown NODE TYPE!!! Check NODE_TYPE in env.sh "
-        exit 1
-        ;;
-esac
-
 
 #=================================================
 # Load addresses and set variables
@@ -297,50 +284,28 @@ if [[ -f ${ELECTIONS_WORK_DIR}/${elections_id}_query.boc ]];then
     echo "+++WARNING(line $LINENO): ${elections_id}_query.boc for current elections generated already. We will use the existing one."
 else
 # Make query.boc to send to Elector
-    case "${NODE_TYPE}" in
-        RUST)
-            NetName="${NETWORK_TYPE%%.*}"
-            if [[ "$NetName" == "main" ]];then
-                Blk_vers="$(Get_Supported_Blocks_Version)"
-                declare -i Net_Blk_Ver=`echo $Blk_vers|awk '{print $1}'`
-                declare -i Git_Blk_Ver=`echo $Blk_vers|awk '{print $2}'`
-                declare -i Nod_Blk_Ver=`echo $Blk_vers|awk '{print $3}'`
-                echo "----INFO: Min allowed Block Version: $Node_Blk_Min_Ver. You have NetBV: $Net_Blk_Ver, GitBV: $Git_Blk_Ver, NodeBV: $Nod_Blk_Ver."
-                if [[ $Node_Blk_Min_Ver -gt $Git_Blk_Ver ]] || [[ $Node_Blk_Min_Ver -gt $Nod_Blk_Ver ]];then
-                    echo -e "${BoldText}${RedBack}###-ALARM: Node version is TOO OLD. Your node can harm the network. Update node ASAP! Next update your part in elections will be disabled! ${NormText}"
-                    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ALARM: Node version is TOO OLD. Your node can harm the network. Update node ASAP! Next update your part in elections will be disabled!" 2>&1 > /dev/null
-                fi
-            fi
-            if [[ "$STAKE_MODE" == "depool" ]];then
-                cat "${R_CFG_DIR}/console.json" | jq ".wallet_id = \"${DP_Round_Proxy}\"" > console.tmp
-                # cp console.tmp console.${elections_id}
-            else
-                cat "${R_CFG_DIR}/console.json" | jq ".wallet_id = \"${Validator_addr}\"" > console.tmp
-                # cp console.tmp console.${elections_id}
-            fi
-            mv -f console.tmp  ${R_CFG_DIR}/console.json
-            $CALL_RC -c "election-bid $Validating_Start $Validating_Stop" &> "${ELECTIONS_WORK_DIR}/${elections_id}-bid.log"
-            # cp -f ${R_CFG_DIR}/config.json config.${elections_id}
-            ;;
-        CPP)
-            if [[ "$STAKE_MODE" == "depool" ]];then
-                Result="$(CNode_Make_Elect_Keys_and_BOC "${DP_Round_Proxy}" "$Validating_Start" "$Validating_Stop")"
-            else
-                Result="$(CNode_Make_Elect_Keys_and_BOC "${Validator_addr}" "$Validating_Start" "$Validating_Stop")"
-            fi
-            if [[ -n "${Result}" ]];then
-                echo "Elections pubkey:   $(echo "$Result"|awk '{print $1}')"
-                echo "Elections ADNL key: $(echo "$Result"|awk '{print $2}')"
-            else
-                echo "###-ERROR(line $LINENO): Make and add elections keys to CNODE FAILED!!!"
-                exit 1
-            fi
-            ;;
-          *)
-            echo "###-ERROR(line $LINENO): Unknown NODE TYPE!!!"
-            exit 1
-            ;;            
-    esac
+    NetName="${NETWORK_TYPE%%.*}"
+    if [[ "$NetName" == "main" ]];then
+        Blk_vers="$(Get_Supported_Blocks_Version)"
+        declare -i Net_Blk_Ver=`echo $Blk_vers|awk '{print $1}'`
+        declare -i Git_Blk_Ver=`echo $Blk_vers|awk '{print $2}'`
+        declare -i Nod_Blk_Ver=`echo $Blk_vers|awk '{print $3}'`
+        echo "----INFO: Min allowed Block Version: $Node_Blk_Min_Ver. You have NetBV: $Net_Blk_Ver, GitBV: $Git_Blk_Ver, NodeBV: $Nod_Blk_Ver."
+        if [[ $Node_Blk_Min_Ver -gt $Git_Blk_Ver ]] || [[ $Node_Blk_Min_Ver -gt $Nod_Blk_Ver ]];then
+            echo -e "${BoldText}${RedBack}###-ALARM: Node version is TOO OLD. Your node can harm the network. Update node ASAP! Next update your part in elections will be disabled! ${NormText}"
+            "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ALARM: Node version is TOO OLD. Your node can harm the network. Update node ASAP! Next update your part in elections will be disabled!" 2>&1 > /dev/null
+        fi
+    fi
+    if [[ "$STAKE_MODE" == "depool" ]];then
+        cat "${R_CFG_DIR}/console.json" | jq ".wallet_id = \"${DP_Round_Proxy}\"" > console.tmp
+        # cp console.tmp console.${elections_id}
+    else
+        cat "${R_CFG_DIR}/console.json" | jq ".wallet_id = \"${Validator_addr}\"" > console.tmp
+        # cp console.tmp console.${elections_id}
+    fi
+    mv -f console.tmp  ${R_CFG_DIR}/console.json
+    $CALL_RC -c "election-bid $Validating_Start $Validating_Stop" &> "${ELECTIONS_WORK_DIR}/${elections_id}-bid.log"
+    # cp -f ${R_CFG_DIR}/config.json config.${elections_id}
     mv -f validator-query.boc "${ELECTIONS_WORK_DIR}/${elections_id}_query.boc"
 fi
 

@@ -21,9 +21,8 @@ set -eE
 
 # All generated executables will be placed in the $NODE_BIN_DIR folder.
 # Options:
-#  cpp  - build cpp node with utils
 #  rust - build rust node with utils
-#  dapp - build rust node with utils for DApp server. If NODE_TYPE="CPP" in env.sh, node will be build w/o compressions for CPP network
+#  dapp - build rust node with utils for DApp server. 
 
 BUILD_STRT_TIME=$(date +%s)
 
@@ -33,30 +32,26 @@ source "${SCRIPT_DIR}/env.sh"
 echo
 echo "################################### FreeTON nodes build script #####################################"
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $(if $FORCE_USE_DAPP;then echo "DApp"; else  echo "console"; fi )"
+echo "INFO from env: Network: $NETWORK_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $(if $FORCE_USE_DAPP;then echo "DApp"; else  echo "console"; fi )"
 
 BackUP_Time="$(date  +'%F_%T'|tr ':' '-')"
 
-case "${@}" in
-    cpp)
-        CPP_NODE_BUILD=true
-        RUST_NODE_BUILD=false
-        DAPP_NODE_BUILD=false
-        ;;
+case "$1" in
     rust)
-        CPP_NODE_BUILD=false
         RUST_NODE_BUILD=true
         DAPP_NODE_BUILD=false
+        echo "---INFO: Will build particular node "
         ;;
     dapp)
-        CPP_NODE_BUILD=false
         RUST_NODE_BUILD=true
         DAPP_NODE_BUILD=true
+        RNODE_FEATURES="external_db,metrics"
+        echo "---INFO: Will build node for DApp"
         ;;
     *)
-        CPP_NODE_BUILD=false
         RUST_NODE_BUILD=true
         DAPP_NODE_BUILD=false
+        echo "---INFO: Will build particular node "
         ;;
 esac
 
@@ -64,9 +59,10 @@ esac
 
 #=====================================================
 # Packages set for different OSes
-PKGS_FreeBSD="mc libtool perl5 automake llvm-devel gmake git jq wget gawk base64 gflags ccache cmake curl gperf openssl ninja lzlib vim sysinfo logrotate gsl 7-zip zstd pkgconf python google-perftools"
-PKGS_CentOS="curl jq wget bc vim libtool logrotate openssl-devel clang llvm-devel ccache cmake ninja-build gperf gawk gflags snappy snappy-devel zlib zlib-devel bzip2 bzip2-devel lz4-devel libmicrohttpd-devel readline-devel p7zip libzstd-devel gperftools gperftools-devel"
-PKGS_Ubuntu="git mc curl build-essential libssl-dev automake libtool clang llvm-dev jq vim cmake ninja-build ccache gawk gperf texlive-science doxygen-latex libgflags-dev libmicrohttpd-dev libreadline-dev libz-dev pkg-config zlib1g-dev p7zip-full bc libzstd-dev libgoogle-perftools-dev"
+PKGS_FreeBSD="git mc jq vim 7-zip libtool perl5 automake llvm-devel gmake wget gawk base64 cmake curl gperf openssl lzlib sysinfo logrotate zstd pkgconf python google-perftools"
+PKGS_CentOS="git  mc jq vim bc p7zip curl wget libtool logrotate openssl-devel clang llvm-devel cmake gperf gawk zlib zlib-devel bzip2 bzip2-devel lz4-devel libzstd-devel gperftools gperftools-devel"
+PKGS_Ubuntu="git  mc jq vim bc p7zip-full curl build-essential libssl-dev automake libtool clang llvm-dev cmake gawk gperf libz-dev pkg-config zlib1g-dev libzstd-dev libgoogle-perftools-dev"
+PKGS_OL9UEK="git  mc jq vim bc p7zip curl wget libtool logrotate openssl-devel clang llvm-devel cmake gperf gawk zlib zlib-devel bzip2 bzip2-devel lz4-devel libzstd-devel libunwind libunwind-devel"
 
 PKG_MNGR_FreeBSD="sudo pkg"
 PKG_MNGR_CentOS="sudo dnf"
@@ -93,25 +89,11 @@ case "$OS_SYSTEM" in
         export ZSTD_LIB_DIR=/usr/local/lib
         PKGs_SET=$PKGS_FreeBSD
         PKG_MNGR=$PKG_MNGR_FreeBSD
-        $PKG_MNGR delete -y rust boost-all|cat
         $PKG_MNGR update -f
         $PKG_MNGR upgrade -y
         FEXEC_FLG="-perm +111"
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_freebsd_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
-        if ${CPP_NODE_BUILD};then
-            #	libmicrohttpd \ 
-            #   does not build with libmicrohttpd-0.9.71
-            #   build & install libmicrohttpd-0.9.70
-            mkdir -p $HOME/src
-            cd $HOME/src
-            # sudo pkg remove -y libmicrohttpd | cat
-            fetch https://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.70.tar.gz
-            tar xf libmicrohttpd-0.9.70.tar.gz
-            cd libmicrohttpd-0.9.70
-            ./configure && make && sudo make install
-            fi
         ;;
-
     CentOS)
         export ZSTD_LIB_DIR=/usr/lib64
         PKGs_SET=$PKGS_CentOS
@@ -121,33 +103,25 @@ case "$OS_SYSTEM" in
         $PKG_MNGR config-manager --set-enabled powertools 
         $PKG_MNGR --enablerepo=extras install -y epel-release
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-        if ${CPP_NODE_BUILD};then
-            $PKG_MNGR remove -y boost
-            $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
-            $PKG_MNGR install -y gcc-toolset-10-toolchain
-            source /opt/rh/gcc-toolset-10/enable
-        fi
         sudo systemctl daemon-reload
         ;;
-
     Oracle)
         export ZSTD_LIB_DIR=/usr/lib64
         PKGs_SET=$PKGS_CentOS
         PKG_MNGR=$PKG_MNGR_CentOS
         $PKG_MNGR -y update --allowerasing
         $PKG_MNGR group install -y "Development Tools"
-        $PKG_MNGR config-manager --set-enabled ol8_codeready_builder
-        $PKG_MNGR install -y oracle-epel-release-el8
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-        if ${CPP_NODE_BUILD};then
-            $PKG_MNGR remove -y boost
-            $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
-            $PKG_MNGR install -y gcc-toolset-10-toolchain
-            source /opt/rh/gcc-toolset-10/enable
+        if [[ -n "$(cat /etc/os-release |grep 'VERSION_ID="9.')" ]];then
+            PKGs_SET=$PKGS_OL9UEK
+            $PKG_MNGR config-manager --set-enabled ol9_codeready_builder
+            $PKG_MNGR install -y oracle-epel-release-el9
+        else 
+            $PKG_MNGR config-manager --set-enabled ol8_codeready_builder
+            $PKG_MNGR install -y oracle-epel-release-el8
         fi
+        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
         sudo systemctl daemon-reload
         ;;
-
     Fedora)
         export ZSTD_LIB_DIR=/usr/lib64
         PKGs_SET=$PKGS_CentOS
@@ -155,15 +129,8 @@ case "$OS_SYSTEM" in
         $PKG_MNGR -y update --allowerasing
         $PKG_MNGR group install -y "Development Tools"
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-        if ${CPP_NODE_BUILD};then
-            $PKG_MNGR remove -y boost
-            $PKG_MNGR install -y gcc-toolset-10 gcc-toolset-10-gcc
-            $PKG_MNGR install -y gcc-toolset-10-toolchain
-            source /opt/rh/gcc-toolset-10/enable
-        fi
         sudo systemctl daemon-reload
         ;;
-
     Ubuntu|Debian)
         export ZSTD_LIB_DIR=/usr/lib/x86_64-linux-gnu
         PKGs_SET=$PKGS_Ubuntu
@@ -171,22 +138,8 @@ case "$OS_SYSTEM" in
         $PKG_MNGR install -y software-properties-common
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
-        if ${CPP_NODE_BUILD};then
-            $PKG_MNGR remove -y libboost-all-dev|cat
-            $PKG_MNGR update && $PKG_MNGR upgrade -y 
-            $PKG_MNGR install -y g++-10
-            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 90 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
-            mkdir -p $HOME/src
-            cd $HOME/src
-            # sudo pkg remove -y libmicrohttpd | cat
-            wget https://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.70.tar.gz
-            tar xf libmicrohttpd-0.9.70.tar.gz
-            cd libmicrohttpd-0.9.70
-            ./configure && make && sudo make install
-        fi
         sudo systemctl daemon-reload
         ;;
-
     *)
         echo
         echo "###-ERROR: Unknown or unsupported OS. Can't continue."
@@ -202,29 +155,14 @@ echo '################################################'
 echo "---INFO: Install packages ... "
 $PKG_MNGR install -y $PKGs_SET
 
-#=====================================================
-# Install BOOST for C++ node
-if ${CPP_NODE_BUILD}; then
-    echo
-    echo '################################################'
-    echo '---INFO: Install BOOST from source'
-    Installed_BOOST_Ver="$(cat /usr/local/include/boost/version.hpp 2>/dev/null | grep "define BOOST_LIB_VERSION"|awk '{print $3}'|tr -d '"'| awk -F'_' '{printf("%d%s%2d\n", $1,".",$2)}')"
-    Required_BOOST_Ver="$(echo $BOOST_VERSION | awk -F'.' '{printf("%d%s%2d\n", $1,".",$2)}')"
-    if [[ "$Installed_BOOST_Ver" != "$Required_BOOST_Ver" ]];then
-        mkdir -p $HOME/src
-        cd $HOME/src
-        sudo rm -rf $HOME/src/boost* |cat
-        sudo rm -rf /usr/local/include/boost |cat
-        sudo rm -f /usr/local/lib/libboost*  |cat
-        Boost_File_Version="$(echo ${BOOST_VERSION}|awk -F. '{printf("%s_%s_%s",$1,$2,$3)}')"
-        wget https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${Boost_File_Version}.tar.gz
-        tar xf boost_${Boost_File_Version}.tar.gz
-        cd $HOME/src/boost_${Boost_File_Version}/
-        ./bootstrap.sh
-        sudo ./b2 install --prefix=/usr/local
-    else
-        echo "---INFO: BOOST Version ${BOOST_VERSION} already installed"
-    fi
+if [[ -n "$(cat /etc/os-release |grep 'PRETTY_NAME="Oracle Linux Server 9')" ]] && [[ ! -d "/usr/local/share/doc/gperftools" ]];then
+    mkdir -p ~/src && cd ~/src
+    git clone --recursive https://github.com/gperftools/gperftools.git
+    cd gperftools
+    ./autogen.sh && ./configure && make && sudo make install
+    echo "/usr/local/lib" | sudo tee /etc/ld.so.conf
+    sudo ldconfig 
+    cd "$SCRIPT_DIR"
 fi
 #=====================================================
 # Install or upgrade RUST
@@ -233,62 +171,15 @@ echo '################################################'
 echo "---INFO: Install RUST ${RUST_VERSION}"
 cd $HOME
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain ${RUST_VERSION} -y
-# curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o $HOME/rust_install.sh
-# sh $HOME/rust_install.sh -y --default-toolchain ${RUST_VERSION}
-# curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain ${RUST_VERSION} -y
-
 source $HOME/.cargo/env
 cargo install cargo-binutils
-#=====================================================
-# Build C++ node
-if ${CPP_NODE_BUILD};then
-    echo
-    echo '################################################'
-    echo "---INFO: Build C++ node ..."
-    cd $SCRIPT_DIR
-    [[ -d ${TON_SRC_DIR} ]] && rm -rf "${TON_SRC_DIR}"
 
-    echo "---INFO: clone ${CNODE_GIT_REPO} (${CNODE_GIT_COMMIT})..."
-    git clone "${CNODE_GIT_REPO}" "${TON_SRC_DIR}"
-    cd "${TON_SRC_DIR}" 
-    git checkout "${CNODE_GIT_COMMIT}"
-    git submodule init && git submodule update --recursive
-    git submodule foreach 'git submodule init'
-    git submodule foreach 'git submodule update  --recursive'
-    echo "---INFO: clone ${CNODE_GIT_REPO} (${CNODE_GIT_COMMIT})... DONE"
-    echo
-    echo "---INFO: build a node..."
-    mkdir -p "${TON_BUILD_DIR}" && cd "${TON_BUILD_DIR}"
-    cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DPORTABLE=ON
-    ninja
-    echo "---INFO: build a node... DONE"
-    echo
-
-    # cp $NODE_BIN_DIR/lite-client $NODE_BIN_DIR/lite-client_${BackUP_Time}|cat
-    # cp $NODE_BIN_DIR/validator-engine $NODE_BIN_DIR/validator-engine_${BackUP_Time}|cat
-    # cp $NODE_BIN_DIR/validator-engine-console $NODE_BIN_DIR/validator-engine-console_${BackUP_Time}|cat
-    
-    cp -f $TON_BUILD_DIR/lite-client/lite-client $NODE_BIN_DIR/
-    cp -f $TON_BUILD_DIR/validator-engine/validator-engine $NODE_BIN_DIR/
-    cp -f $TON_BUILD_DIR/validator-engine-console/validator-engine-console $NODE_BIN_DIR/
-    cp -f $TON_BUILD_DIR/crypto/fift $NODE_BIN_DIR/
-
-    #=====================================================
-    echo "---INFO: build utils (convert_address)..."
-    cd "${NODE_TOP_DIR}/utils/convert_address"
-    cargo update
-    cargo build --release
-    cp "${NODE_TOP_DIR}/utils/convert_address/target/release/convert_address" "$NODE_BIN_DIR/"
-    echo "---INFO: build utils (convert_address)... DONE"
-fi
-#=====================================================
 ######################################################
 # Build rust node
 if ${RUST_NODE_BUILD};then
     echo
     echo '################################################'
     echo "---INFO: build RUST NODE ..."
-
     echo -e "${BoldText}${BlueBack}---INFO: RNODE git repo:   ${RNODE_GIT_REPO} ${NormText}"
     echo -e "${BoldText}${BlueBack}---INFO: RNODE git commit: ${RNODE_GIT_COMMIT} ${NormText}"
 
@@ -328,6 +219,9 @@ if ${RUST_NODE_BUILD};then
     # Build rust node console
     echo '################################################'
     echo "---INFO: Build rust node console ..."
+    echo -e "${BoldText}${BlueBack}---INFO: RCONS git repo:   ${RCONS_GIT_REPO} ${NormText}"
+    echo -e "${BoldText}${BlueBack}---INFO: RCONS git commit: ${RCONS_GIT_COMMIT} ${NormText}"
+
     [[ -d ${RCONS_SRC_DIR} ]] && rm -rf "${RCONS_SRC_DIR}"
     git clone --recurse-submodules "${RCONS_GIT_REPO}" $RCONS_SRC_DIR
     cd $RCONS_SRC_DIR
@@ -380,6 +274,9 @@ fi
 echo
 echo '################################################'
 echo "---INFO: build tonos-cli ... "
+echo -e "${BoldText}${BlueBack}---INFO: TONOS git repo:   ${TONOS_CLI_GIT_REPO} ${NormText}"
+echo -e "${BoldText}${BlueBack}---INFO: TONOS git commit: ${TONOS_CLI_GIT_COMMIT} ${NormText}"
+
 [[ -d ${TONOS_CLI_SRC_DIR} ]] && rm -rf "${TONOS_CLI_SRC_DIR}"
 git clone --recurse-submodules "${TONOS_CLI_GIT_REPO}" "${TONOS_CLI_SRC_DIR}"
 cd "${TONOS_CLI_SRC_DIR}"
@@ -409,13 +306,18 @@ curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 # Check reboot required after update
 case "$OS_SYSTEM" in
     FreeBSD)
+        if [[ "$(freebsd-version -k)" != "$(uname -r)" ]]; then
+            echo -e "${RedBack}${BoldText}###-ATTENTION!!! - Reboot required !!${NormText}"
+            echo -e "${RedBack}${BoldText}Kernel was updated but system boot from old${NormText}"
+            echo "Reboot and then run `sudo freebsd-update install` then `sudo pkg update -f && sudo pkg upgrade -y`"
+        fi
         ;;
     Oracle|CentOS)
             needs-restarting -r
         ;;
     Ubuntu|Debian)
         if [ -f /var/run/reboot-required ]; then
-            echo 'reboot required'
+            echo -e "${RedBack}${BoldText}###-ATTENTION!!! - Reboot required !!${NormText}"
             cat /var/run/reboot-required.pkgs
         fi
         ;;

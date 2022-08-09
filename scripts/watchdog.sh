@@ -31,7 +31,7 @@ source "${SCRIPT_DIR}/functions.shinc"
 [[ ! -d ${ELECTIONS_WORK_DIR} ]] && mkdir -p ${ELECTIONS_WORK_DIR}
 
 #=================================================
-echo "INFO from env: Network: $NETWORK_TYPE; Node: $NODE_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
+echo "INFO from env: Network: $NETWORK_TYPE; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE"
 echo
 echo -e "$(Determine_Current_Network)"
 echo
@@ -43,7 +43,6 @@ ALARM_TIME_DIFF=$2
 ALARM_TIME_DIFF=${ALARM_TIME_DIFF:=100}
 
 Current_Net=$(echo "${NETWORK_TYPE}" | cut -d '.' -f 1)
-Current_Node=$(echo "${NODE_TYPE}" | cut -c 1)
 Prefix="${Current_Node} ${Current_Net}"
 
 #########################

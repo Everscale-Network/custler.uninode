@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-01-08 19:00:00
+# (C) Sergey Tyurin  2022-07-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -32,14 +32,14 @@ SLEEP_TIMEOUT=$1
 SLEEP_TIMEOUT=${SLEEP_TIMEOUT:="60"}
 ALARM_TIME_DIFF=$2
 ALARM_TIME_DIFF=${ALARM_TIME_DIFF:=100}
-Current_Net="$(echo "${NODE_TYPE}" | cut -c 1) $(echo "${NETWORK_TYPE}" | cut -d '.' -f 1)"
+Current_Net="$(echo "${NETWORK_TYPE}" | cut -d '.' -f 1)"
 
 while(true)
 do
     TIME_DIFF=$(Get_TimeDiff)
 
     if [[ "$TIME_DIFF" == "Node Down" ]];then
-        echo "${Current_Net} Time: $(date +'%F %T %Z') ###-ALARM! NODE IS DOWN." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        echo "${Current_Net} Time: $(date +'%F %T %Z') ###-ALARM! NODE IS DOWN or UNRESPONSIVE." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
         "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "ALARM! NODE IS DOWN." 2>&1 > /dev/null
         sleep $SLEEP_TIMEOUT
         continue

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-01-08 19:00:00
+# (C) Sergey Tyurin  2022-07-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -108,43 +108,20 @@ if [[ "$STAKE_MODE" == "msig" ]];then
     #=================================================
     # check availabylity to recover amount
 
-    case "${NODE_TYPE}" in
-        RUST)
-            LC_OUTPUT="$(Get_SC_current_state "${elector_addr}")"
-            case ${ELECTOR_TYPE} in
-                "fift")
-                    recover_amount=$($CALL_TC runget --boc ${elector_addr##*:}.boc compute_returned_stake 0x${Val_Adrr_HEX} 2>&1 | grep "Result:" | awk -F'"' '{print $2}')
-                    ;;
-                "solidity")
-                    recover_amount=$($CALL_TC run --boc ${elector_addr##*:}.boc compute_returned_stake "{\"wallet_addr\":\"${Val_Adrr_HEX}\"}" --abi ${Elector_ABI} 2>&1 | grep -i "value0" | awk '{print $2}' | tr -d '"')
-                    ;;
-                *)
-                    echo "###-ERROR(line $LINENO): Unknown Elector type! Set ELECTOR_TYPE= to 'fift' or 'solidity' in env.sh"
-                    exit 1
-                    ;;
-            esac
+    LC_OUTPUT="$(Get_SC_current_state "${elector_addr}")"
+    case ${ELECTOR_TYPE} in
+        "fift")
+            recover_amount=$($CALL_TC runget --boc ${elector_addr##*:}.boc compute_returned_stake 0x${Val_Adrr_HEX} 2>&1 | grep "Result:" | awk -F'"' '{print $2}')
             ;;
-        CPP)
-            case "${ELECTOR_TYPE}" in
-                fift)
-                    recover_amount=`$CALL_LC -rc "runmethod $elector_addr compute_returned_stake 0x$Val_Adrr_HEX" -rc "quit" 2>/dev/null \
-                        | grep "result:" | awk '{print $3}' | tee "${ELECTIONS_WORK_DIR}/${elections_id}-recover_amount"`
-                    ;;
-                solidity)
-                    echo "###-ERROR(line $LINENO): Solidity elector for CPP node NOT implemented yet"
-                    exit 1
-                    ;;
-                *)
-                    echo "###-ERROR(line $LINENO): Unknown Elector type! Set ELECTOR_TYPE= to 'fift' or 'solidity' in env.sh"
-                    exit 1
-                    ;;
-            esac
+        "solidity")
+            recover_amount=$($CALL_TC run --boc ${elector_addr##*:}.boc compute_returned_stake "{\"wallet_addr\":\"${Val_Adrr_HEX}\"}" --abi ${Elector_ABI} 2>&1 | grep -i "value0" | awk '{print $2}' | tr -d '"')
             ;;
         *)
-            echo "###-ERROR(line $LINENO): Unknown node type! Set NODE_TYPE= to 'RUST' or 'CPP' in env.sh"
+            echo "###-ERROR(line $LINENO): Unknown Elector type! Set ELECTOR_TYPE= to 'fift' or 'solidity' in env.sh"
             exit 1
-            ;; 
+            ;;
     esac
+    
     recover_amount=$((recover_amount))
     echo "INFO: recover_amount = ${recover_amount} nanotokens ( $((recover_amount/1000000000)) Tokens )"
     # =================================================
@@ -154,12 +131,8 @@ if [[ "$STAKE_MODE" == "msig" ]];then
         #=================================================
         # prepare recovery boc
         echo -n "INFO: Prepare recovery request ..."
-        if [[ "${NODE_TYPE}" == "RUST" ]];then
-            $CALL_RC -c recover_stake
-            mv recover-query.boc "${ELECTIONS_WORK_DIR}/recover-query.boc"
-        else
-            $CALL_FIFT -s recover-stake.fif "${ELECTIONS_WORK_DIR}/recover-query.boc"
-        fi
+        $CALL_RC -c recover_stake
+        mv recover-query.boc "${ELECTIONS_WORK_DIR}/recover-query.boc"
         recover_query_payload=$(base64 "${ELECTIONS_WORK_DIR}/recover-query.boc" |tr -d '\n')
         if [[ -z $recover_query_payload ]];then
             echo "###-ERROR(line $LINENO): Recover query payload is empty!!"

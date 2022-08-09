@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eE
 
-# (C) Sergey Tyurin  2021-10-19 10:00:00
+# (C) Sergey Tyurin  2022-17-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -87,46 +87,19 @@ if $FORCE_USE_DAPP ;then
     declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.elections_start_before'`	# elections_start_before
     declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.elections_end_before'  `	# elections_end_before
 else
-    case "$NODE_TYPE" in
-        RUST)
-            ELECT_TIME_PAR=$($CALL_RC -j -c "getconfig 15")
-            LIST_CURR_VALS=$($CALL_RC -j -c "getconfig 34")
-            LIST_NEXT_VALS=$($CALL_RC -j -c "getconfig 36")
-
-            declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.p34.utime_until'`	            # utime_until
-            if [[ "$election_id" == "0" ]];then 
-                CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.p34.utime_since'`	                # utime_until
-                if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != '{}' ]];then
-                    CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq -r '.p36.utime_since'`	            # utime_since
-                fi
-            fi
-            declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq -r '.p15.validators_elected_for'`	# validators_elected_for
-            declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.p15.elections_start_before'`	# elections_start_before
-            declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.p15.elections_end_before'  `	# elections_end_before
-            ;;
-        CPP)
-            # ConfigParam(34) = (
-            # cur_validators:(validators_ext utime_since:1632812112 utime_until:1632822912 total:16 main:16 total_weight:1152921504606846968
-            ELECT_TIME_PAR=`$CALL_LC -rc "getconfig 15" -t "3" -rc "quit" 2>/dev/null`
-            LIST_CURR_VALS=`$CALL_LC -rc "getconfig 34" -t "3" -rc "quit" 2>/dev/null`
-            LIST_NEXT_VALS=`$CALL_LC -rc "getconfig 36" -t "3" -rc "quit" 2>/dev/null`
-            declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | grep -i "cur_validators"  | awk -F ":" '{print $4}'|awk '{print $1}'`	# utime_until
-            NEXT_VAL_EXIST=`echo "${LIST_NEXT_VALS}"| grep -i "ConfigParam(36)" | grep -i 'null'`                                       # Config p36: null
-            if [[ "$election_id" == "0" ]];then 
-                CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | grep -i "cur_validators"  | awk -F ":" '{print $3}'|awk '{print $1}'`	    # utime_until
-                if [[ -z "$NEXT_VAL_EXIST" ]];then
-                    CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | grep -i "next_validators"  | awk -F ":" '{print $3}'|awk '{print $1}'`	# next utime_since = curr utime_until
-                fi
-            fi
-            declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | grep -i "ConfigParam(15)" | awk -F ":" '{print $2}' |awk '{print $1}'`	# validators_elected_for
-            declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | grep -i "ConfigParam(15)" | awk -F ":" '{print $3}' |awk '{print $1}'`	# elections_start_before
-            declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | grep -i "ConfigParam(15)" | awk -F ":" '{print $4}' |awk '{print $1}'`	# elections_end_before
-            ;;
-        *)
-            echo "###-ERROR(line $LINENO): Unknown node type! Set NODE_TYPE= to 'RUST' or CPP' in env.sh"
-            exit 1
-            ;; 
-    esac
+    ELECT_TIME_PAR=$($CALL_RC -j -c "getconfig 15")
+    LIST_CURR_VALS=$($CALL_RC -j -c "getconfig 34")
+    LIST_NEXT_VALS=$($CALL_RC -j -c "getconfig 36")
+    declare -i CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.p34.utime_until'`	            # utime_until
+    if [[ "$election_id" == "0" ]];then 
+        CURR_VAL_UNTIL=`echo "${LIST_CURR_VALS}" | jq -r '.p34.utime_since'`	                # utime_until
+        if [[ "$(echo "${LIST_NEXT_VALS}"|head -n 1)" != '{}' ]];then
+            CURR_VAL_UNTIL=`echo "${LIST_NEXT_VALS}" | jq -r '.p36.utime_since'`	            # utime_since
+        fi
+    fi
+    declare -i VAL_DUR=`echo "${ELECT_TIME_PAR}"        | jq -r '.p15.validators_elected_for'`	# validators_elected_for
+    declare -i STRT_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.p15.elections_start_before'`	# elections_start_before
+    declare -i EEND_BEFORE=`echo "${ELECT_TIME_PAR}"    | jq -r '.p15.elections_end_before'  `	# elections_end_before
 fi
 #===================================================
 # 
@@ -248,7 +221,7 @@ HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
-$NODE_UPDATE_TIME * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${TON_LOG_DIR}/validator.log
+$NODE_UPDATE_TIME * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${NODE_LOGS_ARCH}/NodeUpdate.log
 # $GPL_TIME_MH * * *    cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst
 _ENDCRN_
 )
@@ -262,7 +235,7 @@ HOME=$USER_HOME
 $NXT_ELECT_1 * * *    cd ${SCRIPT_DIR} && ./prepare_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_2 * * *    cd ${SCRIPT_DIR} && ./take_part_in_elections.sh &>> ${TON_LOG_DIR}/validator.log
 $NXT_ELECT_3 * * *    cd ${SCRIPT_DIR} && ./next_elect_set_time.sh &>> ${TON_LOG_DIR}/validator.log && ./part_check.sh &>> ${TON_LOG_DIR}/validator.log
-$NODE_UPDATE_TIME * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${TON_LOG_DIR}/validator.log
+$NODE_UPDATE_TIME * *    cd ${SCRIPT_DIR} && ./Update_ALL.sh &>> ${NODE_LOGS_ARCH}/NodeUpdate.log
 # $GPL_TIME_MH * * *    script --return --quiet --append --command "cd ${SCRIPT_DIR} && ./get_participant_list.sh > ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst && chmod 444 ${ELECTIONS_HISTORY_DIR}/${election_id}_parts.lst"
 _ENDCRN_
 )

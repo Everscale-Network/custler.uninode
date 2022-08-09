@@ -52,7 +52,7 @@ $CPP_NODE_LOG_FILE_NAME {
     nocompress
     postrotate
       LFLZ="\$(ls ${CPP_NODE_LOG_FILE_NAME}-20*  2>/dev/null)"
-      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
+      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do $CALL_7Z a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
       find ${NODE_LOGS_ARCH}/${CNODE_LOG_FILE}* -mtime +${NODE_LOGs_ARCH_KEEP_DAYS} -delete
     endscript
 }
@@ -72,10 +72,10 @@ $RUST_NODE_LOG_FILE_NAME {
     nocompress
     postrotate
       LFLZ="\$(ls ${RUST_NODE_LOG_FILE_NAME}-20*  2>/dev/null)"
-      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
+      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do $CALL_7Z a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
       find ${NODE_LOGS_ARCH}/${RNODE_LOG_FILE}* -mtime +${NODE_LOGs_ARCH_KEEP_DAYS} -delete
       LFLZ="\$(ls ${RNODE_LOG_FILE%%.*}_*  2>/dev/null)"
-      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
+      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do $CALL_7Z a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
       find ${NODE_LOGS_ARCH}/${RNODE_LOG_FILE}* -mtime +${NODE_LOGs_ARCH_KEEP_DAYS} -delete
     endscript
 }
@@ -95,7 +95,7 @@ $VALIDATOR_LOG_FILE_NAME {
     nocompress
     postrotate
       LFLZ="\$(ls ${VALIDATOR_LOG_FILE_NAME}-20*  2>/dev/null)"
-      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do 7za a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
+      [ -n \${LFLZ} ] && for LFile in ${LFLZ};do $CALL_7Z a -t7z -m0=ppmd -sdel "${NODE_LOGS_ARCH}/\${LFile##*/}.7z" "\${LFile}" &>/dev/null;done
       find ${NODE_LOGS_ARCH}/validator.log* -mtime +30 -delete
     endscript
 }

@@ -58,7 +58,7 @@ fi
 LNIC_present=false
 Console_commit="$RCONS_GIT_COMMIT"
 LNI_Info="$( get_LastNodeInfo )"
-if [[ "$LNI_Info" ==  "none" ]];then
+if [[ "$(echo "$LNI_Info"|tail -n 1)" ==  "none" ]];then
     echo "###-WARNING(line $LINENO): Last node info from contract is empty."
 else
     export LNIC_present=true
@@ -134,7 +134,7 @@ ${SCRIPT_DIR}/Nodes_Build.sh rust
 
 if [[ $? -gt 0 ]];then
     echo "###-ERROR(line $LINENO): Build update filed!"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Node update filed!! Check '/var/ton-work/validator.log' for details." 2>&1 > /dev/null
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Node update filed!! Check ${NODE_LOGS_ARCH}/NodeUpdate.log for details." 2>&1 > /dev/null
     exit 1
 fi
 

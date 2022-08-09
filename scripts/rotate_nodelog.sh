@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2021-01-18 12:00:00
+# (C) Sergey Tyurin  2022-07-16 12:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -27,8 +27,6 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 LR_CFG=${SCRIPT_DIR}/rot_nodelog.cfg
 
 LOG_DIR="$TON_LOG_DIR"
-[[ "$NODE_TYPE" == "RUST" ]] && LOG_DIR="${R_LOG_DIR}"
-
 LR_LOG=${LOG_DIR}/rot_nodelog.log
 LR_STATUS=${LOG_DIR}/rot_nodelog.status
 

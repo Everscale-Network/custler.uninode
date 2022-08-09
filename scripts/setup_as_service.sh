@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2020-02-16 13:00:00
+# (C) Sergey Tyurin  2020-07-16 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -43,14 +43,11 @@ fi
 Net_Name="${NETWORK_TYPE%%.*}"
 
 if [[ "${OS_SYSTEM}" == "Linux" ]];then
-    V_CPU=`nproc`
 ########################################################################
 ########### Node Services for Linux (Ubuntu, CentOS & Oracle) ##########
-USE_THREADS=$((V_CPU - 2))
 SERVICE_FILE="/etc/systemd/system/${ServiceName}.service"
 # SERVICE_FILE="/usr/lib/systemd/system/${ServiceName}.service"
 
-if [[ "$NODE_TYPE" == "RUST"  ]]; then
 #=====================================================
 # Rust node on Linux ##
 SVC_FILE_CONTENTS=$(cat <<-_ENDCNT_
@@ -70,26 +67,6 @@ WantedBy=multi-user.target
 _ENDCNT_
 )
 
-else   # node type select
-#=====================================================
-# C++ node on Linux
-SVC_FILE_CONTENTS=$(cat <<-_ENDCNT_
-[Unit]
-Description=Everscale Validator C++ Node
-After=network.target
-StartLimitIntervalSec=0
-[Service]
-Type=simple
-Restart=always
-RestartSec=1
-User=$USER
-LimitNOFILE=2048000
-ExecStart=/bin/bash -c "exec $CALL_VE -v $verb -t $USE_THREADS ${C_ENGINE_ADDITIONAL_PARAMS} -C ${TON_WORK_DIR}/etc/ton-global.config.json --db ${TON_WORK_DIR}/db >> ${TON_LOG_DIR}/${CNODE_LOG_FILE} 2>&1"
-[Install]
-WantedBy=multi-user.target
-_ENDCNT_
-)
-fi
 echo "${SVC_FILE_CONTENTS}" > ${SCRIPT_DIR}/tmp.txt
 sudo mv -f ${SCRIPT_DIR}/tmp.txt ${SERVICE_FILE}
 sudo chown root:root ${SERVICE_FILE}
@@ -97,7 +74,7 @@ sudo chmod 644 ${SERVICE_FILE}
 Lunux_Distrib="$(hostnamectl |grep 'Operating System'|awk '{print $3}')"
 if [[ "${Lunux_Distrib}" == "CentOS" ]] || [[ "${Lunux_Distrib}" == "Oracle" ]];then
     # ll -Z /etc/systemd/system
-    sudo chcon system_u:object_r:etc_t:s0 ${SERVICE_FILE}
+    sudo chcon system_u:object_r:rnode_exec_t:s0 ${SERVICE_FILE}
 fi
 sudo systemctl daemon-reload
 sudo systemctl enable ${ServiceName}
@@ -165,7 +142,6 @@ SERVICE_FILE="/usr/local/etc/rc.d/${ServiceName}"
 cp -f ${CONFIGS_DIR}/FB_service.tmplt ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_LOG_DIR%${NODE_LOGS_ARCH}%" ${SCRIPT_DIR}/tmp.txt
 
-if [[ "$NODE_TYPE" == "RUST"  ]]; then
 # =====================================================
 # Rust node
 pidfile="$NODE_LOGS_ARCH/daemon.pid"
@@ -179,20 +155,6 @@ sed -i.bak "s%N_NODE_LOGS_ARCH%${NODE_LOGS_ARCH}%g" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_NODE_LOG_FILE%${R_LOG_DIR}/${RNODE_LOG_FILE}%g" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_COMMAND%$CALL_RN%" ${SCRIPT_DIR}/tmp.txt
 sed -i.bak "s%N_ARGUMENTS% %" ${SCRIPT_DIR}/tmp.txt
-
-else   #  -------------------- node type select
-# =====================================================
-# C++ node
-
-echo "Setup FreeBSD daemon for CNODE"
-sed -i.bak "s%N_SERVICE_DESCRIPTION%Everscale C++ Node Daemon%" ${SCRIPT_DIR}/tmp.txt
-sed -i.bak "s%N_USER%${USER}%" ${SCRIPT_DIR}/tmp.txt
-sed -i.bak "s%N_NODE_LOGS_ARCH%${NODE_LOGS_ARCH}%g" ${SCRIPT_DIR}/tmp.txt
-sed -i.bak "s%N_NODE_LOG_FILE%${TON_LOG_DIR}/${CNODE_LOG_FILE}%g" ${SCRIPT_DIR}/tmp.txt
-sed -i.bak "s%N_COMMAND%$CALL_VE%" ${SCRIPT_DIR}/tmp.txt
-sed -i.bak "s%N_ARGUMENTS%-v $verb -t $USE_THREADS ${C_ENGINE_ADDITIONAL_PARAMS} -C ${TON_WORK_DIR}/etc/ton-global.config.json --db ${TON_WORK_DIR}/db >> ${TON_LOG_DIR}/${CNODE_LOG_FILE}%" ${SCRIPT_DIR}/tmp.txt
-
-fi   # -------------------- node type select
 
 ########################################################################
 
