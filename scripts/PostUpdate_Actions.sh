@@ -35,6 +35,8 @@ if [[ "$(uname -s)" == "FreeBSD" ]];then
     sudo pkg install -y 7-zip
 fi
 
+./setup_as_service.sh
+
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"
 

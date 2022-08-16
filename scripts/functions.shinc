@@ -319,6 +319,10 @@ function Get_TimeDiff() {
         echo "Node Down"
         return
     fi
+    if [[ "$(echo "$RC_OUTPUT" |jq -r '.sync_status')" == "db_broken" ]];then
+        echo "db_broken"
+        return
+    fi
     if [[ ! -z $(echo "${RC_OUTPUT}" | grep 'timediff') ]];then
     #    TIME_DIFF=$(echo "${RC_OUTPUT}" | sed -e '1,/GIT_BRANCH/d' | jq .timediff)
         local MC_TIME_DIFF=$(echo "${RC_OUTPUT}" | jq -r '.timediff')

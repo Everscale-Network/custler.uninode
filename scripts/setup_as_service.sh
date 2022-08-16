@@ -59,6 +59,7 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=1
+TimeoutStopSec=180
 User=$USER
 LimitNOFILE=2048000
 ExecStart=$CALL_RN

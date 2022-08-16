@@ -40,7 +40,7 @@ tonnode_stop() {
   if [ -e "${pidfile}" ]; then
     echo -n "killing $(cat ${pidfile}) "
     kill -s TERM `cat ${pidfile}`
-    for Try in `seq 0 90`;do
+    for Try in `seq 0 180`;do
       echo -n "."
       sleep 1
       [ -z "$(pgrep rnode)" ] && break
@@ -49,7 +49,7 @@ tonnode_stop() {
       kill -s KILL $(pgrep rnode)
       echo -n " still work. Sent KILL signal. "
     fi
-    for Try in `seq 0 90`;do
+    for Try in `seq 0 180`;do
       echo -n "-"
       sleep 1
       [ -z "$(pgrep rnode)" ] && break
