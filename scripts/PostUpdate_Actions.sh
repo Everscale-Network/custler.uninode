@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-05-16 13:00:00
+# (C) Sergey Tyurin  2022-09-19 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -18,24 +18,41 @@
 # Author(s) retain the right to alter this disclaimer at any time.
 ##################################################################################################################
 
-
 echo
 echo "##################################### Postupdate Script ########################################"
 echo "INFO: $(basename "$0") BEGIN $(date +%s) / $(date  +'%F %T %Z')"
 
 SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
+source "${SCRIPT_DIR}/functions.shinc"
 
 #################################################################
-# ${SCRIPT_DIR}/next_elect_set_time.sh
-#################################################################
-# echo "Nothing to do."
-# Distro_Name="$(cat /etc/os-release | grep "PRETTY_NAME="|awk -F'[" ]' '{print $2}')"
-if [[ "$(uname -s)" == "FreeBSD" ]];then
-    sudo pkg install -y 7-zip
+# Updating tonos-cli to version supported endpoint authorization
+LNI_Info="$(get_LastNodeInfo)"
+if [[ "$(echo "$LNI_Info"|tail -n 1)" ==  "none" ]];then
+    echo "###-WARNING(line $LINENO): Last node info from contract is empty."
+else
+    export LNIC_present=true
+    declare -i LNIC_MIN_TC_VERSION=$(( $(echo ${LNI_Info} | jq -r '.MinCLIversion') + 10000000 ))
 fi
 
-./setup_as_service.sh
+# MIN_TC_VERSION from LNIC or from env.sh
+declare -i ENV_MIN_TC_VERSION=1$(echo $MIN_TC_VERSION | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
+declare -i NUM_MIN_TC_VERSION=$(( LNIC_MIN_TC_VERSION>=ENV_MIN_TC_VERSION ? LNIC_MIN_TC_VERSION : ENV_MIN_TC_VERSION ))
+
+declare -i CurrCurr_TC_Ver_NUM=1$($NODE_BIN_DIR/tonos-cli -j version | jq -r '."tonos-cli"' | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
+
+if [[ $CurrCurr_TC_Ver_NUM -lt $NUM_MIN_TC_VERSION ]];then
+    ./upd_tonos-cli.sh
+    if [[ $? -gt 0 ]];then
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign tonos-cli update FAILED $Tg_Exclaim_sign" 2>&1 > /dev/null
+    else
+        "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark tonos-cli updated: $(${NODE_BIN_DIR}/tonos-cli version)" 2>&1 > /dev/null
+    fi
+fi
+
+# set new configs for tonos-cli
+source "${SCRIPT_DIR}/functions.shinc"
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"

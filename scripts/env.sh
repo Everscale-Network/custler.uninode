@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-07-16 13:00:00
+# (C) Sergey Tyurin  2022-09-19 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -50,10 +50,13 @@ export MAX_FACTOR=3
 
 #=====================================================
 # Networks endpoints
-export Main_DApp_URL="https://main.ton.dev"
+export DAPP_Project_id=""               # from 2022.09.09 needs for DApp access (man - https://docs.everos.dev/evernode-platform/products/evercloud/get-started)
+export DAPP_access_key=""
+
+export Main_DApp_URL="https://mainnet.evercloud.dev"
 export MainNet_DApp_List="https://eri01.main.everos.dev,https://gra01.main.everos.dev,https://gra02.main.everos.dev,https://lim01.main.everos.dev,https://rbx01.main.everos.dev"
 
-export DevNet_DApp_URL="https://net.ton.dev"
+export DevNet_DApp_URL="https://devnet.evercloud.dev"
 export DevNet_DApp_List="https://eri01.net.everos.dev,https://rbx01.net.everos.dev,https://gra01.net.everos.dev"
 
 export FLD_DApp_URL="https://gql.custler.net"
@@ -124,10 +127,9 @@ export RCONSOLE_PORT="5031"
 
 #=====================================================
 # GIT addresses & commits
-export RUST_VERSION="1.62.1"
-export BOOST_VERSION="1.76.0"
-export MIN_TC_VERSION="0.26.7"
-export MIN_RC_VERSION="0.1.280"
+export RUST_VERSION="1.63.0"
+export MIN_TC_VERSION="0.28.5"
+export MIN_RC_VERSION="0.1.286"
 
 # for corect work automatic update 
 # GIT_COMMIT should be "master" or certain commit only
@@ -251,7 +253,7 @@ export BoldText="\e[1m"
 export Tg_CheckMark=$(echo -e "\U0002705")
 export Tg_SOS_sign=$(echo -e "\U0001F198")
 export Tg_Warn_sign=$(echo -e "\U000026A0")
-
+export Tg_Exclaim_sign=$(echo -e "\U000203C")
 #=================================================
 # var for icinga monitoring
 export prepElections="${TON_LOG_DIR:-$R_LOG_DIR}/prepForElections"

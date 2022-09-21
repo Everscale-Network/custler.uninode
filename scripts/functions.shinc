@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-07-16 13:00:00
+# (C) Sergey Tyurin  2022-09-19 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -60,7 +60,7 @@
 # =====================================================
 # check tonos-cli version
 # it should be not less MIN_TC_VERSION settled in env.sh
-Curr_TC_ver="$($NODE_BIN_DIR/tonos-cli -j version |grep -i 'tonos-cli'|awk '{print $2}')"
+Curr_TC_ver="$($NODE_BIN_DIR/tonos-cli -j version | jq -r '."tonos-cli"')"
 declare -i Curr_TC_Ver_NUM="1$(echo "$Curr_TC_ver" | awk -F'.' '{printf("%d%03d%03d%03d\n", $1,$2,$3,$4)}')"
 declare -i MIN_TC_Ver_NUM="1$(echo "$MIN_TC_VERSION" | awk -F'.' '{printf("%d%03d%03d%03d\n", $1,$2,$3,$4)}')"
 if [[ ${Curr_TC_Ver_NUM} -ge ${MIN_TC_Ver_NUM#0} ]];then
@@ -89,6 +89,8 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
         $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $MainNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
+        [[ -n "$DAPP_Project_id" ]] && tonos-cli config --project_id $DAPP_Project_id  &>/dev/null
+        [[ -n "$DAPP_access_key" ]] && tonos-cli config --access_key $DAPP_access_key  &>/dev/null
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     net)
@@ -96,6 +98,8 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
         $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $DevNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
+        [[ -n "$DAPP_Project_id" ]] && tonos-cli config --project_id $DAPP_Project_id  &>/dev/null
+        [[ -n "$DAPP_access_key" ]] && tonos-cli config --access_key $DAPP_access_key  &>/dev/null
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     fld)
@@ -185,7 +189,8 @@ function Determine_Current_Network() {
 function echoerr() { printf "\e[31;1m%s\e[0m\n" "$*" >&2; }
 # =====================================================
 function DispEnvInfo() {
-    echo "INFO from env: Network: $NETWORK_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $(if $FORCE_USE_DAPP;then echo "DApp"; else  echo "console"; fi )"
+    Repo="$(git config --get remote.origin.url|sed 's/.*\///; s/.git//')"
+    echo "INFO from env: Repo: $Repo; Network: $NETWORK_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $(if $FORCE_USE_DAPP;then echo "DApp"; else  echo "console"; fi )"
 }
 # =====================================================
 function hex2dec() {

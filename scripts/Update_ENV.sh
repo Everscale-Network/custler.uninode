@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-06-10 13:00:00
+# (C) Sergey Tyurin  2022-09-19 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -26,19 +26,32 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 
 #################################################################
-# This section update env.sh to satisfy new changes in scripts
-# Add LINC address to env.sh if not present
-if [[ -z "${LNIC_ADDRESS}" ]];then
-    echo "+++ Add LNIC address"
-    if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export Enable_Node_Autoupdate')" ]];then
-        sed -i.bak '/Enable_Scripts_Autoupdate=/p; s/Enable_Scripts_Autoupdate=.*/export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe76604323fc347"/' ${SCRIPT_DIR}/env.sh
-        sed -i.bak '/Enable_Scripts_Autoupdate=/p; s/Enable_Scripts_Autoupdate=.*/# Last Node Info Contract for safe node update/' ${SCRIPT_DIR}/env.sh
-    else
-        sed -i.bak '/export Enable_Scripts_Autoupdate=/p; s/export Enable_Scripts_Autoupdate=.*/export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe76604323fc347"/' ${SCRIPT_DIR}/env.sh
-        sed -i.bak '/export Enable_Scripts_Autoupdate=/p; s/export Enable_Scripts_Autoupdate=.*/# Last Node Info Contract for safe node update/' ${SCRIPT_DIR}/env.sh
-    fi
+# Set rust version
+sed -i.bak "s/export RUST_VERSION=.*/export RUST_VERSION=\"1.63.0\"/" "${SCRIPT_DIR}/env.sh"
+
+sed -i.bak "s/export MIN_TC_VERSION=.*/export MIN_TC_VERSION=\"0.28.5\"/" "${SCRIPT_DIR}/env.sh"
+sed -i.bak "/export BOOST_VERSION=.*/d" "${SCRIPT_DIR}/env.sh"
+
+#################################################################
+# Add DAPP_Project_id & DAPP_access_key variables 
+if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export DAPP_access_key')" ]];then
+    sed -i.bak '/# Networks endpoints/p; s/# Networks endpoints.*/export DAPP_access_key=""/' ${SCRIPT_DIR}/env.sh
 fi
-sed -i.bak "s/export RUST_VERSION=.*/export RUST_VERSION=\"1.61.0\"/" "${SCRIPT_DIR}/env.sh"
+
+if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export DAPP_Project_id')" ]];then
+    sed -i.bak '/# Networks endpoints/p; s/# Networks endpoints.*/export DAPP_Project_id=""/' ${SCRIPT_DIR}/env.sh
+fi
+
+if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export Tg_Exclaim_sign')" ]];then
+    sed -i.bak '/export Tg_Warn_sign/p; s/export Tg_Warn_sign.*/export Tg_Exclaim_sign=$(echo -e "\\U000203C")/' ${SCRIPT_DIR}/env.sh
+fi
+
+source "${SCRIPT_DIR}/env.sh"
+
+if [[ -z "$DAPP_Project_id" ]];then
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Exclaim_sign $(cat ${SCRIPT_DIR}/Update_Info.txt) $Tg_Exclaim_sign" 2>&1 > /dev/null
+fi
+
 #################################################################
 # echo "Nothing to do."
 
@@ -65,6 +78,7 @@ if [[ -z "$(cat env.sh|grep 'CALL_7Z')" ]];then
         }
     }' env.sh.bak > env.sh
 fi
+
 ##########################################################
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
