@@ -89,8 +89,8 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
         $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $MainNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
-        [[ -n "$DAPP_Project_id" ]] && tonos-cli config --project_id $DAPP_Project_id  &>/dev/null
-        [[ -n "$DAPP_access_key" ]] && tonos-cli config --access_key $DAPP_access_key  &>/dev/null
+        [[ -n "$DAPP_Project_id" ]] && $NODE_BIN_DIR/tonos-cli config --project_id $DAPP_Project_id  &>/dev/null
+        [[ -n "$DAPP_access_key" ]] && $NODE_BIN_DIR/tonos-cli config --access_key $DAPP_access_key  &>/dev/null
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     net)
@@ -98,8 +98,8 @@ case "$NetName" in
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
         $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $DevNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
-        [[ -n "$DAPP_Project_id" ]] && tonos-cli config --project_id $DAPP_Project_id  &>/dev/null
-        [[ -n "$DAPP_access_key" ]] && tonos-cli config --access_key $DAPP_access_key  &>/dev/null
+        [[ -n "$DAPP_Project_id" ]] && $NODE_BIN_DIR/tonos-cli config --project_id $DAPP_Project_id  &>/dev/null
+        [[ -n "$DAPP_access_key" ]] && $NODE_BIN_DIR/tonos-cli config --access_key $DAPP_access_key  &>/dev/null
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
     fld)
