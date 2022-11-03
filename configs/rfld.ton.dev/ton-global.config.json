@@ -367,16 +367,8 @@
   },
   "endpoints": [
     {
-      "name": "rfld_1",
-      "URL": "https://rfld1.custler.net"
-    },
-    {
-      "name": "rfld_2",
-      "URL": "https://rfld2.custler.net"
-    },
-    {
-      "name": "rfld_3",
-      "URL": "https://rfld3.custler.net"
+    "name": "rfld.evs.dev",
+    "URL": "https://rfld-dapp.itgold.io"
     }
   ]
 }
