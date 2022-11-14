@@ -1,1 +1,1 @@
----ATTENTION: Put Project_Id and access_key into env.sh <b>DAPP_Project_id</b> and <b>DAPP_access_key</b> variables respectively  from <ins>dashboard.evercloud.dev</ins> to have access to DAPP by tonos-cli
+---INFO: This is only an update to the FLD network global config.
