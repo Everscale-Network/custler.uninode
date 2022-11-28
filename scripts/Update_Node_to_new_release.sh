@@ -159,7 +159,7 @@ if [[ -z "$(pgrep rnode)" ]];then
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Node process not started!" 2>&1 > /dev/null
     exit 1
 fi
-
+${SCRIPT_DIR}/wait_for_sync.sh
 #===========================================================
 # Check and show the Node version
 EverNode_Version="$(${NODE_BIN_DIR}/rnode -V | grep -i 'TON Node, version' | awk '{print $4}')"

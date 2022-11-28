@@ -1,1 +1,1 @@
----INFO: This is only an update to the FLD network global config.
+---INFO: Node Update! Fix unapplied files, rust 1.65.0, bugfix in node, etc.
