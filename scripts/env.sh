@@ -39,7 +39,7 @@ export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe766043
 
 #=====================================================
 # Network related variables
-export NETWORK_TYPE="main.evs.dev"      # can be main.* / net.* / fld.* / rfld.* / rustnet.*
+export NETWORK_TYPE="main.ton.dev"      # can be main.* / net.* / fld.* / rfld.* / rustnet.*
 export Node_Blk_Min_Ver=33
 export ELECTOR_TYPE="fift"
 export NODE_WC=0                        # Node WorkChain 
