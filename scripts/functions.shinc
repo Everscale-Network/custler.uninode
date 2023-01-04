@@ -85,7 +85,7 @@ fi
 NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
     main)
-        export DApp_URL=${Main_DApp_URL}
+        export DApp_URL=${Main_DApp_URL}/$DAPP_Project_id
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
         $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $MainNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
@@ -93,8 +93,8 @@ case "$NetName" in
         [[ -n "$DAPP_access_key" ]] && $NODE_BIN_DIR/tonos-cli config --access_key $DAPP_access_key  &>/dev/null
         export ELECTOR_TYPE="${ELECTOR_TYPE:=fift}"                          # can be 'solidity' or 'fift'
         ;;
-    net)
-        export DApp_URL=${DevNet_DApp_URL}
+    net | devnet)
+        export DApp_URL=${DevNet_DApp_URL}/$DAPP_Project_id
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
         $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $DevNet_DApp_List &>/dev/null
         $NODE_BIN_DIR/tonos-cli config --url $NETWORK_TYPE &>/dev/null
@@ -143,20 +143,20 @@ function Determine_Current_Network() {
     #local CURR_NET_ID=$(curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {blocks(filter: {seq_no:{eq: 1},workchain_id:{eq:-1}}) {boc}}"}' | \
     #	jq -r '.data.blocks[0].boc' | base64 --decode | $CALL_256 |awk '{print $1}' |tr "[:lower:]" "[:upper:]"|cut -c 1-16
     # THIS is DUMMY!! Util Rust node will can get zerostate itself
-    case "$NETWORK_TYPE" in
-        "main.ton.dev")
+    case "${NETWORK_TYPE%%.*}" in
+        main)
             CURR_NET_ID=$MAIN_NET_ID
             ;;
-        "net.ton.dev")
+        net | devnet)
             CURR_NET_ID=$DEV_NET_ID
             ;;
-        "fld.ton.dev")
+        fld)
             CURR_NET_ID=$FLD_NET_ID
             ;;
-        "rustnet.ton.dev")
+        rustnet)
             CURR_NET_ID=$RST_NET_ID
             ;;
-        "rfld.ton.dev")
+        rfld)
             CURR_NET_ID=$RFLD_NET_ID
             ;;
         *)

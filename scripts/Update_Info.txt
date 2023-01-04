@@ -1,1 +1,1 @@
----INFO: Node Update! Fix unapplied files, rust 1.65.0, bugfix in node, etc.
+---INFO: Remove node patch. Node commits info fixed in the node src.

@@ -194,7 +194,7 @@ if ${RUST_NODE_BUILD};then
 
     cd $RNODE_SRC_DIR
 
-    sed -i.bak 's%features = \[\"cmake_build\", \"dynamic_linking\"\]%features = \[\"cmake_build\"\]%g' Cargo.toml
+    # sed -i.bak 's|features = \[\"cmake_build\", \"dynamic_linking\"\]|features = \[\"cmake_build\"\]|g' Cargo.toml
     #====== Uncomment to disabe node's logs competely
     # sed -i.bak 's%log = '0.4'%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
 
@@ -204,10 +204,6 @@ if ${RUST_NODE_BUILD};then
     export GC_TON_NODE="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
     # block version
     export NODE_BLK_VER=$(cat $RNODE_SRC_DIR/src/validating_utils.rs |grep -A1 'supported_version'|tail -1|tr -d ' ')
-
-    # patch main.rs
-    sed -i.bak -e '/TON NODE git commit:         {}\\n\\/p; s/TON NODE git commit:         {}\\n\\/Node block version:          {}\\n\\/' $RNODE_SRC_DIR/src/main.rs
-    sed -i.bak -e '/std::option_env!("GC_TON_NODE").unwrap_or("Not set"),/p; s/std::option_env!("GC_TON_NODE").unwrap_or("Not set"),/std::option_env!("NODE_BLK_VER").unwrap_or("Not set"),/' $RNODE_SRC_DIR/src/main.rs
 
     echo -e "${BoldText}${BlueBack}---INFO: RNODE build flags: ${RNODE_FEATURES} commit: ${GC_TON_NODE} Block version: ${NODE_BLK_VER}${NormText}"
     RUSTFLAGS="-C target-cpu=native" cargo build --release --features "${RNODE_FEATURES}"
@@ -300,7 +296,7 @@ git checkout $CONTRACTS_GIT_COMMIT
 cd ${NODE_TOP_DIR}
 git clone --single-branch --branch ${Surf_GIT_Commit} ${CONTRACTS_GIT_REPO} "${ContractsDIR}/Surf-contracts"
 
-curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
+# curl -o ${Elector_ABI} ${RustCup_El_ABI_URL} &>/dev/null
 
 #=====================================================
 # Check reboot required after update

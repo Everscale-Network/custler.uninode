@@ -95,18 +95,18 @@ while true; do
         echo -n " $i "
         hex_val_addr="$(echo "${Validators_List}" | jq -r "[.[]][$i].addr")"
         Curr_Val_Addr="-1:${hex_val_addr}"
-        Curr_Val_Addr_Hash=`curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {accounts(filter:{id: {eq: \"'${Curr_Val_Addr}'\"}}) {code_hash}}"}' 2>/dev/null |jq -r '.data.accounts | .[].code_hash'`
+        Curr_Val_Addr_Hash=`curl -sS -X POST -g -H "$Auth_key_Head" -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {accounts(filter:{id: {eq: \"'${Curr_Val_Addr}'\"}}) {code_hash}}"}' 2>/dev/null |jq -r '.data.accounts | .[].code_hash'`
         if [[ "$Curr_Val_Addr_Hash" == "$SafeC_Hash" ]];then
             Val_MSIG_List=$(echo ${Val_MSIG_List}|jq ".\"${hex_val_addr}\".MSIG = \"${Curr_Val_Addr}\" | .\"${hex_val_addr}\".depool = \"0\" | .\"${hex_val_addr}\".proxy0 = \"0\" | .\"${hex_val_addr}\".proxy1 = \"0\"")
             continue
         fi
         if [[ "$Curr_Val_Addr_Hash" == "$Proxy_Hash" ]] || [[ "$Curr_Val_Addr_Hash" == "$Proxy_V2_hash" ]];then
-            CounterParty_List=`curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {counterparties(account: \"'${Curr_Val_Addr}'\") {counterparty}}"}' 2>/dev/null | jq -r '.data.counterparties'`
+            CounterParty_List=`curl -sS -X POST -g -H "$Auth_key_Head" -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {counterparties(account: \"'${Curr_Val_Addr}'\") {counterparty}}"}' 2>/dev/null | jq -r '.data.counterparties'`
             CounterParty_QTY=$(echo $CounterParty_List | jq 'length')
             for (( cpi=0; cpi < CounterParty_QTY; cpi++ ));do
                 echo -n "."
                 curr_acc_addr=$(echo $CounterParty_List|jq -r ".[$cpi].counterparty")
-                curr_acc_hash=`curl -sS -X POST -g -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {accounts(filter:{id: {eq: \"'${curr_acc_addr}'\"}}) {code_hash}}"}' 2>/dev/null |jq -r '.data.accounts | .[].code_hash'`
+                curr_acc_hash=`curl -sS -X POST -g -H "$Auth_key_Head" -H "Content-Type: application/json" ${DApp_URL}/graphql -d '{"query": "query {accounts(filter:{id: {eq: \"'${curr_acc_addr}'\"}}) {code_hash}}"}' 2>/dev/null |jq -r '.data.accounts | .[].code_hash'`
                 if [[ "$curr_acc_hash" == "$DepoolHash" ]] || [[ "$curr_acc_hash" == "$Depool_V2_hash" ]];then
                     #===========================
                     # Get depool info
