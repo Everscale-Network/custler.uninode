@@ -456,9 +456,9 @@ function Get_Supported_Blocks_Version() {
         return 1
     fi
     # get Git supported_block
-    NodeGit_Sup_Blk=`cat ${RNODE_SRC_DIR}/src/validating_utils.rs 2>/dev/null|grep -A1 'supported_version'|tail -1|tr -d ' '`
+    NodeGit_Sup_Blk=`awk '/pub fn supported_version/ {getline;print $1}' ${RNODE_SRC_DIR}/src/validating_utils.rs`
     # get supported_block from binary
-    NodeBin_Sup_Blk=`. ./env.sh && ${CALL_RN%% *} -V | grep 'Node block version' | awk '{print $4}'`
+    NodeBin_Sup_Blk=`. ./env.sh && ${CALL_RN%% *} -V | grep 'BLOCK_VERSION:' | awk '{print $2}'`
     echo "${Net_Min_Sup_Blk} ${NodeGit_Sup_Blk} ${NodeBin_Sup_Blk}"
 }
 #=================================================
