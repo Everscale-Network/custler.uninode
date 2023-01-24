@@ -30,7 +30,7 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 
 echo
-echo "################################### FreeTON nodes build script #####################################"
+echo "################################### Everscale nodes build script ###################################"
 echo "+++INFO: $(basename "$0") BEGIN $(date +%s) / $(date)"
 echo "INFO from env: Network: $NETWORK_TYPE; WC: $NODE_WC; Elector: $ELECTOR_TYPE; Staking mode: $STAKE_MODE; Access method: $(if $FORCE_USE_DAPP;then echo "DApp"; else  echo "console"; fi )"
 
@@ -320,7 +320,7 @@ git clone --single-branch --branch ${Surf_GIT_Commit} ${CONTRACTS_GIT_REPO} "${C
 #     *)
 #         ;;
 # esac
-
+rm -f wget-log*
 echo 
 echo '################################################'
 BUILD_END_TIME=$(date +%s)

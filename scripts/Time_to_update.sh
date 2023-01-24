@@ -56,12 +56,6 @@ fi
 # Get Last node info from saved boc
 LNI_Info="$($CALL_TC -j run --boc ${LNIC_ADDRESS##*:}.boc --abi ${ABI} node_info {} | jq '.node_info')"
 
-#############################
-# SET TEST VALUES
-#LNI_Info="$(echo ${LNI_Info} |jq '.UpdateStartTime = 1655378769 | .UpdateDuration = 684000')"
-#DELAY_TIME=300
-#############################
-
 echo "${LNI_Info}"
 
 rm -f ${LNIC_ADDRESS##*:}.boc Get_ABI.json LNIC_ABI_7z_hex.txt LNIC_ABI.7z LastNodeInfo.abi.json
@@ -79,13 +73,16 @@ echo "Node commit in BINARY:     $Node_bin_commit"
 echo "Net supported blocks:     $(echo $Supp_Blocks|awk '{print $1}')"
 echo "Current node blocks:      $(echo $Supp_Blocks|awk '{print $2}')"
 echo "Git master branch blocks: $(echo $Supp_Blocks|awk '{print $3}')"
+echo "Node version in running service: $(echo $Supp_Blocks|awk '{print $4}')"
 echo "-------------------------------------------------------------------------------------------"
 #=================================================
 # Node info from contract
 LNIC_commit=$(echo ${LNI_Info} | jq -r '.LastCommit')
 LNIC_Console_commit=$(echo ${LNI_Info} | jq -r '.ConsoleCommit')
+LNIC_Node_Ver=$(echo ${LNI_Info} | jq -r '.NodeVersion')
 
 echo "Node LNIC commit:          $LNIC_commit"
+echo "LNIC node version:         $LNIC_Node_Ver"
 echo "LNIC supported blocks:    $(echo ${LNI_Info}|jq -r '.SupportedBlock')"
 echo "Console LNIC commit:       $LNIC_Console_commit"
 echo "-------------------------------------------------------------------------------------------"

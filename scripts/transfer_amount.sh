@@ -135,7 +135,12 @@ if [[ ! "$SRC_ACCOUNT" == "$Calc_Addr" ]];then
     echo "Given addr: $SRC_ACCOUNT"
     echo "Calc  addr: $Calc_Addr"
     echo 
-    exit 1
+    if [[ "$NEW_ACC" == "force" ]] || [[ "$5" == "force" ]];then
+        echo "###-ATTENTION!! Script will do ONE attempt to send tokens!"
+        SEND_ATTEMPTS=1
+    else
+        exit 1
+    fi
 fi
 
 Custodians="$(Get_Account_Custodians_Info $SRC_ACCOUNT)"

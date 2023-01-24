@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-09-19 13:00:00
+# (C) Sergey Tyurin  2023-01-17 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -84,7 +84,7 @@ fi
 # Set appropriate endpoints according network settled in env.sh
 NetName="${NETWORK_TYPE%%.*}"
 case "$NetName" in
-    main)
+    main | mainnet)
         export DApp_URL=${Main_DApp_URL}/$DAPP_Project_id
         $NODE_BIN_DIR/tonos-cli config endpoint reset &>/dev/null
         $NODE_BIN_DIR/tonos-cli config endpoint add $NETWORK_TYPE $MainNet_DApp_List &>/dev/null
@@ -440,11 +440,16 @@ function get_LastNodeInfo {
 #=================================================
 # Get supported blocks versions from node and network
 # Input: 
-# Return: netBlkVer NodeBlkVer_fromGit NodeBlkVer_from_Bin
+# Return: Net_Min_Sup_Blk NodeGit_Sup_Blk NodeBin_Sup_Blk NodeRun_Version
+#   - Net_Min_Sup_Blk - from network config
+#   - NodeGit_Sup_Blk - from local git repo
+#   - NodeBin_Sup_Blk - from binary file (rnode -V)
+#   - NodeRun_Version - Node version received from the running service via the console (in text - "0.51.27")
 function Get_Supported_Blocks_Version() {
     local -i Net_Min_Sup_Blk=0
     local -i NodeGit_Sup_Blk=0
     local -i NodeBin_Sup_Blk=0
+    local NodeRun_Version="0"
     # get net supported_block
     if $FORCE_USE_DAPP ;then
         Net_Min_Sup_Blk=`$CALL_TC -j getconfig 8 | jq -r '.version'`
@@ -459,7 +464,11 @@ function Get_Supported_Blocks_Version() {
     NodeGit_Sup_Blk=`awk '/pub fn supported_version/ {getline;print $1}' ${RNODE_SRC_DIR}/src/validating_utils.rs`
     # get supported_block from binary
     NodeBin_Sup_Blk=`. ./env.sh && ${CALL_RN%% *} -V | grep 'BLOCK_VERSION:' | awk '{print $2}'`
-    echo "${Net_Min_Sup_Blk} ${NodeGit_Sup_Blk} ${NodeBin_Sup_Blk}"
+    local RC_OUT=$($CALL_RC -jc getstats 2>/dev/null|cat|jq -r '.node_version' 2>/dev/null|cat)
+    if [[ -n $RC_OUT ]] && [[ "$RC_OUT" != "null" ]];then
+        NodeRun_Version=$RC_OUT
+    fi
+    echo "${Net_Min_Sup_Blk} ${NodeGit_Sup_Blk} ${NodeBin_Sup_Blk} ${NodeRun_Version}"
 }
 #=================================================
 # Get account INFO

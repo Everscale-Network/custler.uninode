@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-06-10 18:00:00
+# (C) Sergey Tyurin  2023-01-17 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -30,7 +30,9 @@ source "${SCRIPT_DIR}/functions.shinc"
 # Check github for new node release
 Node_local_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
 Node_remote_commit="$(git --git-dir="$RNODE_SRC_DIR/.git" ls-remote 2>/dev/null | grep 'HEAD'|awk '{print $1}')"
-Node_bin_commit="$(rnode -V | grep 'NODE git commit' | awk '{print $5}')"
+Node_bin_commit="$(rnode -V | grep 'NODE git commit:' | awk '{print $5}')"
+Node_bin_ver="$(rnode -V | grep 'Node, version' | awk '{print $4}')"
+Node_SVC_ver="$($CALL_RC -jc getstats 2>/dev/null|cat|jq -r '.node_version' 2>/dev/null|cat)"
 
 # if settled certain commit (not master) in env.sh 
 [[ "${RNODE_GIT_COMMIT}" != "master" ]] && Node_remote_commit="${RNODE_GIT_COMMIT}"
@@ -44,9 +46,11 @@ if [[ -z $Node_remote_commit ]];then
     exit 1
 fi
 if [[ "$Node_bin_commit" !=  "$Node_local_commit" ]];then
-    "###-WARNING(line $LINENO): Commit from binary file is not equal git dir commit ($RNODE_SRC_DIR)"
+    echo "###-WARNING(line $LINENO): Commit from binary file is not equal git dir commit ($RNODE_SRC_DIR)"
 fi
-
+if [[ "$Node_bin_ver" != "$Node_SVC_ver" ]];then
+    echo "###-WARNING(line $LINENO): Running node version ($Node_SVC_ver) in service is not equal binary file version ($Node_bin_ver)!!"
+fi
 #===========================================================
 # Update FreeBSD daemon script to avoide node service stuck
 if [[ "$OS_SYSTEM" == "FreeBSD" ]];then
@@ -61,16 +65,18 @@ LNI_Info="$( get_LastNodeInfo )"
 if [[ "$(echo "$LNI_Info"|tail -n 1)" ==  "none" ]];then
     echo "###-WARNING(line $LINENO): Last node info from contract is empty."
 else
-    export LNIC_present=true
-    export Node_remote_commit=$(echo ${LNI_Info} | jq -r '.LastCommit')
-    export Console_commit=$(echo ${LNI_Info} | jq -r '.ConsoleCommit')
+    LNIC_present=true
+    Node_remote_commit=$(echo ${LNI_Info} | jq -r '.LastCommit')
+    Console_commit=$(echo ${LNI_Info} | jq -r '.ConsoleCommit')
     echo "LNIC present. New node commit: $Node_remote_commit, Console commit: $Console_commit"
 fi
 
 #===========================================================
 # Checking node need update
-if [[ "$Node_local_commit" == "$Node_remote_commit" ]];then
-    echo "---INFO: The Node seems is up to date, but possible you have to update scripts..."
+if [[ "$Node_remote_commit" == "$Node_local_commit" ]] && \
+   [[ "$Node_remote_commit" == "$Node_bin_commit" ]] && \
+   [[ "$Node_bin_ver" == "$Node_SVC_ver" ]];then
+    echo "---INFO: The Node seems is up to date (ver $Node_bin_ver), but possible you have to update scripts..."
     echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
     echo "================================================================================================"
     exit 0
@@ -101,9 +107,9 @@ if $LNIC_present;then
     fi
 
     # set new commits in env.sh for Nodes_Build script
-    sed -i.bak "s/export RNODE_GIT_COMMIT=.*/export RNODE_GIT_COMMIT=$Node_remote_commit/" "${SCRIPT_DIR}/env.sh"
+    sed -i.bak "s/export RNODE_GIT_COMMIT=.*/export RNODE_GIT_COMMIT=$Node_remote_commit/g" "${SCRIPT_DIR}/env.sh"
     # sed -i.bak "/ton-labs-node.git/,/\"NETWORK_TYPE\" == \"rfld.ton.dev\"/ s/export RNODE_GIT_COMMIT=.*/export RNODE_GIT_COMMIT=\"$Node_remote_commit\"/" "${SCRIPT_DIR}/env.sh"
-    sed -i.bak "s/export RCONS_GIT_COMMIT=.*/export RCONS_GIT_COMMIT=$Console_commit/" "${SCRIPT_DIR}/env.sh"
+    sed -i.bak "s/export RCONS_GIT_COMMIT=.*/export RCONS_GIT_COMMIT=$Console_commit/g" "${SCRIPT_DIR}/env.sh"
 fi
 
 echo "INFO: Node going to update from $Node_local_commit to new commit $Node_remote_commit"
@@ -123,8 +129,6 @@ if [[ $V1 =~ ^[[:digit:]]+$ ]] && [[ $V2 =~ ^[[:digit:]]+$ ]] && [[ $V3 =~ ^[[:d
     fi
 fi
 
-# --features "compression,external_db,metrics"
-export RNODE_FEATURES=""
 #===========================================================
 # Update Node, node console, tonos-cli and contracts
 
@@ -146,34 +150,9 @@ if [[ "${Node_local_repo_commit}" != "${Node_commit_from_bin}" ]];then
     exit 1
 fi
 
-#===========================================================
-#  Update network global config
-${SCRIPT_DIR}/nets_config_update.sh
+echo "INFO: All builded. Current versions: node ver: ${EverNode_Version} SupBlock: ${NodeSupBlkVer} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
+"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: All builded. Current versions: node ver: ${EverNode_Version} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
 
-#===========================================================
-# Restart service
-sudo service $ServiceName restart
-
-if [[ -z "$(pgrep rnode)" ]];then
-    echo "###-ERROR(line $LINENO): Node process not started!"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ###-ERROR(line $LINENO): Node process not started!" 2>&1 > /dev/null
-    exit 1
-fi
-${SCRIPT_DIR}/wait_for_sync.sh
-#===========================================================
-# Check and show the Node version
-EverNode_Version="$(${NODE_BIN_DIR}/rnode -V | grep -i 'TON Node, version' | awk '{print $4}')"
-NodeSupBlkVer="$(rnode -V | grep 'Node block version' | awk '{print $4}')"
-Console_Version="$(${NODE_BIN_DIR}/console -V | awk '{print $2}')"
-TonosCLI_Version="$(${NODE_BIN_DIR}/tonos-cli -V | grep -i 'tonos_cli' | awk '{print $2}')"
-echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} SupBlock: ${NodeSupBlkVer} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
-"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
-
-#===========================================================
-#
-# ${SCRIPT_DIR}/DB_Repair_Actions.sh
-#
-#===========================================================
 
 echo "+++INFO: $(basename "$0") FINISHED $(date +%s) / $(date  +'%F %T %Z')"
 echo "================================================================================================"

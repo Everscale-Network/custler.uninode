@@ -18,7 +18,7 @@ fi
 #=====================================================
 # Build rnode console
 [[ ! -z ${RCONS_SRC_DIR} ]] && rm -rf "${RCONS_SRC_DIR}"
-git clone --recurse-submodules "${RCONS_GIT_REPO}" $RCONS_SRC_DIR
+git clone --recursive "${RCONS_GIT_REPO}" $RCONS_SRC_DIR
 cd $RCONS_SRC_DIR
 git checkout "${RCONS_GIT_COMMIT}"
 git submodule init && git submodule update --recursive

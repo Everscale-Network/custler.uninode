@@ -205,7 +205,7 @@ do
     fi
 done
 
-if [[ ! $Confirmed_Flag ]] ;then
+if  ! $Confirmed_Flag;then
     echo "###-ERROR: CANNOT sign transaction $Trans_ID by key # ${i} with pubkey: $msig_public from file: ${KEYS_DIR}/${KeyFileName}_${i}.keys.json"
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign ALARM!!! Signing transaction $Trans_ID for election FAILED!!!" 2>&1 > /dev/null
     exit 1

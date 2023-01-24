@@ -157,7 +157,7 @@ else
     UpdateByCron=$(echo "$LNI_Info" | jq -r '.UpdateByCron')
 fi
 
-declare -i Curr_Node_Ver=$($CALL_RC -jc 'getstats' |jq -r '.node_version'| awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
+# declare -i Curr_Node_Ver=9$($CALL_RC -jc 'getstats' |jq -r '.node_version'| awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
 
 if $LINC_present && [[ $UpdateStartTime -gt 0 ]] && [[ $UpdateDuration -gt 0 ]];then
     #=================================================

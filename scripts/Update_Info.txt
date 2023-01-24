@@ -1,1 +1,1 @@
----INFO: Remove node patch. Node commits info fixed in the node src.
+---INFO: Update to bagfixed node with Garbage Collection.
