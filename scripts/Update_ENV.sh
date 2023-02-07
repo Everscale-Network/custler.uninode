@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-11-28 13:00:00
+# (C) Sergey Tyurin  2023-02-07 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -26,46 +26,43 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 
 #################################################################
-# Set rust version
-sed -i.bak "s/export RUST_VERSION=.*/export RUST_VERSION=\"1.65.0\"/" "${SCRIPT_DIR}/env.sh"
-sed -i.bak "s/export MIN_RC_VERSION=.*/export MIN_RC_VERSION=\"0.1.297\"/" "${SCRIPT_DIR}/env.sh"
-
-sed -i.bak "s/export MIN_TC_VERSION=.*/export MIN_TC_VERSION=\"0.28.21\"/" "${SCRIPT_DIR}/env.sh"
-sed -i.bak "/export BOOST_VERSION=.*/d" "${SCRIPT_DIR}/env.sh"
+# Set versions
+sed -i.bak "s|export RUST_VERSION=.*|export RUST_VERSION=\"1.66.1\"|; \
+            s|export MIN_RC_VERSION=.*|export MIN_RC_VERSION=\"0.1.300\"|; \
+            s|export MIN_TC_VERSION=.*|export MIN_TC_VERSION=\"0.32.00\"|; \
+            s|export RNODE_GIT_REPO=.*|export RNODE_GIT_REPO=\"https://github.com/tonlabs/ever-node.git\"|g; \
+            s|export RCONS_GIT_REPO=.*|export RCONS_GIT_REPO=\"https://github.com/tonlabs/ever-node-tools.git\"|g; \
+            s|export Node_Blk_Min_Ver=.*|export Node_Blk_Min_Ver=35|" "${SCRIPT_DIR}/env.sh"
 
 #################################################################
 # Add DAPP_Project_id & DAPP_access_key variables 
-if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export DAPP_access_key')" ]];then
-    sed -i.bak '/# Networks endpoints/p; s/# Networks endpoints.*/export DAPP_access_key=""/' ${SCRIPT_DIR}/env.sh
-fi
+# if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export DAPP_access_key')" ]];then
+#     sed -i.bak '/# Networks endpoints/p; s/# Networks endpoints.*/export DAPP_access_key=""/' ${SCRIPT_DIR}/env.sh
+# fi
 
-if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export DAPP_Project_id')" ]];then
-    sed -i.bak '/# Networks endpoints/p; s/# Networks endpoints.*/export DAPP_Project_id=""/' ${SCRIPT_DIR}/env.sh
-fi
+# if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export DAPP_Project_id')" ]];then
+#     sed -i.bak '/# Networks endpoints/p; s/# Networks endpoints.*/export DAPP_Project_id=""/' ${SCRIPT_DIR}/env.sh
+# fi
 
-if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export Auth_key_Head')" ]];then
-    sed -i.bak '/# Networks endpoints/p; s/# Networks endpoints.*/export Auth_key_Head="Authorization: Basic "/' ${SCRIPT_DIR}/env.sh
-fi
+# if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export Auth_key_Head')" ]];then
+#     sed -i.bak '/# Networks endpoints/p; s/# Networks endpoints.*/export Auth_key_Head="Authorization: Basic "/' ${SCRIPT_DIR}/env.sh
+# fi
 
-sed -i.bak 's|export Main_DApp_URL=.*|export Main_DApp_URL="https://mainnet.evercloud.dev"|' "${SCRIPT_DIR}/env.sh"
-sed -i.bak 's|export MainNet_DApp_List=.*|export MainNet_DApp_List="https://https://mainnet.evercloud.dev,https://eri01.main.everos.dev,https://gra01.main.everos.dev,https://gra02.main.everos.dev,https://lim01.main.everos.dev,https://rbx01.main.everos.dev"|' "${SCRIPT_DIR}/env.sh"
+# sed -i.bak 's|export Main_DApp_URL=.*|export Main_DApp_URL="https://mainnet.evercloud.dev"|' "${SCRIPT_DIR}/env.sh"
+# sed -i.bak 's|export MainNet_DApp_List=.*|export MainNet_DApp_List="https://https://mainnet.evercloud.dev,https://eri01.main.everos.dev,https://gra01.main.everos.dev,https://gra02.main.everos.dev,https://lim01.main.everos.dev,https://rbx01.main.everos.dev"|' "${SCRIPT_DIR}/env.sh"
 
-sed -i.bak 's|export DevNet_DApp_URL=.*|export DevNet_DApp_URL="https://net.evercloud.dev"|' "${SCRIPT_DIR}/env.sh"
-sed -i.bak 's|export DevNet_DApp_List=.*|export DevNet_DApp_List="https://https://net.evercloud.dev,https://eri01.net.everos.dev,https://rbx01.net.everos.dev,https://gra01.net.everos.dev"|' "${SCRIPT_DIR}/env.sh"
+# sed -i.bak 's|export DevNet_DApp_URL=.*|export DevNet_DApp_URL="https://net.evercloud.dev"|' "${SCRIPT_DIR}/env.sh"
+# sed -i.bak 's|export DevNet_DApp_List=.*|export DevNet_DApp_List="https://https://net.evercloud.dev,https://eri01.net.everos.dev,https://rbx01.net.everos.dev,https://gra01.net.everos.dev"|' "${SCRIPT_DIR}/env.sh"
 
-if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export Tg_Exclaim_sign')" ]];then
-    sed -i.bak '/export Tg_Warn_sign/p; s/export Tg_Warn_sign.*/export Tg_Exclaim_sign=$(echo -e "\\U000203C")/' ${SCRIPT_DIR}/env.sh
-fi
+# if [[ -z "$(cat ${SCRIPT_DIR}/env.sh | grep 'export Tg_Exclaim_sign')" ]];then
+#     sed -i.bak '/export Tg_Warn_sign/p; s/export Tg_Warn_sign.*/export Tg_Exclaim_sign=$(echo -e "\\U000203C")/' ${SCRIPT_DIR}/env.sh
+# fi
 
 source "${SCRIPT_DIR}/env.sh"
 
 if [[ -z "$DAPP_Project_id" ]];then
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_Exclaim_sign $(cat ${SCRIPT_DIR}/Update_Info.txt) $Tg_Exclaim_sign" 2>&1 > /dev/null
 fi
-
-#################################################################
-# set node min block version
-sed -i.bak 's|export Node_Blk_Min_Ver=.*|export Node_Blk_Min_Ver=33|' "${SCRIPT_DIR}/env.sh"
 
 #################################################################
 # Fix binaries names for new release 7-zip and old p7zip

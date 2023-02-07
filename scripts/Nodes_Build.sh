@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eE
 
-# (C) Sergey Tyurin  2022-05-18 18:00:00
+# (C) Sergey Tyurin  2023-02-06 18:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -197,6 +197,9 @@ if ${RUST_NODE_BUILD};then
     # sed -i.bak 's|features = \[\"cmake_build\", \"dynamic_linking\"\]|features = \[\"cmake_build\"\]|g' Cargo.toml
     #====== Uncomment to disabe node's logs competely
     # sed -i.bak 's%log = '0.4'%log = { version = "0.4", features = ["release_max_level_off"] }%'  Cargo.toml
+
+    rm -rf ~/.cargo/git/checkouts/ton-labs-*
+    rm -rf ~/.cargo/git/checkouts/ever-*
 
     cargo update
 

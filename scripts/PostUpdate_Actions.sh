@@ -26,8 +26,6 @@ SCRIPT_DIR=`cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P`
 source "${SCRIPT_DIR}/env.sh"
 source "${SCRIPT_DIR}/functions.shinc"
 
-
-
 #===========================================================
 #  Update network global config
 ${SCRIPT_DIR}/nets_config_update.sh
@@ -38,7 +36,7 @@ Node_bin_ver="$(rnode -V | grep 'Node, version' | awk '{print $4}')"
 Node_bin_ver_NUM=$(echo $Node_bin_ver | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
 Node_SVC_ver="$($CALL_RC -jc getstats 2>/dev/null|cat|jq -r '.node_version' 2>/dev/null|cat)"
 Node_SVC_ver_NUM=$(echo $Node_SVC_ver | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
-DB_reset_ver="0051025"
+DB_reset_ver=0051025
 
 #===========================================================
 # Check Node Updated, GC set and restarted
@@ -79,7 +77,7 @@ fi
 #===========================================================
 # For node ver >= 0.51.25  
 if [[ $Node_bin_ver_NUM -ge $DB_reset_ver ]] && \   
-   [[ $Node_bin_ver_NUM -ne $Node_SVC_ver_NUM ]] ;then
+   [[ $Node_bin_ver_NUM -ne $Node_SVC_ver_NUM ]];then
     GC_in_config=$(cat ${R_CFG_DIR}/config.json | jq '.gc' 2>/dev/null|cat)
     if [[ $GC_in_config == "null" ]];then
         cat /var/ton-work/rnode/configs/config.json | \

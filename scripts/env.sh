@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-11-28 13:00:00
+# (C) Sergey Tyurin  2023-02-07 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -40,7 +40,7 @@ export LNIC_ADDRESS="0:bdcefecaae5d07d926f1fa881ea5b61d81ea748bd02136c0dbe766043
 #=====================================================
 # Network related variables
 export NETWORK_TYPE="main.ton.dev"      # can be main.* / net.* / fld.* / rfld.* / rustnet.*
-export Node_Blk_Min_Ver=33
+export Node_Blk_Min_Ver=35
 export ELECTOR_TYPE="fift"
 export NODE_WC=0                        # Node WorkChain 
 
@@ -72,9 +72,9 @@ export RustNet_DApp_List="https://rustnet1.ton.dev"
 
 #=====================================================
 # Depool deploy defaults
-export ValidatorAssuranceT=100000       # Assurance in tokens
+export ValidatorAssuranceT=50000       # Assurance in tokens
 export MinStakeT=10                     # Min DePool assepted stake in tokens
-export ParticipantRewardFraction=95     # In % participant share from reward
+export ParticipantRewardFraction=85     # In % participant share from reward
 export BalanceThresholdT=20             # Min depool self balance to operate
 export TIK_REPLANISH_AMOUNT=10          # If Tik acc balance less 2 tokens, It will be auto topup with this amount
 
@@ -123,29 +123,29 @@ done
 export NODE_IP_ADDR
 
 export ServiceName="tonnode"
-export ADNL_PORT="48888"
+export ADNL_PORT="49999"
 export NODE_ADDRESS="${NODE_IP_ADDR}:${ADNL_PORT}"
 export RCONSOLE_PORT="5031"
 
 #=====================================================
 # GIT addresses & commits
-export RUST_VERSION="1.65.0"
-export MIN_TC_VERSION="0.28.21"
-export MIN_RC_VERSION="0.1.297"
+export RUST_VERSION="1.66.1"
+export MIN_TC_VERSION="0.32.00"
+export MIN_RC_VERSION="0.1.300"
 # for corect work automatic update 
 # GIT_COMMIT should be "master" or certain commit only
 # not a branch name!
 
-export RNODE_GIT_REPO="https://github.com/tonlabs/ton-labs-node.git"
+export RNODE_GIT_REPO="https://github.com/tonlabs/ever-node.git"
 export RNODE_GIT_COMMIT="master"
 export RNODE_FEATURES=""
 if [[ "${NETWORK_TYPE%%.*}" == "fld" ]];then
-    export RNODE_GIT_REPO="https://github.com/Custler/evs-rnode.git"
+    export RNODE_GIT_REPO="https://github.com/tonlabs/ever-node.git"
     export RNODE_GIT_COMMIT="master"
     export RNODE_FEATURES=""
 fi
 
-export RCONS_GIT_REPO="https://github.com/tonlabs/ton-labs-node-tools.git"
+export RCONS_GIT_REPO="https://github.com/tonlabs/ever-node-tools.git"
 export RCONS_GIT_COMMIT="master"
 
 export TONOS_CLI_GIT_REPO="https://github.com/tonlabs/tonos-cli.git"
@@ -160,9 +160,6 @@ export SOLC_GIT_COMMIT="master"
 export CONTRACTS_GIT_REPO="https://github.com/tonlabs/ton-labs-contracts.git"
 export CONTRACTS_GIT_COMMIT="master"
 
-[[ "${NETWORK_TYPE%%.*}" == "rustnet" ]] &&  export CONTRACTS_GIT_COMMIT="RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET"  # ###  RUSTCUP_DEPOOL_--_DO_NOT_DEPLOY_ON_MAINNET !!!!!!!!!!!!!
-
-export RustCup_El_ABI_URL="https://raw.githubusercontent.com/tonlabs/rustnet.ton.dev/main/docker-compose/ton-node/configs/Elector.abi.json"
 export Surf_GIT_Commit="multisig-surf-v2"
 
 #=====================================================
