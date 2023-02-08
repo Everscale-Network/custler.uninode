@@ -135,6 +135,7 @@ case "$OS_SYSTEM" in
         export ZSTD_LIB_DIR=/usr/lib/x86_64-linux-gnu
         PKGs_SET=$PKGS_Ubuntu
         PKG_MNGR=$PKG_MNGR_Ubuntu
+        xxx="$(sudo needrestart -r a -b|cat)"
         $PKG_MNGR install -y software-properties-common
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa
         sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq

@@ -32,6 +32,7 @@ ${SCRIPT_DIR}/nets_config_update.sh
 
 #===========================================================
 # Check node version for DB reset
+Node_commit_from_bin=
 Node_bin_ver="$(rnode -V | grep 'Node, version' | awk '{print $4}')"
 Node_bin_ver_NUM=$(echo $Node_bin_ver | awk -F'.' '{printf("%d%03d%03d\n", $1,$2,$3)}')
 Node_SVC_ver="$($CALL_RC -jc getstats 2>/dev/null|cat|jq -r '.node_version' 2>/dev/null|cat)"
@@ -64,12 +65,13 @@ if [[ $Node_bin_ver_NUM -lt $DB_reset_ver ]] && \
     ${SCRIPT_DIR}/wait_for_sync.sh
     #===========================================================
     # Check and show the Node version
+    Node_bin_commit="$(rnode -V | grep 'NODE git commit:' | awk '{print $5}')"
     EverNode_Version="$(${NODE_BIN_DIR}/rnode -V | grep -i 'TON Node, version' | awk '{print $4}')"
     NodeSupBlkVer="$(rnode -V | grep 'BLOCK_VERSION:' | awk '{print $2}')"
     Console_Version="$(${NODE_BIN_DIR}/console -V | awk '{print $2}')"
     TonosCLI_Version="$(${NODE_BIN_DIR}/tonos-cli -V | grep -i 'tonos_cli' | awk '{print $2}')"
-    echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} SupBlock: ${NodeSupBlkVer} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
-    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
+    echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} SupBlock: ${NodeSupBlkVer} node commit: ${Node_bin_commit}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
+    "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} node commit: ${Node_bin_commit}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
     "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_SOS_sign DANGER: Your node version is less $DB_reset_ver and contains bugs!" 2>&1 > /dev/null
     return 0
 fi
@@ -99,12 +101,13 @@ if [[ $Node_bin_ver_NUM -ge $DB_reset_ver ]] && \
 fi
 #===========================================================
 # Check and show the Node version
+Node_bin_commit="$(rnode -V | grep 'NODE git commit:' | awk '{print $5}')"
 EverNode_Version="$(${NODE_BIN_DIR}/rnode -V | grep -i 'TON Node, version' | awk '{print $4}')"
 NodeSupBlkVer="$(rnode -V | grep 'BLOCK_VERSION:' | awk '{print $2}')"
 Console_Version="$(${NODE_BIN_DIR}/console -V | awk '{print $2}')"
 TonosCLI_Version="$(${NODE_BIN_DIR}/tonos-cli -V | grep -i 'tonos_cli' | awk '{print $2}')"
-echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} SupBlock: ${NodeSupBlkVer} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
-"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} node commit: ${Node_commit_from_bin}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
+echo "INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} SupBlock: ${NodeSupBlkVer} node commit: ${Node_bin_commit}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}"
+"${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "$Tg_CheckMark INFO: Node updated. Service restarted. Current versions: node ver: ${EverNode_Version} node commit: ${Node_bin_commit}, console - ${Console_Version}, tonos-cli - ${TonosCLI_Version}" 2>&1 > /dev/null
 
 #===========================================================
 #
