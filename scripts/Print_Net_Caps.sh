@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eE
 
-# (C) Sergey Tyurin  2022-08-16 10:00:00
+# (C) Sergey Tyurin  2023-03-19 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -43,78 +43,103 @@ else
 fi
 
 # from https://github.com/tonlabs/ton-labs-block/blob/master/src/config_params.rs#L336
-#       0 constant CapNone                   = 0x000000,
-#       1 constant CapIhrEnabled             = 0x000001,
-#       2 constant CapCreateStatsEnabled     = 0x000002,
-#       4 constant CapBounceMsgBody          = 0x000004,
-#       8 constant CapReportVersion          = 0x000008,
-#      16 constant CapSplitMergeTransactions = 0x000010,
-#      32 constant CapShortDequeue           = 0x000020,
-#      64 constant CapMbppEnabled            = 0x000040,
-#     128 constant CapFastStorageStat        = 0x000080,
-#     256 constant CapInitCodeHash           = 0x000100,
-#     512 constant CapOffHypercube           = 0x000200,
-#    1024 constant CapMycode                 = 0x000400,
-#    2048 constant CapSetLibCode             = 0x000800,
-#    4096 constant CapFixTupleIndexBug       = 0x001000,
-#    8192 constant CapRemp                   = 0x002000,
-#   16384 constant CapDelections             = 0x004000,
-#   32768 constant CapReserved               = 0x008000,
-#   65536 constant CapFullBodyInBounced      = 0x010000,
-#  131072 constant CapStorageFeeToTvm        = 0x020000,
-#  262144 constant CapCopyleft               = 0x040000,
-#  524288 constant CapIndexAccounts          = 0x080000,
-# 1048576 constant CapDiff                   = 0x100000, // for GOSH
-
+#         0 constant CapNone                    = 0x00000000,
+#         1 constant CapIhrEnabled              = 0x00000001,
+#         2 constant CapCreateStatsEnabled      = 0x00000002,
+#         4 constant CapBounceMsgBody           = 0x00000004,
+#         8 constant CapReportVersion           = 0x00000008,
+#        16 constant CapSplitMergeTransactions  = 0x00000010,
+#        32 constant CapShortDequeue            = 0x00000020,
+#        64 constant CapMbppEnabled             = 0x00000040,
+#       128 constant CapFastStorageStat         = 0x00000080,
+#       256 constant CapInitCodeHash            = 0x00000100,
+#       512 constant CapOffHypercube            = 0x00000200,
+#      1024 constant CapMycode                  = 0x00000400,
+#      2048 constant CapSetLibCode              = 0x00000800,
+#      4096 constant CapFixTupleIndexBug        = 0x00001000,
+#      8192 constant CapRemp                    = 0x00002000,
+#     16384 constant CapDelections              = 0x00004000,
+#     65536 constant CapFullBodyInBounced       = 0x00010000,
+#    131072 constant CapStorageFeeToTvm         = 0x00020000,
+#    262144 constant CapCopyleft                = 0x00040000,
+#    524288 constant CapIndexAccounts           = 0x00080000,
+#   1048576 constant CapDiff                    = 0x00100000, // for GOSH
+#   2097152 constant CapsTvmBugfixes2022        = 0x00200000, // popsave, exception handler, loops
+#   4194304 constant CapWorkchains              = 0x00400000,
+#   8388608 constant CapStcontNewFormat         = 0x00800000, // support old format continuation serialization
+#  16777216 constant CapFastStorageStatBugfix   = 0x01000000, // calc cell datasize using fast storage stat
+#  33554432 constant CapResolveMerkleCell       = 0x02000000,
+#  67108864 constant CapSignatureWithId         = 0x04000000, // use some predefined id during signature check
+# 134217728 constant CapBounceAfterFailedAction = 0x08000000,
+# 268435456 constant CapGroth16                 = 0x10000000,
+# 536870912 constant CapFeeInGasUnits           = 0x20000000, // all fees in config are in gas units
    
 
-CapsList=(CapIhrEnabled   \
-CapCreateStatsEnabled     \
-CapBounceMsgBody          \
-CapReportVersion          \
-CapSplitMergeTransactions \
-CapShortDequeue           \
-CapMbppEnabled            \
-CapFastStorageStat        \
-CapInitCodeHash           \
-CapOffHypercube           \
-CapMycode                 \
-CapSetLibCode             \
-CapFixTupleIndexBug       \
-CapRemp                   \
-CapDelections             \
-CapReserved               \
-CapFullBodyInBounced      \
-CapStorageFeeToTvm        \
-CapCopyleft               \
-CapIndexAccounts          \
-CapDiff 
+CapsList=(CapIhrEnabled    \
+CapCreateStatsEnabled      \
+CapBounceMsgBody           \
+CapReportVersion           \
+CapSplitMergeTransactions  \
+CapShortDequeue            \
+CapMbppEnabled             \
+CapFastStorageStat         \
+CapInitCodeHash            \
+CapOffHypercube            \
+CapMycode                  \
+CapSetLibCode              \
+CapFixTupleIndexBug        \
+CapRemp                    \
+CapDelections              \
+CapReserved                \
+CapFullBodyInBounced       \
+CapStorageFeeToTvm         \
+CapCopyleft                \
+CapIndexAccounts           \
+CapDiff                    \
+CapsTvmBugfixes2022        \
+CapWorkchains              \
+CapStcontNewFormat         \
+CapFastStorageStatBugfix   \
+CapResolveMerkleCell       \
+CapSignatureWithId         \
+CapBounceAfterFailedAction \
+CapGroth16                 \
+CapFeeInGasUnits           \
 )
 
 # echo ${CapsList[@]}
 
 declare -A DecCaps=(
-[CapIhrEnabled]=1              \
-[CapCreateStatsEnabled]=2      \
-[CapBounceMsgBody]=4           \
-[CapReportVersion]=8           \
-[CapSplitMergeTransactions]=16 \
-[CapShortDequeue]=32           \
-[CapMbppEnabled]=64            \
-[CapFastStorageStat]=128       \
-[CapInitCodeHash]=256          \
-[CapOffHypercube]=512          \
-[CapMycode]=1024               \
-[CapSetLibCode]=2048           \
-[CapFixTupleIndexBug]=4096     \
-[CapRemp]=8192                 \
-[CapDelections]=16384          \
-[CapReserved]=32768            \
-[CapFullBodyInBounced]=65536   \
-[CapStorageFeeToTvm]=131072    \
-[CapCopyleft]=262144           \
-[CapIndexAccounts]=524288      \
-[CapDiff]=1048576              \
+[CapIhrEnabled]=1                       \
+[CapCreateStatsEnabled]=2               \
+[CapBounceMsgBody]=4                    \
+[CapReportVersion]=8                    \
+[CapSplitMergeTransactions]=16          \
+[CapShortDequeue]=32                    \
+[CapMbppEnabled]=64                     \
+[CapFastStorageStat]=128                \
+[CapInitCodeHash]=256                   \
+[CapOffHypercube]=512                   \
+[CapMycode]=1024                        \
+[CapSetLibCode]=2048                    \
+[CapFixTupleIndexBug]=4096              \
+[CapRemp]=8192                          \
+[CapDelections]=16384                   \
+[CapReserved]=32768                     \
+[CapFullBodyInBounced]=65536            \
+[CapStorageFeeToTvm]=131072             \
+[CapCopyleft]=262144                    \
+[CapIndexAccounts]=524288               \
+[CapDiff]=1048576                       \
+[CapsTvmBugfixes2022]=2097152           \
+[CapWorkchains=]4194304                 \
+[CapStcontNewFormat]=8388608            \
+[CapFastStorageStatBugfix]=16777216     \
+[CapResolveMerkleCell]=33554432         \
+[CapSignatureWithId]=67108864           \
+[CapBounceAfterFailedAction]=134217728  \
+[CapGroth16]=268435456                  \
+[CapFeeInGasUnits]=536870912            \
 )
 
 declare -A CapsHEX=(
@@ -140,6 +165,15 @@ declare -A CapsHEX=(
 [CapCopyleft]="0x040000"
 [CapIndexAccounts]="0x080000"
 [CapDiff]="0x100000"
+[CapsTvmBugfixes2022]="0x00200000"
+[CapWorkchains]="0x00400000"
+[CapStcontNewFormat]="0x00800000"
+[CapFastStorageStatBugfix]="0x01000000"
+[CapResolveMerkleCell]="0x02000000"
+[CapSignatureWithId]="0x04000000"
+[CapBounceAfterFailedAction]="0x08000000"
+[CapGroth16]="0x10000000"
+[CapFeeInGasUnits]="0x20000000"
 )
 # echo ${DecCaps[@]}
 
