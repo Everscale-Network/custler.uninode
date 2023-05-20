@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2023-01-17 10:00:00
+# (C) Sergey Tyurin  2023-05-16 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -489,9 +489,9 @@ function Get_Account_Info() {
             echo "None 0 0"
             return
         fi
-        local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r ".\"${ACCOUNT}\".balance"`
-        local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r ".\"${ACCOUNT}\".last_paid"`
-        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r ".\"${ACCOUNT}\".acc_type"`
+        local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r ".balance"`
+        local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r ".last_paid"`
+        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r ".acc_type"`
     else
         #NODE_WC="$(cat ${R_CFG_DIR}/config.json 2>/dev/null |cat|jq '.workchain')"
         NODE_WC="0"
@@ -510,7 +510,7 @@ function Get_Account_Info() {
         fi
         local AMOUNT_nt=`echo "$ACCOUNT_INFO" | jq -r '.balance'`
         local LASTOP=`echo "$ACCOUNT_INFO"    | jq -r '.last_paid'`
-        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r  '.acc_type'`
+        local STATUS=`echo "$ACCOUNT_INFO"    | jq -r '.acc_type'`
         # AMOUNT_nt=`echo "scale=3; $AMOUNT_nt * 1000000000" | $CALL_BC | cut -d '.' -f 1`
     fi
     AMOUNT=`echo "scale=3; $((AMOUNT_nt)) / 1000000000" | $CALL_BC`

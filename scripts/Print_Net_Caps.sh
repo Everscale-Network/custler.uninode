@@ -36,13 +36,19 @@ echo -e "$(Determine_Current_Network)"
 echo
 #=================================================
 
-if $FORCE_USE_DAPP;then
-    declare -i NetCaps=$($CALL_TC -j getconfig 8|jq -r '.capabilities' | cut -d 'x' -f 2|tr "[:lower:]" "[:upper:]"| echo $(echo $(echo "obase=10; ibase=16; `cat`" | bc)))
+DecodeCap=$1
+
+if [[ -z "$DecodeCap" ]];then
+    if $FORCE_USE_DAPP;then
+        declare -i NetCaps=$($CALL_TC -j getconfig 8|jq -r '.capabilities' | cut -d 'x' -f 2|tr "[:lower:]" "[:upper:]"| echo $(echo $(echo "obase=10; ibase=16; `cat`" | bc)))
+    else
+        declare -i NetCaps=$($CALL_RC -jc 'getconfig 8'|jq -r '.p8.capabilities_dec')
+    fi
 else
-    declare -i NetCaps=$($CALL_RC -jc 'getconfig 8'|jq -r '.p8.capabilities_dec')
+    NetCaps=$((DecodeCap))
 fi
 
-# from https://github.com/tonlabs/ton-labs-block/blob/master/src/config_params.rs#L336
+# from https://github.com/tonlabs/ton-labs-block/blob/master/src/config_params.rs#L350
 #         0 constant CapNone                    = 0x00000000,
 #         1 constant CapIhrEnabled              = 0x00000001,
 #         2 constant CapCreateStatsEnabled      = 0x00000002,
@@ -59,6 +65,7 @@ fi
 #      4096 constant CapFixTupleIndexBug        = 0x00001000,
 #      8192 constant CapRemp                    = 0x00002000,
 #     16384 constant CapDelections              = 0x00004000,
+#                    CapReserved
 #     65536 constant CapFullBodyInBounced       = 0x00010000,
 #    131072 constant CapStorageFeeToTvm         = 0x00020000,
 #    262144 constant CapCopyleft                = 0x00040000,
@@ -73,7 +80,8 @@ fi
 # 134217728 constant CapBounceAfterFailedAction = 0x08000000,
 # 268435456 constant CapGroth16                 = 0x10000000,
 # 536870912 constant CapFeeInGasUnits           = 0x20000000, // all fees in config are in gas units
-   
+#1073741824 constant CapBigCells                = 0x40000000,
+#2147483648 constant CapSuspendedList           = 0x80000000,
 
 CapsList=(CapIhrEnabled    \
 CapCreateStatsEnabled      \
@@ -105,6 +113,8 @@ CapSignatureWithId         \
 CapBounceAfterFailedAction \
 CapGroth16                 \
 CapFeeInGasUnits           \
+CapBigCells                \
+CapSuspendedList           \
 )
 
 # echo ${CapsList[@]}
@@ -132,7 +142,7 @@ declare -A DecCaps=(
 [CapIndexAccounts]=524288               \
 [CapDiff]=1048576                       \
 [CapsTvmBugfixes2022]=2097152           \
-[CapWorkchains=]4194304                 \
+[CapWorkchains]=4194304                 \
 [CapStcontNewFormat]=8388608            \
 [CapFastStorageStatBugfix]=16777216     \
 [CapResolveMerkleCell]=33554432         \
@@ -140,31 +150,33 @@ declare -A DecCaps=(
 [CapBounceAfterFailedAction]=134217728  \
 [CapGroth16]=268435456                  \
 [CapFeeInGasUnits]=536870912            \
+[CapBigCells]=1073741824                \
+[CapSuspendedList]=2147483648           \
 )
 
 declare -A CapsHEX=(
-[CapNone]="0x000000"
-[CapIhrEnabled]="0x000001"
-[CapCreateStatsEnabled]="0x000002"
-[CapBounceMsgBody]="0x000004"
-[CapReportVersion]="0x000008"
-[CapSplitMergeTransactions]="0x000010"
-[CapShortDequeue]="0x000020"
-[CapMbppEnabled]="0x000040"
-[CapFastStorageStat]="0x000080"
-[CapInitCodeHash]="0x000100"
-[CapOffHypercube]="0x000200"
-[CapMycode]="0x000400"
-[CapSetLibCode]="0x000800"
-[CapFixTupleIndexBug]="0x001000"
-[CapRemp]="0x002000"
-[CapDelections]="0x004000"
-[CapReserved]="0x008000"
-[CapFullBodyInBounced]="0x010000"
-[CapStorageFeeToTvm]="0x020000"
-[CapCopyleft]="0x040000"
-[CapIndexAccounts]="0x080000"
-[CapDiff]="0x100000"
+[CapNone]="0x00000000"
+[CapIhrEnabled]="0x00000001"
+[CapCreateStatsEnabled]="0x00000002"
+[CapBounceMsgBody]="0x00000004"
+[CapReportVersion]="0x00000008"
+[CapSplitMergeTransactions]="0x00000010"
+[CapShortDequeue]="0x00000020"
+[CapMbppEnabled]="0x00000040"
+[CapFastStorageStat]="0x00000080"
+[CapInitCodeHash]="0x00000100"
+[CapOffHypercube]="0x00000200"
+[CapMycode]="0x00000400"
+[CapSetLibCode]="0x00000800"
+[CapFixTupleIndexBug]="0x00001000"
+[CapRemp]="0x00002000"
+[CapDelections]="0x00004000"
+[CapReserved]="0x00008000"
+[CapFullBodyInBounced]="0x00010000"
+[CapStorageFeeToTvm]="0x00020000"
+[CapCopyleft]="0x00040000"
+[CapIndexAccounts]="0x00080000"
+[CapDiff]="0x00100000"
 [CapsTvmBugfixes2022]="0x00200000"
 [CapWorkchains]="0x00400000"
 [CapStcontNewFormat]="0x00800000"
@@ -174,12 +186,15 @@ declare -A CapsHEX=(
 [CapBounceAfterFailedAction]="0x08000000"
 [CapGroth16]="0x10000000"
 [CapFeeInGasUnits]="0x20000000"
+[1073741824]="0x40000000"
+[CapSuspendedList]="0x80000000"
 )
 # echo ${DecCaps[@]}
 
 declare -i Cups_sum=0
 for CurCup in "${CapsList[@]}"; do
-    if [[ $(($NetCaps & ${DecCaps[$CurCup]})) -ne 0 ]];then
+    #echo "{NetCaps}: ${NetCaps}, DecCaps: ${DecCaps[$CurCup]}"
+    if [[ $((${NetCaps} & ${DecCaps[$CurCup]})) -ne 0 ]];then
         Cups_sum=$(($Cups_sum + ${DecCaps[$CurCup]}))
         echo "$(printf '%26s' "$CurCup")  $(printf '%8s' "${CapsHEX[$CurCup]}")  $(printf '%10d' "${DecCaps[$CurCup]}")  "
     fi
