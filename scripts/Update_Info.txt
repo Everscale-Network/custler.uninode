@@ -1,1 +1,1 @@
----INFO: Fix for new tonos-cli changes.
+---INFO: This is only an update to the FLD network global config.
