@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2022-07-16 13:00:00
+# (C) Sergey Tyurin  2023-06-08 13:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -48,16 +48,39 @@ do
         sleep $SLEEP_TIMEOUT
         continue
     fi
+    if [[ "$TIME_DIFF" == "Error" ]];then
+        echo "${Current_Net}:${NODE_WC} Time: $(date +'%F %T %Z') ###-ALARM! NODE return ERROR." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+        # "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "ALARM! NODE return ERROR." 2>&1 > /dev/null
+        sleep $SLEEP_TIMEOUT
+        continue
+    fi
 
-    if [[ "$TIME_DIFF" == "No TimeDiff Info" ]];then
-        echo "${Current_Net}:${NODE_WC} Time: $(date +'%F %T %Z') --- No masterchain blocks received yet." | tee -a ${NODE_LOGS_ARCH}/time-diff.log
+    STATUS=$(echo $TIME_DIFF|awk '{print $3}')
+    if [[ "$STATUS" != "synchronization_by_blocks" ]] && [[ "$STATUS" != "synchronization_finished" ]];then
+        echo "${Current_Net}:${NODE_WC} Time: $(date +'%F %T %Z') --- Current node status: $TIME_DIFF" | tee -a ${NODE_LOGS_ARCH}/time-diff.log
     else
         MC_TIME_DIFF=$(echo $TIME_DIFF|awk '{print $1}')
         SH_TIME_DIFF=$(echo $TIME_DIFF|awk '{print $2}')
         echo "${Current_Net}:${NODE_WC} Time: $(date +'%F %T %Z') TimeDiffs: MC - $MC_TIME_DIFF ; WC - $SH_TIME_DIFF" | tee -a ${NODE_LOGS_ARCH}/time-diff.log
     fi
+    # if [[ $MC_TIME_DIFF -gt $ALARM_TIME_DIFF ]] || [[ $SH_TIME_DIFF -gt $ALARM_TIME_DIFF ]];then
+    # "${SCRIPT_DIR}/Send_msg_toTelBot.sh" "$HOSTNAME Server" "${Tg_Warn_sign} ALARM! NODE out of sync. TimeDiffs: MC - $MC_TIME_DIFF ; WC - $SH_TIME_DIFF" 2>&1 > /dev/null
 
     sleep $SLEEP_TIMEOUT
 done
 
 exit 0
+
+#==========================================
+# https://github.com/tonlabs/ever-node/blob/e1c321bf3aef765554c3caa43e0bd417bb4ba14d/src/network/control.rs#L183
+match sync_status {
+    Engine::SYNC_STATUS_START_BOOT => "start_boot".to_string(),
+    Engine::SYNC_STATUS_LOAD_MASTER_STATE => "load_master_state".to_string(),
+    Engine::SYNC_STATUS_LOAD_SHARD_STATES => "load_shard_states".to_string(),
+    Engine::SYNC_STATUS_FINISH_BOOT => "finish_boot".to_string(),
+    Engine::SYNC_STATUS_SYNC_BLOCKS => "synchronization_by_blocks".to_string(),
+    Engine::SYNC_STATUS_FINISH_SYNC => "synchronization_finished".to_string(),
+    Engine::SYNC_STATUS_CHECKING_DB => "checking_db".to_string(),
+    Engine::SYNC_STATUS_DB_BROKEN => "db_broken".to_string(),
+    _ => "no_set_status".to_string()
+}

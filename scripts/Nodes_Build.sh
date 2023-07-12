@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eE
 
-# (C) Sergey Tyurin  2023-02-06 18:00:00
+# (C) Sergey Tyurin  2023-06-08 18:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -45,7 +45,11 @@ case "$1" in
     dapp)
         RUST_NODE_BUILD=true
         DAPP_NODE_BUILD=true
-        RNODE_FEATURES="external_db,metrics"
+        if [[ -z "$RNODE_FEATURES" ]];then
+            RNODE_FEATURES="external_db,metrics"
+        else
+            RNODE_FEATURES="${RNODE_FEATURES},external_db,metrics"
+        fi
         echo "---INFO: Will build node for DApp"
         ;;
     *)
@@ -81,7 +85,10 @@ elif [[ ! "$OS_SYSTEM" == "FreeBSD" ]];then
     echo
     exit 1
 fi
-
+# Get Latest yq download url
+# curl -sS -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/mikefarah/yq/releases/latest | grep '/yq_linux_amd64' | head -n 1 | awk '{print $2}'
+# curl -sS -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/mikefarah/yq/releases/latest | jq -r '.assets[]|select(.name == "yq_linux_amd64")|.browser_download_url'
+YQ_LATEST_URL="$(curl -sS -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/mikefarah/yq/releases/latest | jq -r '.assets[]|select(.name == "yq_linux_amd64")|.browser_download_url')"
 #=====================================================
 # Set packages set & manager according to OS
 case "$OS_SYSTEM" in
@@ -92,7 +99,8 @@ case "$OS_SYSTEM" in
         $PKG_MNGR update -f
         $PKG_MNGR upgrade -y
         FEXEC_FLG="-perm +111"
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_freebsd_amd64 -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
+        YQ_LATEST_URL="$(curl -sS -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/mikefarah/yq/releases/latest | jq -r '.assets[]|select(.name == "yq_freebsd_amd64")|.browser_download_url')"
+        sudo wget "$YQ_LATEST_URL" -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
         ;;
     CentOS)
         export ZSTD_LIB_DIR=/usr/lib64
@@ -102,7 +110,7 @@ case "$OS_SYSTEM" in
         $PKG_MNGR group install -y "Development Tools"
         $PKG_MNGR config-manager --set-enabled powertools 
         $PKG_MNGR --enablerepo=extras install -y epel-release
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        sudo wget "$YQ_LATEST_URL" -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
         sudo systemctl daemon-reload
         ;;
     Oracle)
@@ -119,7 +127,7 @@ case "$OS_SYSTEM" in
             $PKG_MNGR config-manager --set-enabled ol8_codeready_builder
             $PKG_MNGR install -y oracle-epel-release-el8
         fi
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        sudo wget "$YQ_LATEST_URL" -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
         sudo systemctl daemon-reload
         ;;
     Fedora)
@@ -128,17 +136,16 @@ case "$OS_SYSTEM" in
         PKG_MNGR=$PKG_MNGR_CentOS
         $PKG_MNGR -y update --allowerasing
         $PKG_MNGR group install -y "Development Tools"
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        sudo wget "$YQ_LATEST_URL" -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
         sudo systemctl daemon-reload
         ;;
     Ubuntu|Debian)
         export ZSTD_LIB_DIR=/usr/lib/x86_64-linux-gnu
         PKGs_SET=$PKGS_Ubuntu
         PKG_MNGR=$PKG_MNGR_Ubuntu
-        xxx="$(sudo needrestart -r a -b|cat)"
         $PKG_MNGR install -y software-properties-common
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/ppa
-        sudo wget https://github.com/mikefarah/yq/releases/download/v4.13.3/yq_linux_amd64 -O /usr/bin/yq && sudo chmod +x /usr/bin/yq
+        sudo wget "$YQ_LATEST_URL" -O /usr/local/bin/yq && sudo chmod +x /usr/local/bin/yq
         sudo systemctl daemon-reload
         ;;
     *)
@@ -183,6 +190,8 @@ if ${RUST_NODE_BUILD};then
     echo "---INFO: build RUST NODE ..."
     echo -e "${BoldText}${BlueBack}---INFO: RNODE git repo:   ${RNODE_GIT_REPO} ${NormText}"
     echo -e "${BoldText}${BlueBack}---INFO: RNODE git commit: ${RNODE_GIT_COMMIT} ${NormText}"
+    
+    # eval $(ssh-agent -k; ssh-agent -s)
 
     [[ -d ${RNODE_SRC_DIR} ]] && rm -rf "${RNODE_SRC_DIR}"
     # git clone --recurse-submodules "${RNODE_GIT_REPO}" $RNODE_SRC_DIR
@@ -203,6 +212,11 @@ if ${RUST_NODE_BUILD};then
     rm -rf ~/.cargo/git/checkouts/ever-*
 
     cargo update
+
+    sed -i.bak '/\[profile\]/,/^$/d' Cargo.toml
+    echo -e "\n\n" >> Cargo.toml
+    echo '[profile]' >> Cargo.toml
+    echo 'release = { lto = "fat", codegen-units = 1, panic = "abort" }' >> Cargo.toml
 
     # node git commit
     export GC_TON_NODE="$(git --git-dir="$RNODE_SRC_DIR/.git" rev-parse HEAD 2>/dev/null)"
@@ -234,7 +248,19 @@ if ${RUST_NODE_BUILD};then
     find $RCONS_SRC_DIR/target/release/ -maxdepth 1 -type f ${FEXEC_FLG} -exec cp -f {} $NODE_BIN_DIR/ \;
     echo "---INFO: build RUST NODE ... DONE."
 fi
-
+if [[ "$1" == "nodeonly" ]] || [[ "$2" == "nodeonly" ]];then
+    rm -f wget-log*
+    echo 
+    echo '################################################'
+    BUILD_END_TIME=$(date +%s)
+    Build_mins=$(( (BUILD_END_TIME - BUILD_STRT_TIME)/60 ))
+    Build_secs=$(( (BUILD_END_TIME - BUILD_STRT_TIME)%60 ))
+    echo
+    echo "+++INFO: $(basename "$0") on $HOSTNAME FINISHED $(date +%s) / $(date)"
+    echo "All builds took $Build_mins min $Build_secs secs"
+    echo "================================================================================================"
+    exit 0
+fi
 #=====================================================
 # Build TON Solidity Compiler (solc)
 # echo "---INFO: build TON Solidity Compiler ..."

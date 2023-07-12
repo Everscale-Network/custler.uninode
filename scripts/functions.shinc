@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# (C) Sergey Tyurin  2023-05-16 10:00:00
+# (C) Sergey Tyurin  2023-06-08 10:00:00
 
 # Disclaimer
 ##################################################################################################################
@@ -125,7 +125,7 @@ case "$NetName" in
         ;;
     *)
         echo "###-ERROR(line $LINENO in echo ${0##*/}): Unknown NETWORK_TYPE (${NETWORK_TYPE})"
-        exit 1
+        return 1
         ;;
 esac
 
@@ -318,23 +318,35 @@ function Get_SC_current_state() {
 #=================================================
 # Get current Time Diff
 function Get_TimeDiff() { 
-    local RC_OUTPUT=$($CALL_RC -jc "getstats" 2>&1 | cat)
+    RC_OUTPUT=$($CALL_RC -jc "getstats" 2>&1 | cat)
     NODE_DOWN=$(echo "${RC_OUTPUT}" | grep 'Connection refused' | cat)
-    if [[ ! -z "$NODE_DOWN" ]] || [[ ! -z "$(echo $RC_OUTPUT  | grep 'panicked at' | cat)" ]];then
+    if [[ -n "$NODE_DOWN" ]] || [[ -n "$(echo $RC_OUTPUT  | grep 'panicked at' | cat)" ]];then
         echo "Node Down"
         return
     fi
-    if [[ "$(echo "$RC_OUTPUT" |jq -r '.sync_status')" == "db_broken" ]];then
+    if [[ -n "$(echo $RC_OUTPUT  | grep -i 'error' | cat)" ]];then
+        echo "Error"
+        return
+    fi
+
+    # statuses:
+    # https://github.com/tonlabs/ever-node/blob/e1c321bf3aef765554c3caa43e0bd417bb4ba14d/src/network/control.rs#L183
+    StatusKey="sync_status"
+    STATUS="$(echo "$RC_OUTPUT" |jq -r ".$StatusKey"|cat)"
+    [[ "$STATUS" == "none" ]] && StatusKey="node_status"
+    STATUS="$(echo "$RC_OUTPUT" |jq -r ".$StatusKey"|cat)"
+
+    if [[ "$(echo "$RC_OUTPUT" |jq -r ".$StatusKey")" == "db_broken" ]];then
         echo "db_broken"
         return
     fi
     if [[ ! -z $(echo "${RC_OUTPUT}" | grep 'timediff') ]];then
     #    TIME_DIFF=$(echo "${RC_OUTPUT}" | sed -e '1,/GIT_BRANCH/d' | jq .timediff)
-        local MC_TIME_DIFF=$(echo "${RC_OUTPUT}" | jq -r '.timediff')
-        local SH_TIME_DIFF=$(echo "${RC_OUTPUT}" | jq -r '.shards_timediff')
-        echo "$MC_TIME_DIFF $SH_TIME_DIFF"
+        MC_TIME_DIFF=$(echo "${RC_OUTPUT}" | jq -r '.timediff')
+        SH_TIME_DIFF=$(echo "${RC_OUTPUT}" | jq -r '.shards_timediff')
+        echo "$MC_TIME_DIFF $SH_TIME_DIFF $STATUS"
     else
-        echo "No TimeDiff Info"
+        echo "$STATUS"
     fi
 }
 #=================================================

@@ -17,7 +17,8 @@ if [[ "$OS_SYSTEM" == "FreeBSD" ]];then
 fi
 #=====================================================
 # Build rnode console
-[[ ! -z ${RCONS_SRC_DIR} ]] && rm -rf "${RCONS_SRC_DIR}"
+eval $(ssh-agent -k; ssh-agent -s)
+[[ -n ${RCONS_SRC_DIR} ]] && rm -rf "${RCONS_SRC_DIR}"
 git clone --recursive "${RCONS_GIT_REPO}" $RCONS_SRC_DIR
 cd $RCONS_SRC_DIR
 git checkout "${RCONS_GIT_COMMIT}"

@@ -1,0 +1,154 @@
+{
+	"ABI version": 2,
+	"version": "2.2",
+	"header": ["pubkey", "time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+				{"name":"_owner","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getDetails",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+				{"components":[{"name":"stEverVault","type":"address"},{"name":"owner","type":"address"},{"name":"strategyVersion","type":"uint32"},{"name":"strategyCount","type":"uint32"},{"name":"factoryVersion","type":"uint32"}],"name":"value0","type":"tuple"}
+			]
+		},
+		{
+			"name": "transferOwnership",
+			"inputs": [
+				{"name":"_newOwner","type":"address"},
+				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "installNewStrategyCode",
+			"inputs": [
+				{"name":"_strategyCode","type":"cell"},
+				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "deployStrategy",
+			"inputs": [
+				{"name":"_dePool","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "upgradeStrategies",
+			"inputs": [
+				{"name":"_strategies","type":"address[]"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "upgrade",
+			"inputs": [
+				{"name":"_newCode","type":"cell"},
+				{"name":"_newVersion","type":"uint32"},
+				{"name":"_sendGasTo","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "nonce",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"nonce","type":"uint128"}
+			]
+		},
+		{
+			"name": "dePoolStrategyCode",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"dePoolStrategyCode","type":"cell"}
+			]
+		},
+		{
+			"name": "stEverVault",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"stEverVault","type":"address"}
+			]
+		},
+		{
+			"name": "strategyVersion",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"strategyVersion","type":"uint32"}
+			]
+		},
+		{
+			"name": "strategyCount",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"strategyCount","type":"uint32"}
+			]
+		},
+		{
+			"name": "factoryVersion",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"factoryVersion","type":"uint32"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"nonce","type":"uint128"},
+		{"key":2,"name":"dePoolStrategyCode","type":"cell"},
+		{"key":3,"name":"stEverVault","type":"address"}
+	],
+	"events": [
+		{
+			"name": "NewStrategyDeployed",
+			"inputs": [
+				{"name":"strategy","type":"address"},
+				{"name":"dePool","type":"address"},
+				{"name":"version","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "StrategyCodeUpdated",
+			"inputs": [
+				{"name":"prevStrategyVersion","type":"uint32"},
+				{"name":"newStrategyVersion","type":"uint32"}
+			],
+			"outputs": [
+			]
+		}
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"nonce","type":"uint128"},
+		{"name":"dePoolStrategyCode","type":"cell"},
+		{"name":"stEverVault","type":"address"},
+		{"name":"owner","type":"address"},
+		{"name":"strategyVersion","type":"uint32"},
+		{"name":"strategyCount","type":"uint32"},
+		{"name":"factoryVersion","type":"uint32"}
+	]
+}

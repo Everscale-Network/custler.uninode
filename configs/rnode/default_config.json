@@ -80,5 +80,5 @@
     "enable_for_shard_state_persistent": true
   },
   "restore_db": true,
-  "low_memory_mode": false
+  "low_memory_mode": true
 }
