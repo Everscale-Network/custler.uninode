@@ -1,4 +1,5 @@
-# Universal scripts set 
+# Universal scripts set - DEPRECATED
+## **Use https://github.com/Everscale-Network/main.evs.dev instead**
 #### - Support both Rust and C++ nodes
 #### - Support both DePool and msig validations  
 #### - Support both fift and solidity electors
